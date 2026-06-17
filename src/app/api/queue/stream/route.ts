@@ -18,7 +18,7 @@ export async function GET() {
       const onUpdate = () => {
         try {
           controller.enqueue(encoder.encode("event: update\ndata: {}\n\n"));
-        } catch (e) {
+        } catch {
           // Stream might be closed
         }
       };
@@ -29,7 +29,7 @@ export async function GET() {
         try {
           // Keep SSE connection alive (comments are ignored by clients)
           controller.enqueue(encoder.encode(":\n\n"));
-        } catch (e) {
+        } catch {
           // Stream might be closed
         }
       }, 15000);
