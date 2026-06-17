@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   BarChart3,
   TrendingUp,
   Users,
   Clock,
-  Download,
   Activity,
   PieChart as PieIcon,
   LineChart as LineIcon,
@@ -21,7 +20,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   LineChart,
   Line,
   PieChart,
