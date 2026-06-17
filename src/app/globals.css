@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  /* Natural Tones - Emerald Palette */
+  --color-sefaz-light: #f0fdf4;
+  --color-sefaz-medium: #10b981;
+  --color-sefaz-dark: #065f46;
+  --color-sefaz-accent: #059669;
+  --color-sefaz-text: #064e3b;
+}
+
+:root {
+  background-color: var(--color-sefaz-light);
+  color: var(--color-sefaz-text);
+  
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-sefaz-light);
+  color: var(--color-sefaz-text);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 60px rgba(5, 150, 105, 0.25);
+}
+
+.shadow-glow-sm {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.slide-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 40s linear infinite;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d1fae5;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a7f3d0;
+}

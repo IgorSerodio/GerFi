@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gerfi-postgres
+    environment:
+      POSTGRES_USER: gerfi
+      POSTGRES_PASSWORD: gerfi_password
+      POSTGRES_DB: gerfi_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
