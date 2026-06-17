@@ -1,10 +1,31 @@
 import { pool } from "@/infra/database";
-import { Ticket, TvSettings } from "./types";
+import { Ticket, TvSettings, User } from "./types";
+
+interface DbTicketRow {
+  id: string;
+  type: string;
+  category_name: string;
+  priority: "Normal" | "Prioritário";
+  status: "pending" | "calling" | "completed";
+  created_at: Date;
+  called_at?: Date | null;
+  completed_at?: Date | null;
+  attendant?: string | null;
+  guiche?: string | null;
+  observation?: string | null;
+}
+
+interface DbTvSettingsRow {
+  id: number;
+  mode: "live" | "files";
+  live_url: string;
+  uploaded_files: string[] | string | null;
+}
 
 /**
  * Converte as linhas do banco (snake_case) para o formato do TypeScript (camelCase)
  */
-function mapTicketRow(row: any): Ticket {
+function mapTicketRow(row: DbTicketRow): Ticket {
   return {
     id: row.id,
     type: row.type,
@@ -12,20 +33,30 @@ function mapTicketRow(row: any): Ticket {
     priority: row.priority,
     status: row.status,
     createdAt: row.created_at?.toISOString() || new Date().toISOString(),
-    calledAt: row.called_at?.toISOString(),
-    completedAt: row.completed_at?.toISOString(),
+    calledAt: row.called_at?.toISOString() || undefined,
+    completedAt: row.completed_at?.toISOString() || undefined,
     attendant: row.attendant || undefined,
     guiche: row.guiche || undefined,
     observation: row.observation || undefined,
   };
 }
 
-function mapTvSettingsRow(row: any): TvSettings {
+function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
+  let uploadedFiles: string[] = [];
+  if (Array.isArray(row.uploaded_files)) {
+    uploadedFiles = row.uploaded_files;
+  } else if (typeof row.uploaded_files === "string") {
+    try {
+      uploadedFiles = JSON.parse(row.uploaded_files);
+    } catch {
+      uploadedFiles = [];
+    }
+  }
   return {
     id: row.id,
     mode: row.mode,
     liveUrl: row.live_url,
-    uploadedFiles: row.uploaded_files || [],
+    uploadedFiles,
   };
 }
 
@@ -198,7 +229,7 @@ export async function forwardTicket(
     );
 
     // Criar o novo ID adicionando 'E' (ou incrementando a contagem de encaminhados se já possuir 'E')
-    let nextId = `${original.id}E`;
+    const nextId = `${original.id}E`;
     
     // Inserir o novo ticket já em status 'calling' para chamar diretamente na TV
     const newRes = await client.query(
@@ -248,12 +279,11 @@ export async function updateTvSettings(
   );
   return mapTvSettingsRow(rows[0]);
 }
-
 /**
  * Retorna a lista completa de servidores/usuários cadastrados
  */
-export async function getUsers(): Promise<any[]> {
-  const { rows } = await pool.query(
+export async function getUsers(): Promise<User[]> {
+  const { rows } = await pool.query<User>(
     `SELECT id, name, role, guiche, matricula, cpf, email, username, services, blocked 
      FROM users 
      ORDER BY name ASC`
@@ -264,9 +294,9 @@ export async function getUsers(): Promise<any[]> {
 /**
  * Cria um novo servidor no banco
  */
-export async function createUser(userData: any): Promise<any> {
+export async function createUser(userData: Omit<User, "id">): Promise<User> {
   const { name, role, guiche, matricula, cpf, email, username, password, services } = userData;
-  const { rows } = await pool.query(
+  const { rows } = await pool.query<User>(
     `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE)
      RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
@@ -278,11 +308,11 @@ export async function createUser(userData: any): Promise<any> {
 /**
  * Atualiza um servidor existente
  */
-export async function updateUser(id: number, userData: any): Promise<any> {
+export async function updateUser(id: number, userData: Partial<User>): Promise<User> {
   const { name, role, guiche, matricula, cpf, email, username, services, password } = userData;
   
   if (password) {
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<User>(
       `UPDATE users
        SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9
        WHERE id = $10
@@ -291,7 +321,7 @@ export async function updateUser(id: number, userData: any): Promise<any> {
     );
     return rows[0];
   } else {
-    const { rows } = await pool.query(
+    const { rows } = await pool.query<User>(
       `UPDATE users
        SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8
        WHERE id = $9
@@ -313,8 +343,8 @@ export async function deleteUser(id: number): Promise<boolean> {
 /**
  * Bloqueia/Desbloqueia um servidor
  */
-export async function toggleBlockUser(id: number): Promise<any> {
-  const { rows } = await pool.query(
+export async function toggleBlockUser(id: number): Promise<User> {
+  const { rows } = await pool.query<User>(
     `UPDATE users 
      SET blocked = NOT blocked 
      WHERE id = $1 
@@ -323,4 +353,3 @@ export async function toggleBlockUser(id: number): Promise<any> {
   );
   return rows[0];
 }
-

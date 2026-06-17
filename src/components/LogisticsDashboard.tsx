@@ -54,18 +54,20 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     setIsLoading(true);
     const res = await getLogisticsDashboardDataAction(range, metric);
     if (res.success && res.data) {
-      setData(res.data as any);
+      setData(res.data as DashboardData);
     }
     setIsLoading(false);
-  };
+  }, [range, metric]);
 
   useEffect(() => {
-    fetchData();
-  }, [range, metric]);
+    setTimeout(() => {
+      fetchData();
+    }, 0);
+  }, [fetchData]);
 
   // Sincronização em tempo real via Server-Sent Events (SSE)
   useEffect(() => {
@@ -76,13 +78,15 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
     };
 
     eventSource.addEventListener("update", () => {
-      fetchData();
+      setTimeout(() => {
+        fetchData();
+      }, 0);
     });
 
     return () => {
       eventSource.close();
     };
-  }, [range, metric]);
+  }, [fetchData]);
 
   const COLORS = ["#10b981", "#3b82f6", "#6366f1", "#94a3b8"];
 
@@ -434,7 +438,17 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   );
 }
 
-function StatCard({ icon, value, label, color }: { icon: any; value: any; label: string; color: string }) {
+function StatCard({
+  icon,
+  value,
+  label,
+  color,
+}: {
+  icon: React.ReactNode;
+  value: string | number;
+  label: string;
+  color: string;
+}) {
   return (
     <div className="bg-white p-6 rounded-[32px] border border-emerald-100 shadow-sm flex items-center gap-6 group hover:shadow-xl hover:shadow-emerald-950/5 transition-all">
       <div
@@ -452,7 +466,17 @@ function StatCard({ icon, value, label, color }: { icon: any; value: any; label:
   );
 }
 
-function ChartTypeBtn({ active, onClick, icon, title }: { active: boolean; onClick: () => void; icon: any; title: string }) {
+function ChartTypeBtn({
+  active,
+  onClick,
+  icon,
+  title,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  title: string;
+}) {
   return (
     <button
       onClick={onClick}

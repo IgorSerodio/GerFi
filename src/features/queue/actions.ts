@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import {
   insertTicket,
   callNextTicket,
@@ -19,8 +18,12 @@ import {
 } from "./queries";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema, TvSettingsSchema } from "./schema";
 import { queueEmitter } from "@/infra/events";
-import { Ticket, TvSettings } from "./types";
+import { User } from "./types";
 import bcrypt from "bcryptjs";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 /**
  * Dispara notificação em tempo real
@@ -41,8 +44,8 @@ export async function getQueueStateAction() {
       getHistory()
     ]);
     return { success: true, data: { tickets, history } };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao carregar fila." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao carregar fila.") };
   }
 }
 
@@ -63,8 +66,8 @@ export async function issueTicketAction(payload: {
     const ticket = await insertTicket(payload.type, payload.categoryName, payload.priority);
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao emitir senha." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao emitir senha.") };
   }
 }
 
@@ -83,8 +86,8 @@ export async function callTicketAction(
     }
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao chamar senha." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao chamar senha.") };
   }
 }
 
@@ -101,8 +104,8 @@ export async function recallTicketAction(ticketId: string) {
     // Forçar a TV a re-exibir e re-tocar o áudio emitindo um sinal específico
     queueEmitter.emit("update"); // Atualiza o histórico e re-sincroniza a chamada
     return { success: true, data: ticket };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao rechamar senha." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao rechamar senha.") };
   }
 }
 
@@ -122,8 +125,8 @@ export async function finishTicketAction(ticketId: string, observation?: string)
     }
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao concluir senha." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao concluir senha.") };
   }
 }
 
@@ -147,8 +150,8 @@ export async function forwardTicketAction(
     }
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao encaminhar senha." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao encaminhar senha.") };
   }
 }
 
@@ -159,8 +162,8 @@ export async function getTvSettingsAction() {
   try {
     const settings = await getTvSettings();
     return { success: true, data: settings };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao buscar configurações da TV." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar configurações da TV.") };
   }
 }
 
@@ -181,8 +184,8 @@ export async function updateTvSettingsAction(payload: {
     const settings = await updateTvSettings(payload.mode, payload.liveUrl, payload.uploadedFiles || []);
     triggerRealTimeUpdate();
     return { success: true, data: settings };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao atualizar TV." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao atualizar TV.") };
   }
 }
 
@@ -193,41 +196,41 @@ export async function getUsersAction() {
   try {
     const users = await getUsers();
     return { success: true, data: users };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao buscar servidores." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar servidores.") };
   }
 }
 
 /**
  * Cria um usuário
  */
-export async function createUserAction(userData: any) {
+export async function createUserAction(userData: Omit<User, "id">) {
   try {
     // Hash password before saving
-    const hashedPassword = bcrypt.hashSync(userData.password, 10);
+    const hashedPassword = bcrypt.hashSync(userData.password || "", 10);
     const user = await createUser({
       ...userData,
       password: hashedPassword,
     });
     return { success: true, data: user };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao criar servidor." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao criar servidor.") };
   }
 }
 
 /**
  * Atualiza um usuário
  */
-export async function updateUserAction(id: number, userData: any) {
+export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
-    let updatedData = { ...userData };
+    const updatedData = { ...userData };
     if (userData.password) {
       updatedData.password = bcrypt.hashSync(userData.password, 10);
     }
     const user = await updateUser(id, updatedData);
     return { success: true, data: user };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao atualizar servidor." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao atualizar servidor.") };
   }
 }
 
@@ -238,8 +241,8 @@ export async function deleteUserAction(id: number) {
   try {
     const success = await deleteUser(id);
     return { success };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao excluir servidor." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao excluir servidor.") };
   }
 }
 
@@ -250,8 +253,8 @@ export async function toggleBlockUserAction(id: number) {
   try {
     const user = await toggleBlockUser(id);
     return { success: true, data: user };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao alterar bloqueio." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao alterar bloqueio.") };
   }
 }
 

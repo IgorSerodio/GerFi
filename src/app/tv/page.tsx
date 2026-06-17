@@ -100,8 +100,35 @@ export default function TVPanel() {
     }
   };
 
+  function resetIdleTimer() {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, 30000); // 30 seconds
+  }
+
+  function resetControlsTimer() {
+    setShowControls(true);
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 5000); // 5 seconds
+  }
+
+  function playAlert() {
+    try {
+      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+      audio.volume = volume;
+      audio.play().catch((e) => console.log("Audio play blocked", e));
+    } catch (e) {
+      console.log("Audio error", e);
+    }
+  }
+
   useEffect(() => {
-    refreshState();
+    setTimeout(() => {
+      refreshState();
+    }, 0);
   }, [soundEnabled]);
 
   // Sincronização SSE
@@ -109,7 +136,9 @@ export default function TVPanel() {
     const eventSource = new EventSource("/api/queue/stream");
 
     eventSource.addEventListener("update", () => {
-      refreshState();
+      setTimeout(() => {
+        refreshState();
+      }, 0);
     });
 
     return () => {
@@ -130,33 +159,10 @@ export default function TVPanel() {
     return () => clearInterval(slideTimer);
   }, [tvSettings.uploadedFiles]);
 
-  const resetIdleTimer = () => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      setIsIdle(true);
-    }, 30000); // 30 seconds
-  };
-
-  const resetControlsTimer = () => {
-    setShowControls(true);
-    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
-    controlsTimerRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 5000); // 5 seconds
-  };
-
-  const playAlert = () => {
-    try {
-      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-      audio.volume = volume;
-      audio.play().catch((e) => console.log("Audio play blocked", e));
-    } catch (e) {
-      console.log("Audio error", e);
-    }
-  };
-
   useEffect(() => {
-    resetControlsTimer();
+    setTimeout(() => {
+      resetControlsTimer();
+    }, 0);
     return () => {
       if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -492,8 +498,7 @@ export default function TVPanel() {
         <div className="flex-1 overflow-hidden relative z-10 h-full flex items-center">
           <div className="animate-marquee whitespace-nowrap text-2xl font-bold opacity-90 uppercase tracking-tight flex flex-row flex-nowrap shrink-0 items-center gap-20 w-max">
             <span className="flex items-center gap-4 text-emerald-400 shrink-0 whitespace-nowrap">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full" /> USE O PORTAL "FAZENDA
-              MUNICIPAL" PARA CONSULTAS RÁPIDAS
+              <div className="w-2 h-2 bg-emerald-500 rounded-full" /> {"USE O PORTAL \"FAZENDA MUNICIPAL\" PARA CONSULTAS RÁPIDAS"}
             </span>
             <span className="flex items-center gap-4 text-emerald-100 shrink-0 whitespace-nowrap">
               <div className="w-2 h-2 bg-white rounded-full" /> HORÁRIO DE ATENDIMENTO

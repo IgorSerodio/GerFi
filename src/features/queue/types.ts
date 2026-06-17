@@ -23,3 +23,18 @@ export interface QueueState {
   tickets: Ticket[];
   history: Ticket[];
 }
+
+export interface User {
+  id?: number;
+  name: string;
+  role: string;
+  guiche: string;
+  matricula: string;
+  cpf: string;
+  email: string;
+  username: string;
+  password?: string;
+  services?: string[];
+  blocked?: boolean;
+}
+

@@ -67,8 +67,28 @@ import {
   updateTvSettingsAction,
 } from "@/features/queue/actions";
 import { getReportsDataAction } from "@/features/reports/actions";
+import { User, TvSettings } from "@/features/queue/types";
 
 type ViewType = "menu" | "dashboard" | "reports" | "config_hub" | "config_users" | "config_tv" | "config_printer";
+
+interface ReportResultData {
+  stats: {
+    total: number;
+    avgWait: string;
+    efficiency: string;
+  };
+  categoryAggregation: Array<{ name: string; count: number; value: number }>;
+  attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
+  detailRows: Array<{
+    time: string;
+    ref: string;
+    desk: string;
+    user: string;
+    status: string;
+  }>;
+  reportType: "analytical" | "synthetic";
+  selectedModels: string[];
+}
 
 const ADVANCED_REPORTS = [
   { id: "peak_hours", label: "Horário de Pico", icon: Clock, color: "text-blue-500", bg: "bg-blue-50" },
@@ -84,12 +104,12 @@ export default function ManagementPage() {
   const [view, setView] = useState<ViewType>("menu");
   
   // States for Config - Users
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [newUser, setNewUser] = useState({
     name: "",
     role: "Atendente",
@@ -103,10 +123,11 @@ export default function ManagementPage() {
   });
 
   // States for Config - TV Settings
-  const [tvSettings, setTvSettings] = useState({
-    mode: "live" as "live" | "files",
+  const [tvSettings, setTvSettings] = useState<TvSettings>({
+    id: 1,
+    mode: "live",
     liveUrl: "",
-    uploadedFiles: [] as string[],
+    uploadedFiles: [],
   });
 
   // States for Reports
@@ -119,7 +140,7 @@ export default function ManagementPage() {
   });
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [reportResult, setReportResult] = useState<any>(null);
+  const [reportResult, setReportResult] = useState<ReportResultData | null>(null);
 
   // Success modals
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -151,21 +172,23 @@ export default function ManagementPage() {
   ];
 
   // Fetch initial configs
-  const loadConfigData = async () => {
+  const loadConfigData = React.useCallback(async () => {
     if (view === "config_users") {
       const res = await getUsersAction();
-      if (res.success && res.data) setUsers(res.data);
+      if (res.success && res.data) setUsers(res.data as User[]);
     } else if (view === "config_tv") {
       const res = await getTvSettingsAction();
       if (res.success && res.data) {
-        setTvSettings(res.data as any);
+        setTvSettings(res.data as TvSettings);
       }
     }
-  };
+  }, [view]);
 
   useEffect(() => {
-    loadConfigData();
-  }, [view]);
+    setTimeout(() => {
+      loadConfigData();
+    }, 0);
+  }, [loadConfigData]);
 
   // User Actions
   const handleUserSubmit = async (e: React.FormEvent) => {
@@ -191,7 +214,7 @@ export default function ManagementPage() {
     }
   };
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: User) => {
     setNewUser({
       name: user.name,
       role: user.role,
@@ -203,18 +226,18 @@ export default function ManagementPage() {
       password: "",
       services: user.services || [],
     });
-    setEditingUserId(user.id);
+    setEditingUserId(user.id || null);
     setIsEditingUser(true);
     setShowUserModal(true);
   };
 
-  const handleDeleteUserClick = (user: any) => {
+  const handleDeleteUserClick = (user: User) => {
     setUserToDelete(user);
     setShowDeleteConfirm(true);
   };
 
   const confirmDeleteUser = async () => {
-    if (userToDelete) {
+    if (userToDelete && userToDelete.id !== undefined) {
       const res = await deleteUserAction(userToDelete.id);
       if (res.success) {
         triggerSuccess("Servidor excluído!");
@@ -418,7 +441,7 @@ export default function ManagementPage() {
 
               <MenuCard
                 onClick={() => {
-                  if (session && (session.user as any).role === "Admin") {
+                  if (session && session.user.role === "Admin") {
                     setView("config_hub");
                   } else {
                     alert("Acesso restrito para administradores.");
@@ -428,7 +451,7 @@ export default function ManagementPage() {
                 description="Ajuste fino do sistema de filas, parâmetros da TV e servidores de atendimento."
                 icon={<Settings size={32} />}
                 color="bg-slate-700"
-                disabled={!session || (session.user as any).role !== "Admin"}
+                disabled={!session || session.user.role !== "Admin"}
               />
             </motion.div>
           )}
@@ -672,7 +695,7 @@ export default function ManagementPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-emerald-50">
-                            {reportResult.detailRows.map((row: any, i: number) => (
+                            {reportResult.detailRows.map((row, i: number) => (
                               <tr key={i} className="hover:bg-emerald-50/30">
                                 <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
                                   {row.time}
@@ -778,7 +801,7 @@ export default function ManagementPage() {
                   <select
                     value={tvSettings.mode}
                     onChange={(e) =>
-                      setTvSettings({ ...tvSettings, mode: e.target.value as any })
+                      setTvSettings({ ...tvSettings, mode: e.target.value as "live" | "files" })
                     }
                     className="w-full p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold"
                   >
@@ -904,7 +927,7 @@ export default function ManagementPage() {
                         </td>
                         <td className="px-6 py-4 text-right space-x-2">
                           <button
-                            onClick={() => handleToggleBlock(u.id)}
+                            onClick={() => u.id !== undefined && handleToggleBlock(u.id)}
                             className={`p-2 rounded-lg cursor-pointer ${
                               u.blocked ? "text-emerald-600 hover:bg-emerald-50" : "text-amber-600 hover:bg-amber-50"
                             }`}

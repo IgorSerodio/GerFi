@@ -17,7 +17,7 @@ try {
   if (limit) {
     maxConnections = parseInt(limit, 10);
   }
-} catch (e) {
+} catch {
   // Fallback if DATABASE_URL is not a standard URL format
 }
 

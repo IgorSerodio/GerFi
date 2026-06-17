@@ -7,18 +7,28 @@ import {
   getCategoryRanking,
   getAttendantRanking,
   ChartPoint,
-  CategoryRank,
-  AttendantRank,
 } from "./queries";
 import { pool } from "@/infra/database";
+
+interface DetailRow {
+  time: string;
+  ref: string;
+  desk: string;
+  user: string;
+  status: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export async function getLogisticsDashboardDataAction(
   range: "today" | "week" | "month" | "year",
   metric: "tickets" | "wait_time" | "atendimentos"
 ) {
   try {
-    let startDate = new Date();
-    let endDate = new Date();
+    const startDate = new Date();
+    const endDate = new Date();
 
     if (range === "today") {
       startDate.setHours(0, 0, 0, 0);
@@ -76,8 +86,8 @@ export async function getLogisticsDashboardDataAction(
         attendantRanking,
       },
     };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao carregar métricas." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao carregar métricas.") };
   }
 }
 
@@ -103,13 +113,13 @@ export async function getReportsDataAction(payload: {
     ]);
 
     // Busca detalhada dos tickets caso seja relatório analítico
-    let detailRows: any[] = [];
+    let detailRows: DetailRow[] = [];
     if (reportType === "analytical") {
       let queryStr = `
         SELECT * FROM tickets 
         WHERE created_at BETWEEN $1 AND $2
       `;
-      const params: any[] = [start, end];
+      const params: (Date | string)[] = [start, end];
 
       if (service !== "all") {
         params.push(service.toUpperCase());
@@ -142,7 +152,7 @@ export async function getReportsDataAction(payload: {
         selectedModels,
       },
     };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Erro ao gerar relatório." };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao gerar relatório.") };
   }
 }

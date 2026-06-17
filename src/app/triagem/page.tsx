@@ -21,15 +21,42 @@ import {
 import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";
 import { Ticket as TicketType } from "@/features/queue/types";
 
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  color: string;
+}
+
+type SearchResult =
+  | {
+      id: string;
+      status: "pending";
+      ahead: number;
+      ticket: TicketType;
+    }
+  | {
+      id: string;
+      status: "calling" | "completed";
+      guiche?: string;
+      attendant?: string;
+      ticket: TicketType;
+    }
+  | {
+      id: string;
+      status: "not_found";
+    };
+
 export default function Triage() {
   const [issuedTicket, setIssuedTicket] = useState<TicketType | null>(null);
   const [printing, setPrinting] = useState(false);
   const [recentIssues, setRecentIssues] = useState<TicketType[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [queue, setQueue] = useState<TicketType[]>([]);
   const [history, setHistory] = useState<TicketType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
   const [printerStatus, setPrinterStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
@@ -62,7 +89,9 @@ export default function Triage() {
   };
 
   useEffect(() => {
-    refreshState();
+    setTimeout(() => {
+      refreshState();
+    }, 0);
   }, []);
 
   // Sincronização em tempo real via SSE
@@ -70,7 +99,9 @@ export default function Triage() {
     const eventSource = new EventSource("/api/queue/stream");
 
     eventSource.addEventListener("update", () => {
-      refreshState();
+      setTimeout(() => {
+        refreshState();
+      }, 0);
     });
 
     return () => {
@@ -78,7 +109,7 @@ export default function Triage() {
     };
   }, []);
 
-  const selectService = (cat: any) => {
+  const selectService = (cat: Category) => {
     setSelectedCategory(cat);
   };
 
@@ -126,7 +157,7 @@ export default function Triage() {
     if (historyItem) {
       setSearchResult({
         id: query,
-        status: historyItem.status,
+        status: historyItem.status as "calling" | "completed",
         guiche: historyItem.guiche,
         attendant: historyItem.attendant,
         ticket: historyItem,
@@ -187,7 +218,7 @@ export default function Triage() {
                     <div className="mb-2">
                       <span className="text-2xl font-black">{searchResult.id}</span>
                       <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">
-                        {searchResult.ticket?.categoryName || "Senha"}
+                        {searchResult.status !== "not_found" ? searchResult.ticket.categoryName : "Senha não encontrada"}
                       </p>
                     </div>
 
@@ -607,7 +638,7 @@ export default function Triage() {
                       <div
                         key={i}
                         className="h-full bg-black mx-[1px]"
-                        style={{ width: Math.random() > 0.5 ? "2px" : "1px" }}
+                        style={{ width: (i % 3 === 0 || i % 7 === 0) ? "2px" : "1px" }}
                       />
                     ))}
                   </div>

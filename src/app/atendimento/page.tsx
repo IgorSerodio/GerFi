@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import {
-  User,
   Monitor,
   Hash,
   PhoneForwarded,
@@ -27,23 +26,11 @@ import { Ticket } from "@/features/queue/types";
 
 export default function Attendant() {
   const { data: session } = useSession();
+  
   const [currentAttendant, setCurrentAttendant] = useState({
     name: "Carlos Andrade",
     guiche: "Guichê 03",
   });
-  
-  // Sincronizar o atendente com a sessão logada do NextAuth
-  useEffect(() => {
-    if (session?.user) {
-      setCurrentAttendant({
-        name: session.user.name || "Atendente",
-        guiche: (session.user as any).guiche || "Guichê 01",
-      });
-      // Inicialmente permite todos os serviços do usuário
-      setAllowedServices((session.user as any).services || []);
-    }
-  }, [session]);
-
   const [showGuicheModal, setShowGuicheModal] = useState(false);
   const [allowedServices, setAllowedServices] = useState<string[]>([]);
   const [showServiceConfig, setShowServiceConfig] = useState(false);
@@ -51,16 +38,31 @@ export default function Attendant() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [observation, setObservation] = useState("");
   const [ticketToFinish, setTicketToFinish] = useState<string | null>(null);
-  const [selectedHistoryTicket, setSelectedHistoryTicket] = useState<any>(null);
+  const [selectedHistoryTicket, setSelectedHistoryTicket] = useState<Ticket | null>(null);
   const [queue, setQueue] = useState<Ticket[]>([]);
   const [history, setHistory] = useState<Ticket[]>([]);
-  const [attendants, setAttendants] = useState<string[]>([
+
+  const attendants = [
     "Guichê 01",
     "Guichê 02",
     "Guichê 03",
     "Guichê 04",
     "Guichê 05",
-  ]);
+  ];
+  
+  // Sincronizar o atendente com a sessão logada do NextAuth
+  useEffect(() => {
+    if (session?.user) {
+      setTimeout(() => {
+        setCurrentAttendant({
+          name: session.user.name || "Atendente",
+          guiche: session.user.guiche || "Guichê 01",
+        });
+        // Inicialmente permite todos os serviços do usuário
+        setAllowedServices(session.user.services || []);
+      }, 0);
+    }
+  }, [session]);
 
   const categories = [
     { id: "IPTU", name: "IPTU" },
@@ -90,7 +92,9 @@ export default function Attendant() {
   };
 
   useEffect(() => {
-    refreshState();
+    setTimeout(() => {
+      refreshState();
+    }, 0);
   }, []);
 
   // SSE updates subscription
@@ -98,7 +102,9 @@ export default function Attendant() {
     const eventSource = new EventSource("/api/queue/stream");
 
     eventSource.addEventListener("update", () => {
-      refreshState();
+      setTimeout(() => {
+        refreshState();
+      }, 0);
     });
 
     return () => {
@@ -624,7 +630,9 @@ export default function Attendant() {
                               Chamado às
                             </p>
                             <p className="text-lg font-black text-sefaz-dark">
-                              {new Date(selectedHistoryTicket.calledAt).toLocaleTimeString()}
+                              {selectedHistoryTicket.calledAt
+                                ? new Date(selectedHistoryTicket.calledAt).toLocaleTimeString()
+                                : "-"}
                             </p>
                           </div>
                           <div className="space-y-1">
