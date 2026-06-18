@@ -224,7 +224,10 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
       <div className="flex-1 flex flex-row items-stretch relative z-10">
         {/* Left: Current Ticket Called (Main Visual) */}
         <div className="flex-1 flex flex-col h-full justify-between">
-          <div className="flex-1 bg-white rounded-[60px] flex flex-col items-center justify-center border-b-[12px] border-emerald-500 shadow-2xl relative z-20 overflow-hidden">
+          <div
+            className="flex-1 bg-white rounded-[60px] flex flex-col items-center justify-center border-b-[12px] border-emerald-500 shadow-2xl relative z-20 overflow-hidden min-h-0 w-full"
+            style={{ containerType: "size" }}
+          >
             {/* Background Decorative patterns */}
             <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
               <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
@@ -239,27 +242,25 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 1.1, y: -50 }}
                   transition={{ type: "spring", damping: 15 }}
-                  className="flex flex-col items-center justify-center w-full relative z-10 px-20 text-center"
+                  className="flex flex-col items-center justify-center w-full h-full relative z-10 text-center"
+                  style={{ padding: "4cqh 8cqh", gap: "2.5cqh" }}
                 >
                   <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="flex items-center gap-4 mb-8"
+                    className="flex items-center justify-center font-black uppercase tracking-[0.4em] drop-shadow-sm text-emerald-900"
+                    style={{ fontSize: "3.2cqh", gap: "1.5cqh" }}
                   >
-                    <div className="w-4 h-4 bg-red-500 rounded-full animate-ping" />
-                    <span className="text-emerald-900 font-black uppercase tracking-[0.4em] text-2xl drop-shadow-sm">
-                      SENHA CHAMADA
-                    </span>
+                    <div className="bg-red-500 rounded-full animate-ping" style={{ width: "2cqh", height: "2cqh" }} />
+                    <span>SENHA CHAMADA</span>
                   </motion.div>
 
-                  <div className="relative">
-                    <div className="text-[20rem] font-black leading-none text-emerald-950 tracking-tighter drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]">
-                      {currentCall.id}
-                    </div>
+                  <div className="relative leading-none text-emerald-950 font-black tracking-tighter drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]" style={{ fontSize: "28cqh" }}>
+                    {currentCall.id}
                   </div>
 
-                  <div className="w-full max-w-lg h-1.5 bg-emerald-100 rounded-full my-8 overflow-hidden">
+                  <div className="w-full max-w-lg bg-emerald-100 rounded-full overflow-hidden" style={{ height: "1.2cqh", marginTop: "0.5cqh", marginBottom: "1.5cqh" }}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
@@ -268,26 +269,26 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                     />
                   </div>
 
-                  <div className="flex gap-16 items-center">
+                  <div className="flex items-center" style={{ gap: "6cqh" }}>
                     <div className="flex flex-col items-center">
-                      <span className="text-xs font-black text-emerald-600/40 uppercase tracking-[0.3em] mb-4">
+                      <span className="font-black text-emerald-600/40 uppercase tracking-[0.3em]" style={{ fontSize: "1.8cqh", marginBottom: "0.6cqh" }}>
                         DIRIJA-SE AO
                       </span>
-                      <div className="flex items-baseline gap-4 bg-emerald-950 text-white px-12 py-6 rounded-[40px] shadow-xl">
-                        <span className="text-4xl font-light tracking-widest opacity-60">GUICHÊ</span>
-                        <span className="text-9xl font-black leading-none tracking-tighter">
+                      <div className="flex items-baseline bg-emerald-950 text-white shadow-xl" style={{ gap: "1cqh", padding: "1.2cqh 4cqh", borderRadius: "3cqh" }}>
+                        <span className="font-light tracking-widest opacity-60" style={{ fontSize: "2.5cqh" }}>GUICHÊ</span>
+                        <span className="font-black leading-none tracking-tighter" style={{ fontSize: "9cqh" }}>
                           {currentCall.guiche?.split(" ")[1] || "01"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="h-24 w-px bg-emerald-100" />
+                    <div className="w-px bg-emerald-100" style={{ height: "10cqh" }} />
 
                     <div className="text-left">
-                      <span className="text-xs font-black text-emerald-600/40 uppercase tracking-[0.3em] mb-2 block">
+                      <span className="font-black text-emerald-600/40 uppercase tracking-[0.3em] block" style={{ fontSize: "1.8cqh", marginBottom: "0.6cqh" }}>
                         ATENDENTE
                       </span>
-                      <h3 className="text-5xl font-black text-emerald-950 uppercase tracking-tighter max-w-sm">
+                      <h3 className="font-black text-emerald-950 uppercase tracking-tighter max-w-sm leading-tight" style={{ fontSize: "4.5cqh" }}>
                         {currentCall.attendant}
                       </h3>
                     </div>
