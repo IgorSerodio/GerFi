@@ -192,13 +192,24 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
           </div>
 
           <nav className="flex-1 space-y-2">
-            <div className="p-4 rounded-2xl flex items-center gap-4 bg-white text-sefaz-dark shadow-lg cursor-pointer">
+            <button
+              onClick={() => setShowServiceConfig(false)}
+              className={`w-full text-left p-4 rounded-2xl flex items-center gap-4 transition-all cursor-pointer ${
+                !showServiceConfig
+                  ? "bg-white text-sefaz-dark shadow-lg"
+                  : "hover:bg-white/10 text-emerald-100"
+              }`}
+            >
               <Monitor size={20} />
               <span className="font-bold text-sm tracking-tight">Painel Principal</span>
-            </div>
+            </button>
             <button
               onClick={() => setShowServiceConfig(true)}
-              className="w-full text-left p-4 rounded-2xl flex items-center gap-4 hover:bg-white/10 cursor-pointer text-emerald-100"
+              className={`w-full text-left p-4 rounded-2xl flex items-center gap-4 transition-all cursor-pointer ${
+                showServiceConfig
+                  ? "bg-white text-sefaz-dark shadow-lg"
+                  : "hover:bg-white/10 text-emerald-100"
+              }`}
             >
               <Hash size={20} />
               <span className="font-bold text-sm tracking-tight">Meus Serviços</span>
