@@ -191,7 +191,7 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
       className="h-screen w-full bg-sefaz-light flex flex-col p-4 md:p-8 gap-4 md:gap-8 font-display overflow-hidden select-none"
     >
       {/* Header: Branding & Clock */}
-      <header className="flex justify-between items-center bg-white rounded-[30px] p-4 shadow-xl border border-emerald-50/50 h-20 shrink-0">
+      <header className="flex justify-between items-stretch bg-white rounded-[30px] pl-6 pr-0 shadow-xl border border-emerald-50/50 h-20 shrink-0">
         <div className="flex items-center gap-4">
           <NextLink
             href="/"
@@ -207,15 +207,10 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
               Secretaria da Fazenda Municipal
             </p>
           </div>
-          <img
-            src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://sefaz.caruaru.pe.gov.br"
-            alt="QR Code"
-            className="w-12 h-12 shrink-0 object-contain"
-          />
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="text-right">
+        <div className="flex items-center gap-6 h-full">
+          <div className="text-right py-4">
             <div className="text-4xl font-black text-emerald-900 tracking-tighter tabular-nums leading-none">
               {time ? time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
             </div>
@@ -225,6 +220,28 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                 day: "numeric",
                 month: "long",
               }) : "..."}
+            </div>
+          </div>
+
+          {/* Área do QR code recriada à direita do relógio, alinhada com as bordas do header */}
+          <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 px-6 flex items-center justify-center text-white relative overflow-hidden group border-l border-emerald-800/20 h-full rounded-r-[30px] rounded-l-none shrink-0">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16" />
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="bg-white p-1 rounded-lg shadow-glow-sm transform group-hover:scale-105 transition-transform shrink-0">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://sefaz.caruaru.pe.gov.br"
+                  alt="QR Code"
+                  className="w-12 h-12"
+                />
+              </div>
+              <div className="shrink-0 text-left">
+                <p className="text-[8px] uppercase font-black tracking-[0.2em] text-emerald-400 leading-none">
+                  ATENDIMENTO
+                </p>
+                <p className="text-[8px] uppercase font-black tracking-[0.2em] text-white leading-none mt-1">
+                  VIRTUAL
+                </p>
+              </div>
             </div>
           </div>
         </div>
