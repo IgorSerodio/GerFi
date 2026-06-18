@@ -179,6 +179,11 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
 
   const showMiddleBar = !soundEnabled || (isIdle && showControls);
 
+  // Limitar histórico aos 5 mais recentes e duplicar para loop scroll
+  const recentTickets = history.slice(isIdle ? 0 : 1, isIdle ? 5 : 6);
+  const duplicatedTickets = [...recentTickets, ...recentTickets];
+  const scrollDuration = recentTickets.length * 4;
+
   return (
     <div
       onMouseMove={resetControlsTimer}
@@ -221,9 +226,9 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
       </header>
 
       {/* Main Content Grid */}
-      <div className="flex-1 flex flex-row items-stretch relative z-10">
+      <div className="flex-1 flex flex-row items-stretch relative z-10 min-h-0">
         {/* Left: Current Ticket Called (Main Visual) */}
-        <div className="flex-1 flex flex-col h-full justify-between">
+        <div className="flex-1 flex flex-col h-full justify-between min-h-0">
           <div
             className="flex-1 bg-white rounded-[60px] flex flex-col items-center justify-center border-b-[12px] border-emerald-500 shadow-2xl relative z-20 overflow-hidden min-h-0 w-full"
             style={{ containerType: "size" }}
@@ -334,23 +339,33 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                           alt="Default Background"
                         />
                       </div>
-                      <div className="relative z-20 text-center space-y-12 px-20">
+                      <div 
+                        className="relative z-20 text-center flex flex-col items-center justify-center w-full h-full"
+                        style={{ padding: "4cqh 8cqh", gap: "4cqh" }}
+                      >
                         <AnimatePresence mode="wait">
                           <motion.div
                             key={slideIndex}
                             initial={{ y: 30, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -30, opacity: 0 }}
-                            className="space-y-10"
+                            className="flex flex-col items-center justify-center w-full"
+                            style={{ gap: "3cqh" }}
                           >
-                            <div className="w-24 h-2 bg-emerald-500 mx-auto rounded-full mb-8" />
-                            <h2 className="text-8xl font-black text-white tracking-tighter leading-none drop-shadow-2xl uppercase">
+                            <div className="bg-emerald-500 rounded-full" style={{ width: "12cqh", height: "1cqh" }} />
+                            <h2 
+                              className="font-black text-white tracking-tighter leading-none drop-shadow-2xl uppercase max-w-4xl"
+                              style={{ fontSize: "10cqh" }}
+                            >
                               {defaultSlides[slideIndex].title}
                             </h2>
-                            <p className="text-4xl text-emerald-100/80 font-light leading-relaxed max-w-5xl mx-auto italic tracking-tight">
+                            <p 
+                              className="text-emerald-100/80 font-light leading-relaxed max-w-5xl mx-auto italic tracking-tight"
+                              style={{ fontSize: "4.5cqh" }}
+                            >
                               {defaultSlides[slideIndex].text}
                             </p>
-                            <div className="w-24 h-2 bg-emerald-500/20 mx-auto rounded-full mt-8" />
+                            <div className="bg-emerald-500/20 rounded-full" style={{ width: "12cqh", height: "1cqh", marginTop: "1cqh" }} />
                           </motion.div>
                         </AnimatePresence>
                       </div>
@@ -419,8 +434,8 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
         </div>
 
         {/* Right: History & Sidebranding */}
-        <div className="w-1/3 shrink-0 flex flex-col h-full gap-8">
-          <div className="flex-1 bg-white rounded-[60px] p-10 flex flex-col shadow-2xl border-t-[10px] border-emerald-500 relative z-20">
+        <div className="w-1/3 shrink-0 flex flex-col h-full gap-8 min-h-0">
+          <div className="flex-1 bg-white rounded-[60px] p-10 flex flex-col shadow-2xl border-t-[10px] border-emerald-500 relative z-20 min-h-0">
             <h2 className="text-emerald-950 font-black uppercase tracking-[0.3em] text-sm mb-12 flex items-center gap-4">
               <div className="p-2.5 bg-emerald-500 text-white rounded-2xl">
                 <Clock className="h-5 w-5" />
@@ -428,43 +443,55 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
               Últimas Chamadas
             </h2>
 
-            <div className="flex-1 space-y-5">
-              <AnimatePresence initial={false}>
-                {history.slice(isIdle ? 0 : 1, 6).map((ticket, i) => (
-                  <motion.div
-                    key={`hist-${ticket.id}`}
-                    layout
-                    initial={{ x: 100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 - i * 0.15 }}
-                    className="relative group"
-                  >
-                    <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
-                      <div className="flex items-center gap-6">
-                        <div className="text-6xl font-black text-emerald-950 tracking-tighter leading-none">
-                          {ticket.id}
-                        </div>
-                        <div className="h-10 w-px bg-emerald-200" />
-                        <div>
-                          <div className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em] mb-1 opacity-50 block">
-                            GUICHÊ
+            <div className="flex-1 relative overflow-hidden min-h-0 w-full mt-4">
+              {/* Fade gradients */}
+              <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+
+              {recentTickets.length > 0 ? (
+                <div
+                  className="animate-vertical-marquee"
+                  style={{
+                    "--marquee-duration": `${scrollDuration}s`,
+                  } as React.CSSProperties}
+                >
+                  {duplicatedTickets.map((ticket, i) => (
+                    <div
+                      key={`hist-${ticket.id}-${i}`}
+                      className="relative group shrink-0 mb-5"
+                    >
+                      <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
+                        <div className="flex items-center gap-6">
+                          <div className="text-6xl font-black text-emerald-950 tracking-tighter leading-none">
+                            {ticket.id}
                           </div>
-                          <div className="text-2xl font-black text-emerald-950 uppercase tracking-tighter">
-                            #{ticket.guiche?.split(" ")[1] || "01"}
+                          <div className="h-10 w-px bg-emerald-200" />
+                          <div>
+                            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em] mb-1 opacity-50 block">
+                              GUICHÊ
+                            </div>
+                            <div className="text-2xl font-black text-emerald-950 uppercase tracking-tighter">
+                              #{ticket.guiche?.split(" ")[1] || "01"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[20px] font-black text-emerald-600 tabular-nums tracking-tighter">
-                          {new Date(ticket.calledAt || "").toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <div className="text-right">
+                          <div className="text-[20px] font-black text-emerald-600 tabular-nums tracking-tighter">
+                            {new Date(ticket.calledAt || "").toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex h-full items-center justify-center text-emerald-600/40 font-bold uppercase tracking-widest text-sm">
+                  Nenhuma chamada recente
+                </div>
+              )}
             </div>
             
             {/* Área do QR code */}
