@@ -42,7 +42,7 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
     }
 
     const separator = embedUrl.includes("?") ? "&" : "?";
-    return `${embedUrl}${separator}autoplay=1&mute=0&controls=0&rel=0&modestbranding=1`;
+    return `${embedUrl}${separator}autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
   };
 
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -320,7 +320,7 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                     <div className="w-full h-full">
                       <iframe
                         src={getEmbedUrl(tvSettings.liveUrl)}
-                        className="w-full h-full pointer-events-none"
+                        className="w-full h-full"
                         allow="autoplay; encrypted-media"
                       />
                     </div>
