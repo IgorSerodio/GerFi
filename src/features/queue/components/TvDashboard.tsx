@@ -21,6 +21,14 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
   const [showControls, setShowControls] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [tvSettings, setTvSettings] = useState<TvSettings>(initialSettings);
+  const [time, setTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const clockTimer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
 
   const getEmbedUrl = (url: string) => {
     if (!url) return "";
@@ -199,14 +207,14 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
         <div className="flex items-center gap-6">
           <div className="text-right">
             <div className="text-4xl font-black text-emerald-900 tracking-tighter tabular-nums leading-none">
-              {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              {time ? time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
             </div>
             <div className="text-emerald-500 font-black uppercase tracking-widest text-[8px] mt-0.5 pr-1">
-              {new Date().toLocaleDateString("pt-BR", {
+              {time ? time.toLocaleDateString("pt-BR", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
-              })}
+              }) : "..."}
             </div>
           </div>
         </div>
