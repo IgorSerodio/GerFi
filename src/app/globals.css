@@ -53,7 +53,7 @@ body {
 }
 
 .animate-marquee {
-  display: inline-block;
+  display: inline-flex;
   animation: marquee 40s linear infinite;
 }
 
