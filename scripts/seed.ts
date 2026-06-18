@@ -44,7 +44,7 @@ async function main() {
     `, [
       ADMIN_NAME,
       "Admin",
-      "-",
+      null,
       ADMIN_MATRICULA,
       ADMIN_CPF,
       "admin@caruaru.pe.gov.br",

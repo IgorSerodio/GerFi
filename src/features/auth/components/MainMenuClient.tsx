@@ -178,7 +178,8 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           <div className="text-right">
             <p className="text-xs font-black text-sefaz-dark">{session.user?.name}</p>
             <p className="text-[9px] font-bold text-sefaz-accent uppercase tracking-wider">
-              {session.user.role} - {session.user.guiche}
+              {session.user.role}
+              {session.user.guiche && session.user.guiche !== "-" && ` - ${session.user.guiche}`}
             </p>
           </div>
           <button

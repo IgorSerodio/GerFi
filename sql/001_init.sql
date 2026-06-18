@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   role VARCHAR(50) NOT NULL, -- 'Atendente', 'Gerente', 'Triador', 'Admin'
-  guiche VARCHAR(50) NOT NULL,
+  guiche VARCHAR(50),
   matricula VARCHAR(50) UNIQUE NOT NULL,
   cpf VARCHAR(20) UNIQUE NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,

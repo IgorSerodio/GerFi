@@ -28,7 +28,7 @@ export interface User {
   id?: number;
   name: string;
   role: string;
-  guiche: string;
+  guiche?: string | null;
   matricula: string;
   cpf: string;
   email: string;
