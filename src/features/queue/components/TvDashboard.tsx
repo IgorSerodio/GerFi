@@ -285,7 +285,7 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                   </motion.div>
 
                   <div className="relative leading-none text-emerald-950 font-black tracking-tighter drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]" style={{ fontSize: "28cqh" }}>
-                    {currentCall.id}
+                    {currentCall.ticketNumber}
                   </div>
 
                   <div className="w-full max-w-lg bg-emerald-100 rounded-full overflow-hidden" style={{ height: "1.2cqh", marginTop: "0.5cqh", marginBottom: "1.5cqh" }}>
@@ -486,7 +486,7 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                       <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
                         <div className="flex items-center gap-6">
                           <div className="text-6xl font-black text-emerald-950 tracking-tighter leading-none">
-                            {ticket.id}
+                            {ticket.ticketNumber}
                           </div>
                           <div className="h-10 w-px bg-emerald-200" />
                           <div>

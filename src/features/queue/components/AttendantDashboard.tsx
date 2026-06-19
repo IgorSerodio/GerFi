@@ -349,7 +349,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                       Em Atendimento
                     </div>
                     <h3 className="text-[10rem] font-black leading-none text-sefaz-accent drop-shadow-sm mb-4">
-                      {currentCall.id}
+                      {currentCall.ticketNumber}
                     </h3>
                     <div className="flex flex-wrap justify-center gap-4 w-full max-w-2xl">
                       <button
@@ -419,7 +419,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                       <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
                         <div>
                           <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
-                            Encaminhar Senha: {currentCall.id}
+                            Encaminhar Senha: {currentCall.ticketNumber}
                           </h3>
                           <p className="text-sm font-medium text-sefaz-accent/60">
                             Selecione o guichê de destino
@@ -476,7 +476,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                       <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
                         <div>
                           <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
-                            Finalizar Atendimento: {ticketToFinish}
+                            Finalizar Atendimento: {history.find(t => t.id === ticketToFinish)?.ticketNumber || currentCall?.ticketNumber}
                           </h3>
                           <p className="text-sm font-medium text-sefaz-accent/60">
                             Deseja adicionar alguma observação?
@@ -625,7 +625,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                       <div className="p-8 border-b border-emerald-50 flex justify-between items-center bg-emerald-50/30">
                         <div>
                           <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
-                            CUPOM: {selectedHistoryTicket.id}
+                            CUPOM: {selectedHistoryTicket.ticketNumber}
                           </h3>
                           <p className="text-xs font-bold text-sefaz-accent/60 uppercase tracking-widest">
                             Detalhes do Atendimento
@@ -719,7 +719,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                           t.priority === "Prioritário" ? "text-emerald-700" : "text-sefaz-accent"
                         }`}
                       >
-                        {t.id}
+                        {t.ticketNumber}
                       </p>
                       <p className="text-[10px] font-bold text-sefaz-accent/50 uppercase tracking-widest">
                         {t.priority === "Prioritário" ? "Prioridade" : "Normal"}
@@ -755,7 +755,7 @@ export default function AttendantDashboard({ session, initialQueue, initialHisto
                       >
                         <div>
                           <p className="font-black text-lg text-sefaz-accent group-hover:text-sefaz-dark transition-colors">
-                            {h.id}
+                            {h.ticketNumber}
                           </p>
                           <p className="text-[10px] text-sefaz-accent/40 font-bold uppercase tracking-widest">
                             {new Date(h.calledAt || "").toLocaleTimeString()}

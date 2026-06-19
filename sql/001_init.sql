@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Tickets Table
 CREATE TABLE IF NOT EXISTS tickets (
-  id VARCHAR(20) PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_number VARCHAR(20) NOT NULL,
   type VARCHAR(50) NOT NULL,
   category_name VARCHAR(100) NOT NULL,
   priority VARCHAR(20) NOT NULL, -- 'Normal', 'Prioritário'

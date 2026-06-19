@@ -1,8 +1,9 @@
 import { pool } from "@/infra/database";
-import { Ticket, TvSettings, User } from "./types";
+import { Ticket, TvSettings, User, YouTubeVideo } from "./types";
 
 interface DbTicketRow {
   id: string;
+  ticket_number: string;
   type: string;
   category_name: string;
   priority: "Normal" | "Prioritário";
@@ -28,6 +29,7 @@ interface DbTvSettingsRow {
 function mapTicketRow(row: DbTicketRow): Ticket {
   return {
     id: row.id,
+    ticketNumber: row.ticket_number,
     type: row.type,
     categoryName: row.category_name,
     priority: row.priority,
@@ -52,10 +54,23 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
       uploadedFiles = [];
     }
   }
+
+  let videoUrl: YouTubeVideo[] = [];
+  if (row.live_url) {
+    try {
+      videoUrl = JSON.parse(row.live_url);
+    } catch {
+      // Legacy support for plain string URLs
+      const videoIdMatch = row.live_url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
+      const videoId = videoIdMatch ? videoIdMatch[1] : "";
+      videoUrl = [{ url: row.live_url, videoId, title: "Vídeo TV" }];
+    }
+  }
+
   return {
     id: row.id,
     mode: row.mode,
-    liveUrl: row.live_url,
+    videoUrl,
     uploadedFiles,
   };
 }
@@ -113,20 +128,20 @@ export async function insertTicket(
 
     // Contar o número de senhas geradas hoje (sem contar encaminhamentos 'E')
     const countRes = await client.query(
-      `SELECT COALESCE(MAX(CAST(SUBSTRING(id FROM '\\d+') AS INTEGER)), 0) + 1 AS next_num
+      `SELECT COALESCE(MAX(CAST(SUBSTRING(ticket_number FROM '\\d+') AS INTEGER)), 0) + 1 AS next_num
        FROM tickets 
-       WHERE created_at >= CURRENT_DATE AND id NOT LIKE '%E'`
+       WHERE created_at >= CURRENT_DATE AND ticket_number NOT LIKE '%E'`
     );
     
     const nextNum = countRes.rows[0].next_num;
     const numberStr = String(nextNum).padStart(3, "0");
-    const ticketId = `${prefix}${numberStr}`;
+    const ticketNumber = `${prefix}${numberStr}`;
 
     const insertRes = await client.query(
-      `INSERT INTO tickets (id, type, category_name, priority, status)
+      `INSERT INTO tickets (ticket_number, type, category_name, priority, status)
        VALUES ($1, $2, $3, $4, 'pending')
        RETURNING *`,
-      [ticketId, type, categoryName, priority]
+      [ticketNumber, type, categoryName, priority]
     );
 
     await client.query("COMMIT");
@@ -255,7 +270,7 @@ export async function forwardTicket(
 export async function getTvSettings(): Promise<TvSettings> {
   const { rows } = await pool.query("SELECT * FROM tv_settings WHERE id = 1");
   if (rows.length === 0) {
-    return { id: 1, mode: "live", liveUrl: "", uploadedFiles: [] };
+    return { id: 1, mode: "live", videoUrl: [], uploadedFiles: [] };
   }
   return mapTvSettingsRow(rows[0]);
 }
@@ -265,7 +280,7 @@ export async function getTvSettings(): Promise<TvSettings> {
  */
 export async function updateTvSettings(
   mode: "live" | "files",
-  liveUrl: string,
+  videoUrl: YouTubeVideo[],
   uploadedFiles: string[]
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
@@ -275,7 +290,7 @@ export async function updateTvSettings(
          uploaded_files = $3
      WHERE id = 1
      RETURNING *`,
-    [mode, liveUrl, JSON.stringify(uploadedFiles)]
+    [mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles)]
   );
   return mapTvSettingsRow(rows[0]);
 }

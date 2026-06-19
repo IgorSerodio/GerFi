@@ -1,5 +1,6 @@
 export interface Ticket {
   id: string;
+  ticketNumber: string;
   type: string;
   categoryName: string;
   priority: "Normal" | "Prioritário";

@@ -147,7 +147,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
       return;
     }
 
-    const queuePos = queue.findIndex((t) => t.id === query);
+    const queuePos = queue.findIndex((t) => t.ticketNumber === query);
     if (queuePos !== -1) {
       setSearchResult({
         id: query,
@@ -158,7 +158,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
       return;
     }
 
-    const historyItem = history.find((t) => t.id === query);
+    const historyItem = history.find((t) => t.ticketNumber === query);
     if (historyItem) {
       setSearchResult({
         id: query,
@@ -290,7 +290,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
                 className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex justify-between items-center group cursor-default animate-fade-in"
               >
                 <div>
-                  <span className="text-xl font-black text-sefaz-dark">{ticket.id}</span>
+                  <span className="text-xl font-black text-sefaz-dark">{ticket.ticketNumber}</span>
                   <p className="text-[10px] font-bold text-sefaz-accent uppercase tracking-tighter">
                     {ticket.categoryName}
                   </p>
@@ -612,7 +612,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
                   <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">
                     {issuedTicket.priority === "Prioritário" ? "PRIORITÁRIO" : "GERAL"}
                   </div>
-                  <h2 className="text-7xl font-black tracking-tighter mb-2">{issuedTicket.id}</h2>
+                  <h2 className="text-7xl font-black tracking-tighter mb-2">{issuedTicket.ticketNumber}</h2>
                 </div>
 
                 <div className="border-t border-b border-dashed border-gray-300 py-4 mb-6 space-y-1 text-[10px] font-bold">
@@ -647,7 +647,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
                       />
                     ))}
                   </div>
-                  <p className="text-[8px] font-bold tracking-[0.4em]">{issuedTicket.id}2024SFM</p>
+                  <p className="text-[8px] font-bold tracking-[0.4em]">{issuedTicket.ticketNumber}2024SFM</p>
                 </div>
 
                 {/* Torn edge effect bottom */}
