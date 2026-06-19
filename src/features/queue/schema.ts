@@ -18,6 +18,10 @@ export const ForwardTicketSchema = z.object({
 
 export const TvSettingsSchema = z.object({
   mode: z.enum(["live", "files"]),
-  liveUrl: z.string().url("URL inválida").or(z.string().length(0)),
+  videoUrl: z.array(z.object({
+    url: z.string().url("URL inválida"),
+    videoId: z.string(),
+    title: z.string()
+  })),
   uploadedFiles: z.array(z.string()).optional(),
 });

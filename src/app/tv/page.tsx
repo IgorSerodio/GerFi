@@ -9,7 +9,7 @@ export default async function TvPage() {
   const initialSettings = tvRes.success && tvRes.data ? tvRes.data : {
     id: 1,
     mode: "live" as const,
-    liveUrl: "https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w",
+    videoUrl: [],
     uploadedFiles: [],
   };
 

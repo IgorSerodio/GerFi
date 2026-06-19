@@ -30,19 +30,20 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
     return () => clearInterval(clockTimer);
   }, []);
 
-  const getEmbedUrl = (url: string) => {
-    if (!url) return "";
-    let embedUrl = url;
-    if (url.includes("youtube.com/watch?v=")) {
-      const videoId = url.split("v=")[1]?.split("&")[0];
-      embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    } else if (url.includes("youtu.be/")) {
-      const videoId = url.split("youtu.be/")[1]?.split("?")[0];
-      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+  const getPlaylistUrl = () => {
+    if (!tvSettings.videoUrl || tvSettings.videoUrl.length === 0) return "";
+    
+    const firstVideoId = tvSettings.videoUrl[0].videoId;
+    let url = `https://www.youtube.com/embed/${firstVideoId}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&loop=1`;
+    
+    if (tvSettings.videoUrl.length === 1) {
+      url += `&playlist=${firstVideoId}`;
+    } else {
+      const remainingIds = tvSettings.videoUrl.slice(1).map(v => v.videoId).join(",");
+      url += `&playlist=${remainingIds},${firstVideoId}`;
     }
-
-    const separator = embedUrl.includes("?") ? "&" : "?";
-    return `${embedUrl}${separator}autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
+    
+    return url;
   };
 
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -344,10 +345,10 @@ export default function TvDashboard({ initialHistory, initialSettings }: TvDashb
                         />
                       </AnimatePresence>
                     </div>
-                  ) : tvSettings.liveUrl && tvSettings.liveUrl !== "" ? (
+                  ) : tvSettings.videoUrl && tvSettings.videoUrl.length > 0 ? (
                     <div className="w-full h-full">
                       <iframe
-                        src={getEmbedUrl(tvSettings.liveUrl)}
+                        src={getPlaylistUrl()}
                         className="w-full h-full"
                         allow="autoplay; encrypted-media"
                       />

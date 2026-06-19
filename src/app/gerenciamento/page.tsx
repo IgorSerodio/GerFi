@@ -20,7 +20,7 @@ export default async function ManagementPage() {
   const initialTvSettings = tvRes.success && tvRes.data ? tvRes.data : {
     id: 1,
     mode: "live" as const,
-    liveUrl: "",
+    videoUrl: [],
     uploadedFiles: [],
   };
 

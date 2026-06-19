@@ -106,6 +106,8 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
 
   // States for Config - TV Settings
   const [tvSettings, setTvSettings] = useState<TvSettings>(initialTvSettings);
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
 
   // States for Reports
   const [reportType, setReportType] = useState<"analytical" | "synthetic">("analytical");
@@ -195,7 +197,7 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
     setNewUser({
       name: user.name,
       role: user.role,
-      guiche: user.guiche,
+      guiche: user.guiche || "Guichê 01",
       matricula: user.matricula,
       cpf: user.cpf,
       email: user.email,
@@ -242,6 +244,44 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
       triggerSuccess("Configurações da TV salvas!");
     } else {
       alert("Erro ao salvar configurações da TV");
+    }
+  };
+
+  const handleAddVideo = async () => {
+    if (!newVideoUrl) return;
+    setIsAddingVideo(true);
+    
+    try {
+      const videoIdMatch = newVideoUrl.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
+      const videoId = videoIdMatch ? videoIdMatch[1] : null;
+      
+      if (!videoId) {
+        alert("URL do YouTube inválida.");
+        setIsAddingVideo(false);
+        return;
+      }
+
+      let title = "Vídeo do YouTube";
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.title) title = data.title;
+        }
+      } catch (e) {
+        console.error("Erro ao buscar título do vídeo", e);
+      }
+
+      setTvSettings(prev => ({
+        ...prev,
+        videoUrl: [...(prev.videoUrl || []), { url: newVideoUrl, videoId, title }]
+      }));
+      setNewVideoUrl("");
+      triggerSuccess("Vídeo adicionado à playlist!");
+    } catch (e) {
+      alert("Erro ao adicionar vídeo.");
+    } finally {
+      setIsAddingVideo(false);
     }
   };
 
@@ -950,17 +990,67 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
                 </div>
 
                 {tvSettings.mode === "live" ? (
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
-                      URL da Live (YouTube)
-                    </label>
-                    <input
-                      type="text"
-                      value={tvSettings.liveUrl}
-                      onChange={(e) => setTvSettings({ ...tvSettings, liveUrl: e.target.value })}
-                      placeholder="Ex: https://www.youtube.com/watch?v=..."
-                      className="w-full p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-medium text-xs"
-                    />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+                        Adicionar Vídeo (YouTube)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newVideoUrl}
+                          onChange={(e) => setNewVideoUrl(e.target.value)}
+                          placeholder="Ex: https://www.youtube.com/watch?v=..."
+                          className="flex-1 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-medium text-xs"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleAddVideo();
+                          }}
+                        />
+                        <button
+                          onClick={handleAddVideo}
+                          disabled={isAddingVideo || !newVideoUrl}
+                          className="px-6 py-4 bg-sefaz-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-sefaz-dark transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          {isAddingVideo ? "..." : "Adicionar"}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {tvSettings.videoUrl && tvSettings.videoUrl.length > 0 && (
+                      <div className="space-y-2 mt-4">
+                        <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+                          Playlist
+                        </label>
+                        <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                          {tvSettings.videoUrl.map((video, idx) => (
+                            <div key={idx} className="bg-emerald-50/30 rounded-2xl border border-emerald-100 p-3 flex gap-4 items-center relative group">
+                              <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
+                                <img src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                  <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center backdrop-blur-sm">
+                                    <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-sefaz-dark line-clamp-2">{video.title}</p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const newList = [...tvSettings.videoUrl];
+                                  newList.splice(idx, 1);
+                                  setTvSettings({...tvSettings, videoUrl: newList});
+                                }}
+                                className="w-8 h-8 rounded-full bg-white text-red-500 hover:bg-red-50 flex items-center justify-center border border-red-100 shrink-0 transition-colors shadow-sm cursor-pointer"
+                                title="Remover vídeo"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4 border border-emerald-50 p-6 rounded-3xl">

@@ -172,7 +172,7 @@ export async function getTvSettingsAction() {
  */
 export async function updateTvSettingsAction(payload: {
   mode: "live" | "files";
-  liveUrl: string;
+  videoUrl: any[];
   uploadedFiles?: string[];
 }) {
   const result = TvSettingsSchema.safeParse(payload);
@@ -181,7 +181,7 @@ export async function updateTvSettingsAction(payload: {
   }
 
   try {
-    const settings = await updateTvSettings(payload.mode, payload.liveUrl, payload.uploadedFiles || []);
+    const settings = await updateTvSettings(payload.mode, payload.videoUrl, payload.uploadedFiles || []);
     triggerRealTimeUpdate();
     return { success: true, data: settings };
   } catch (error) {

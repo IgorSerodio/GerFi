@@ -12,10 +12,16 @@ export interface Ticket {
   observation?: string;
 }
 
+export interface YouTubeVideo {
+  url: string;
+  videoId: string;
+  title: string;
+}
+
 export interface TvSettings {
   id: number;
   mode: "live" | "files";
-  liveUrl: string;
+  videoUrl: YouTubeVideo[];
   uploadedFiles: string[];
 }
 
