@@ -15,10 +15,12 @@ import {
   updateUser,
   deleteUser,
   toggleBlockUser,
+  getCategories,
+  getTicketWindows,
 } from "./queries";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema, TvSettingsSchema } from "./schema";
 import { queueEmitter } from "@/infra/events";
-import { User } from "./types";
+import { User, YouTubeVideo } from "./types";
 import bcrypt from "bcryptjs";
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -53,7 +55,7 @@ export async function getQueueStateAction() {
  * Emite uma nova senha na Triagem
  */
 export async function issueTicketAction(payload: {
-  type: string;
+  categoryId: number;
   categoryName: string;
   priority: "Normal" | "Prioritário";
 }) {
@@ -63,7 +65,7 @@ export async function issueTicketAction(payload: {
   }
 
   try {
-    const ticket = await insertTicket(payload.type, payload.categoryName, payload.priority);
+    const ticket = await insertTicket(payload.categoryId, payload.categoryName, payload.priority);
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
   } catch (error) {
@@ -77,7 +79,7 @@ export async function issueTicketAction(payload: {
 export async function callTicketAction(
   attendant: string,
   guiche: string,
-  allowedServices: string[]
+  allowedServices: number[]
 ) {
   try {
     const ticket = await callNextTicket(attendant, guiche, allowedServices);
@@ -172,7 +174,7 @@ export async function getTvSettingsAction() {
  */
 export async function updateTvSettingsAction(payload: {
   mode: "live" | "files";
-  videoUrl: any[];
+  videoUrl: YouTubeVideo[];
   uploadedFiles?: string[];
 }) {
   const result = TvSettingsSchema.safeParse(payload);
@@ -258,3 +260,26 @@ export async function toggleBlockUserAction(id: number) {
   }
 }
 
+/**
+ * Busca todas as categorias (serviços) do banco
+ */
+export async function getCategoriesAction() {
+  try {
+    const categories = await getCategories();
+    return { success: true, data: categories };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar categorias.") };
+  }
+}
+
+/**
+ * Busca todos os guichês (ticket windows) do banco
+ */
+export async function getTicketWindowsAction() {
+  try {
+    const ticketWindows = await getTicketWindows();
+    return { success: true, data: ticketWindows };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês.") };
+  }
+}

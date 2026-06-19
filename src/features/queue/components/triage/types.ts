@@ -2,7 +2,7 @@ import React from "react";
 import { Ticket as TicketType } from "@/features/queue/types";
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   description: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;

@@ -2,7 +2,7 @@ import React from "react";
 
 interface ServiceConfigOverlayProps {
   categories: { id: string; name: string }[];
-  allowedServices: string[];
+  allowedServices: number[];
   toggleService: (id: string) => void;
   setShowServiceConfig: (show: boolean) => void;
 }
@@ -39,14 +39,14 @@ export default function ServiceConfigOverlay({
               key={cat.id}
               onClick={() => toggleService(cat.id)}
               className={`p-4 rounded-2xl text-left border-2 transition-all cursor-pointer ${
-                allowedServices.includes(cat.id)
+                allowedServices.includes(Number(cat.id))
                   ? "border-sefaz-accent bg-emerald-50 shadow-md"
                   : "border-emerald-100 bg-white opacity-40 hover:opacity-100"
               }`}
             >
               <p
                 className={`text-xs font-black uppercase tracking-tight ${
-                  allowedServices.includes(cat.id)
+                  allowedServices.includes(Number(cat.id))
                     ? "text-sefaz-accent"
                     : "text-sefaz-dark"
                 }`}
@@ -55,12 +55,12 @@ export default function ServiceConfigOverlay({
               </p>
               <div
                 className={`mt-2 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                  allowedServices.includes(cat.id)
+                  allowedServices.includes(Number(cat.id))
                     ? "bg-sefaz-accent border-sefaz-accent"
                     : "border-emerald-200"
                 }`}
               >
-                {allowedServices.includes(cat.id) && (
+                {allowedServices.includes(Number(cat.id)) && (
                   <div className="w-1.5 h-1.5 bg-white rounded-full" />
                 )}
               </div>

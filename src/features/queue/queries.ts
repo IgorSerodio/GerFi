@@ -4,7 +4,7 @@ import { Ticket, TvSettings, User, YouTubeVideo } from "./types";
 interface DbTicketRow {
   id: string;
   ticket_number: string;
-  type: string;
+  category_id: number;
   category_name: string;
   priority: "Normal" | "Prioritário";
   status: "pending" | "calling" | "completed";
@@ -30,7 +30,7 @@ function mapTicketRow(row: DbTicketRow): Ticket {
   return {
     id: row.id,
     ticketNumber: row.ticket_number,
-    type: row.type,
+    categoryId: row.category_id,
     categoryName: row.category_name,
     priority: row.priority,
     status: row.status,
@@ -104,7 +104,7 @@ export async function getHistory(): Promise<Ticket[]> {
  * Insere uma nova senha gerando o ID sequencial diário de forma atômica
  */
 export async function insertTicket(
-  type: string,
+  categoryId: number,
   categoryName: string,
   priority: "Normal" | "Prioritário"
 ): Promise<Ticket> {
@@ -115,15 +115,14 @@ export async function insertTicket(
     // Trava a tabela para evitar que dois processos gerem a mesma senha simultaneamente
     await client.query("LOCK TABLE tickets IN SHARE ROW EXCLUSIVE MODE");
 
+    // Fetch the ticket_char from the category
+    const catRes = await client.query("SELECT ticket_char FROM categories WHERE id = $1", [categoryId]);
+    const ticketChar = catRes.rows.length > 0 ? catRes.rows[0].ticket_char : "G";
+
     // Obter o prefixo correspondente
-    let prefix = "G";
+    let prefix = ticketChar;
     if (priority === "Prioritário") {
       prefix = "P";
-    } else {
-      if (type === "TRIB") prefix = "T";
-      else if (type === "CADA") prefix = "C";
-      else if (type === "JURI") prefix = "J";
-      else prefix = type.substring(0, 1).toUpperCase();
     }
 
     // Contar o número de senhas geradas hoje (sem contar encaminhamentos 'E')
@@ -138,10 +137,10 @@ export async function insertTicket(
     const ticketNumber = `${prefix}${numberStr}`;
 
     const insertRes = await client.query(
-      `INSERT INTO tickets (ticket_number, type, category_name, priority, status)
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status)
        VALUES ($1, $2, $3, $4, 'pending')
        RETURNING *`,
-      [ticketNumber, type, categoryName, priority]
+      [ticketNumber, categoryId, categoryName, priority]
     );
 
     await client.query("COMMIT");
@@ -160,7 +159,7 @@ export async function insertTicket(
 export async function callNextTicket(
   attendant: string,
   guiche: string,
-  allowedServices: string[]
+  allowedServices: number[]
 ): Promise<Ticket | null> {
   const servicesArray = allowedServices && allowedServices.length > 0 ? allowedServices : null;
 
@@ -168,7 +167,7 @@ export async function callNextTicket(
     `WITH next_ticket AS (
       SELECT id FROM tickets
       WHERE status = 'pending'
-        AND ($1::text[] IS NULL OR type = ANY($1::text[]))
+        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
       ORDER BY (priority = 'Prioritário') DESC, created_at ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED
@@ -248,10 +247,10 @@ export async function forwardTicket(
     
     // Inserir o novo ticket já em status 'calling' para chamar diretamente na TV
     const newRes = await client.query(
-      `INSERT INTO tickets (id, type, category_name, priority, status, called_at, attendant, guiche)
+      `INSERT INTO tickets (id, category_id, category_name, priority, status, called_at, attendant, guiche)
        VALUES ($1, $2, $3, $4, 'calling', NOW(), $5, $6)
        RETURNING *`,
-      [nextId, original.type, original.category_name, original.priority, attendant, targetGuiche]
+      [nextId, original.category_id, original.category_name, original.priority, attendant, targetGuiche]
     );
 
     await client.query("COMMIT");
@@ -367,4 +366,14 @@ export async function toggleBlockUser(id: number): Promise<User> {
     [id]
   );
   return rows[0];
+}
+
+export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string }[]> {
+  const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color FROM categories ORDER BY id ASC");
+  return rows;
+}
+
+export async function getTicketWindows(): Promise<{ id: number; name: string }[]> {
+  const { rows } = await pool.query("SELECT id, name FROM ticket_windows ORDER BY name ASC");
+  return rows;
 }

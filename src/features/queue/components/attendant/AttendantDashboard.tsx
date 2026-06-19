@@ -9,7 +9,7 @@ import {
   finishTicketAction,
   forwardTicketAction,
 } from "@/features/queue/actions";
-import { Ticket } from "@/features/queue/types";
+import { Ticket, DbCategory, DbTicketWindow } from "@/features/queue/types";
 
 import AttendantSidebar from "./AttendantSidebar";
 import ServiceConfigOverlay from "./ServiceConfigOverlay";
@@ -27,19 +27,23 @@ interface AttendantDashboardProps {
   session: Session | null;
   initialQueue: Ticket[];
   initialHistory: Ticket[];
+  initialCategories: DbCategory[];
+  initialTicketWindows: DbTicketWindow[];
 }
 
 export default function AttendantDashboard({
   session,
   initialQueue,
   initialHistory,
+  initialCategories,
+  initialTicketWindows,
 }: AttendantDashboardProps) {
   const [currentAttendant, setCurrentAttendant] = useState({
     name: session?.user?.name || "Atendente",
     guiche: session?.user?.guiche || "Guichê 01",
   });
   const [showGuicheModal, setShowGuicheModal] = useState(false);
-  const [allowedServices, setAllowedServices] = useState<string[]>(
+  const [allowedServices, setAllowedServices] = useState<number[]>(
     session?.user?.services || []
   );
   const [showServiceConfig, setShowServiceConfig] = useState(false);
@@ -52,32 +56,12 @@ export default function AttendantDashboard({
   const [queue, setQueue] = useState<Ticket[]>(initialQueue);
   const [history, setHistory] = useState<Ticket[]>(initialHistory);
 
-  const attendants = [
-    "Guichê 01",
-    "Guichê 02",
-    "Guichê 03",
-    "Guichê 04",
-    "Guichê 05",
-  ];
+  const attendants = initialTicketWindows.map((tw) => tw.name);
 
-  const categories = [
-    { id: "IPTU", name: "IPTU" },
-    { id: "ITBI", name: "ITBI" },
-    { id: "SJOA", name: "SÃO JOÃO" },
-    { id: "TRAN", name: "TRANSPORTE" },
-    { id: "MFIS", name: "MALHA FISCAL" },
-    { id: "SSAN", name: "SEMANA SANTA" },
-    { id: "FEIR", name: "FEIRA" },
-    { id: "PLUS", name: "+80" },
-    { id: "AMBU", name: "AMBULANTE" },
-    { id: "RECA", name: "RECADASTRAMENTO" },
-    { id: "2VIA", name: "2ª VIA" },
-    { id: "TAXI", name: "TAXI" },
-    { id: "NFIS", name: "NOTA FISCAL" },
-    { id: "PAGM", name: "PAGAMENTO" },
-    { id: "ATEN", name: "ATENDIMENTO" },
-    { id: "DIVE", name: "DIVERSOS" },
-  ];
+  const categories = initialCategories.map((c) => ({
+    id: String(c.id), // the UI might still expect string id for simple value selection, let's keep Category type in sync with UI or change UI.
+    name: c.name,
+  }));
 
   useEffect(() => {
     if (session?.user) {
@@ -167,7 +151,8 @@ export default function AttendantDashboard({
     }
   };
 
-  const toggleService = (id: string) => {
+  const toggleService = (idStr: string) => {
+    const id = Number(idStr);
     setAllowedServices((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );
@@ -175,7 +160,7 @@ export default function AttendantDashboard({
 
   const availableTickets =
     allowedServices.length > 0
-      ? queue.filter((t) => allowedServices.includes(t.type))
+      ? queue.filter((t) => allowedServices.includes(t.categoryId))
       : queue;
 
   const currentCall = history.find(

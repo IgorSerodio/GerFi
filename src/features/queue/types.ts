@@ -1,7 +1,7 @@
 export interface Ticket {
   id: string;
   ticketNumber: string;
-  type: string;
+  categoryId: number;
   categoryName: string;
   priority: "Normal" | "Prioritário";
   status: "pending" | "calling" | "completed";
@@ -41,7 +41,20 @@ export interface User {
   email: string;
   username: string;
   password?: string;
-  services?: string[];
+  services?: number[];
   blocked?: boolean;
 }
 
+export interface DbCategory {
+  id: number;
+  ticketChar: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+export interface DbTicketWindow {
+  id: number;
+  name: string;
+}

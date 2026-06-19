@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const IssueTicketSchema = z.object({
-  type: z.string().min(1, "O tipo de serviço é obrigatório"),
+  categoryId: z.number().int().positive("A categoria é obrigatória"),
   categoryName: z.string().min(1, "O nome da categoria é obrigatório"),
   priority: z.enum(["Normal", "Prioritário"]),
 });

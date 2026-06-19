@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { ArrowLeft, Menu, Printer, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
 import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";
-import { Ticket as TicketType } from "@/features/queue/types";
+import { Ticket as TicketType, DbCategory } from "@/features/queue/types";
 import { Session } from "next-auth";
 
 import { Category, SearchResult } from "./types";
@@ -18,12 +18,14 @@ interface TriageDashboardProps {
   session: Session | null;
   initialQueue: TicketType[];
   initialHistory: TicketType[];
+  initialCategories: DbCategory[];
 }
 
 export default function TriageDashboard({
   session,
   initialQueue,
   initialHistory,
+  initialCategories,
 }: TriageDashboardProps) {
   const [issuedTicket, setIssuedTicket] = useState<TicketType | null>(null);
   const [printing, setPrinting] = useState(false);
@@ -42,24 +44,17 @@ export default function TriageDashboard({
   >("idle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const categories: Category[] = [
-    { id: "IPTU", name: "IPTU", description: "Imposto Predial e Territorial Urbano", icon: Landmark, color: "bg-emerald-600" },
-    { id: "ITBI", name: "ITBI", description: "Imposto sobre Transmissão de Bens Imóveis", icon: Landmark, color: "bg-emerald-600" },
-    { id: "SJOA", name: "SÃO JOÃO", description: "Eventos e Autorizações", icon: Landmark, color: "bg-blue-500" },
-    { id: "TRAN", name: "TRANSPORTE", description: "Mobilidade Urbana", icon: History, color: "bg-slate-600" },
-    { id: "MFIS", name: "MALHA FISCAL", description: "Regularização de Pendências", icon: Gavel, color: "bg-amber-600" },
-    { id: "SSAN", name: "SEMANA SANTA", description: "Eventos e Autorizações", icon: Landmark, color: "bg-emerald-500" },
-    { id: "FEIR", name: "FEIRA", description: "Taxas e Licenciamento", icon: Landmark, color: "bg-emerald-500" },
-    { id: "PLUS", name: "+80", description: "Atendimento Super Prioritário", icon: Accessibility, color: "bg-emerald-700" },
-    { id: "AMBU", name: "AMBULANTE", description: "Licenciamento de Comércio", icon: UserPlus, color: "bg-emerald-500" },
-    { id: "RECA", name: "RECADASTRAMENTO", description: "Atualização Cadastral", icon: UserPlus, color: "bg-indigo-600" },
-    { id: "2VIA", name: "2ª VIA", description: "Emissão de Documentos", icon: FileText, color: "bg-slate-500" },
-    { id: "TAXI", name: "TAXI", description: "Alvarás e Taxas", icon: History, color: "bg-slate-600" },
-    { id: "NFIS", name: "NOTA FISCAL", description: "Serviços e Consultas", icon: FileText, color: "bg-emerald-600" },
-    { id: "PAGM", name: "PAGAMENTO", description: "Quitação de Débitos", icon: Landmark, color: "bg-blue-600" },
-    { id: "ATEN", name: "ATENDIMENTO", description: "Informações Gerais", icon: Info, color: "bg-emerald-500" },
-    { id: "DIVE", name: "DIVERSOS", description: "Outros Assuntos", icon: Info, color: "bg-emerald-500" },
-  ];
+  const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+    Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info
+  };
+
+  const categories: Category[] = initialCategories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    description: c.description,
+    icon: iconMap[c.icon] || Info,
+    color: c.color,
+  }));
 
   const refreshState = async () => {
     const res = await getQueueStateAction();
@@ -96,7 +91,7 @@ export default function TriageDashboard({
     setPrinting(true);
 
     const res = await issueTicketAction({
-      type: selectedCategory.id,
+      categoryId: selectedCategory.id,
       categoryName: selectedCategory.name,
       priority,
     });

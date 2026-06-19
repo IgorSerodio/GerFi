@@ -43,9 +43,10 @@ import {
   toggleBlockUserAction,
   getTvSettingsAction,
   updateTvSettingsAction,
+  getCategoriesAction,
 } from "@/features/queue/actions";
 import { getReportsDataAction } from "@/features/reports/actions";
-import { User, TvSettings } from "@/features/queue/types";
+import { User, TvSettings, DbCategory } from "@/features/queue/types";
 
 type ViewType = "menu" | "dashboard" | "reports" | "config_hub" | "config_users" | "config_tv" | "config_printer";
 
@@ -101,7 +102,7 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
     email: "",
     username: "",
     password: "",
-    services: [] as string[],
+    services: [] as number[],
   });
 
   // States for Config - TV Settings
@@ -131,24 +132,19 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
     setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
-  const categories = [
-    { id: "IPTU", name: "IPTU" },
-    { id: "ITBI", name: "ITBI" },
-    { id: "SJOA", name: "SÃO JOÃO" },
-    { id: "TRAN", name: "TRANSPORTE" },
-    { id: "MFIS", name: "MALHA FISCAL" },
-    { id: "SSAN", name: "SEMANA SANTA" },
-    { id: "FEIR", name: "FEIRA" },
-    { id: "PLUS", name: "+80" },
-    { id: "AMBU", name: "AMBULANTE" },
-    { id: "RECA", name: "RECADASTRAMENTO" },
-    { id: "2VIA", name: "2ª VIA" },
-    { id: "TAXI", name: "TAXI" },
-    { id: "NFIS", name: "NOTA FISCAL" },
-    { id: "PAGM", name: "PAGAMENTO" },
-    { id: "ATEN", name: "ATENDIMENTO" },
-    { id: "DIVE", name: "DIVERSOS" },
-  ];
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      const res = await getCategoriesAction();
+      if (res.success && res.data) {
+        setCategories(
+          (res.data as DbCategory[]).map((c) => ({ id: c.id, name: c.name }))
+        );
+      }
+    }
+    loadCategories();
+  }, []);
 
   // Fetch initial configs
   const loadConfigData = React.useCallback(async () => {
@@ -396,7 +392,7 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
     triggerSuccess("Simulado upload de mídias institucionais!");
   };
 
-  const toggleTvService = (id: string) => {
+  const toggleTvService = (id: number) => {
     setNewUser((prev) => {
       const services = prev.services.includes(id)
         ? prev.services.filter((s) => s !== id)
