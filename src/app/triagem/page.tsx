@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { getQueueStateAction } from "@/features/queue/actions";
-import TriageDashboard from "@/features/queue/components/TriageDashboard";
+import TriageDashboard from "@/features/queue/components/triage/TriageDashboard";
 
 export default async function TriagePage() {
   const session = await getServerSession(authOptions);
