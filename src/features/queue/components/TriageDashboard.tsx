@@ -15,6 +15,8 @@ import {
   UserPlus,
   Info,
   ArrowLeft,
+  Menu,
+  X,
 } from "lucide-react";
 import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";
 import { Ticket as TicketType } from "@/features/queue/types";
@@ -65,6 +67,7 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
   const [showCalendar, setShowCalendar] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
   const [printerStatus, setPrinterStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const categories = [
     { id: "IPTU", name: "IPTU", description: "Imposto Predial e Territorial Urbano", icon: Landmark, color: "bg-emerald-600" },
@@ -184,9 +187,34 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
 
   return (
     <div className="min-h-[100dvh] w-full bg-sefaz-light flex overflow-hidden font-display p-2 md:p-4">
-      <div className="flex-1 flex overflow-hidden rounded-[32px] shadow-2xl border border-emerald-100 bg-white">
+      <div className="flex-1 flex overflow-hidden rounded-[32px] shadow-2xl border border-emerald-100 bg-white relative">
+        {/* Overlay for mobile */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="absolute inset-0 bg-sefaz-dark/60 backdrop-blur-sm z-40 lg:hidden rounded-[32px]"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Left Sidebar: Search and Recent Tickets */}
-        <aside className="w-80 bg-white border-r border-emerald-50 flex flex-col p-6 overflow-hidden">
+        <aside
+          className={`absolute lg:relative z-50 h-full lg:h-auto w-80 bg-white border-r border-emerald-50 flex flex-col p-6 overflow-hidden transition-transform duration-300 ease-in-out ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
+          {/* Close Sidebar Button (Mobile Only) */}
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden absolute top-4 right-4 p-2 text-sefaz-accent/40 hover:text-sefaz-accent transition-colors"
+          >
+            <X size={24} />
+          </button>
+
           {/* Search Field */}
           <div className="mb-8">
             <form onSubmit={handleSearch} className="relative">
@@ -321,23 +349,29 @@ export default function TriageDashboard({ session, initialQueue, initialHistory 
         {/* Main Area: Categories */}
         <main className="flex-1 p-4 lg:p-6 flex flex-col overflow-hidden">
           <header className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center text-sefaz-accent shadow-sm border border-emerald-100/50 hover:bg-emerald-50 transition-colors"
+              >
+                <Menu size={20} className="md:w-6 md:h-6" />
+              </button>
               <NextLink
                 href="/"
-                className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-sefaz-accent shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-emerald-100/50"
+                className="hidden sm:flex w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl items-center justify-center text-sefaz-accent shadow-sm hover:shadow-xl hover:scale-110 transition-all border border-emerald-100/50"
               >
-                <ArrowLeft size={24} />
+                <ArrowLeft size={20} className="md:w-6 md:h-6" />
               </NextLink>
               <div>
-                <h1 className="text-2xl font-black text-sefaz-dark tracking-tight leading-none">
+                <h1 className="text-xl md:text-2xl font-black text-sefaz-dark tracking-tight leading-none">
                   POSTO DE TRIAGEM
                 </h1>
-                <p className="text-sefaz-accent font-bold text-[10px] uppercase tracking-widest opacity-60">
+                <p className="text-sefaz-accent font-bold text-[8px] md:text-[10px] uppercase tracking-widest opacity-60">
                   Selecione o serviço para emitir a senha
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <button
                 onClick={handleTestPrinter}
                 className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 py-2.5 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
