@@ -17,7 +17,13 @@ import {
   toggleBlockUser,
   getCategories,
   getTicketWindows,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createNextTicketWindow,
+  deleteTicketWindow,
 } from "./queries";
+import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema, TvSettingsSchema } from "./schema";
 import { queueEmitter } from "@/infra/events";
 import { User, YouTubeVideo } from "./types";
@@ -281,5 +287,70 @@ export async function getTicketWindowsAction() {
     return { success: true, data: ticketWindows };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês.") };
+  }
+}
+
+/**
+ * Cria uma nova categoria
+ */
+export async function createCategoryAction(data: Omit<DbCategory, "id">) {
+  try {
+    const category = await createCategory(data);
+    triggerRealTimeUpdate();
+    return { success: true, data: category };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao criar serviço.") };
+  }
+}
+
+/**
+ * Atualiza uma categoria
+ */
+export async function updateCategoryAction(id: number, data: Partial<DbCategory>) {
+  try {
+    const category = await updateCategory(id, data);
+    triggerRealTimeUpdate();
+    return { success: true, data: category };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao atualizar serviço.") };
+  }
+}
+
+/**
+ * Exclui uma categoria
+ */
+export async function deleteCategoryAction(id: number) {
+  try {
+    const success = await deleteCategory(id);
+    triggerRealTimeUpdate();
+    return { success };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao excluir serviço.") };
+  }
+}
+
+/**
+ * Cria o próximo guichê sequencial
+ */
+export async function createNextTicketWindowAction() {
+  try {
+    const window = await createNextTicketWindow();
+    triggerRealTimeUpdate();
+    return { success: true, data: window };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao criar guichê.") };
+  }
+}
+
+/**
+ * Exclui um guichê
+ */
+export async function deleteTicketWindowAction(id: number) {
+  try {
+    const success = await deleteTicketWindow(id);
+    triggerRealTimeUpdate();
+    return { success };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao excluir guichê.") };
   }
 }

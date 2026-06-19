@@ -1,5 +1,5 @@
 import { pool } from "@/infra/database";
-import { Ticket, TvSettings, User, YouTubeVideo } from "./types";
+import { Ticket, TvSettings, User, YouTubeVideo, DbCategory } from "./types";
 
 interface DbTicketRow {
   id: string;
@@ -376,4 +376,64 @@ export async function getCategories(): Promise<{ id: number; ticketChar: string;
 export async function getTicketWindows(): Promise<{ id: number; name: string }[]> {
   const { rows } = await pool.query("SELECT id, name FROM ticket_windows ORDER BY name ASC");
   return rows;
+}
+
+export async function createCategory(data: Omit<DbCategory, "id">): Promise<DbCategory> {
+  const { rows } = await pool.query(
+    `INSERT INTO categories (ticket_char, name, description, icon, color)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color]
+  );
+  return rows[0];
+}
+
+export async function updateCategory(id: number, data: Partial<DbCategory>): Promise<DbCategory> {
+  const { rows } = await pool.query(
+    `UPDATE categories
+     SET ticket_char = COALESCE($1, ticket_char),
+         name = COALESCE($2, name),
+         description = COALESCE($3, description),
+         icon = COALESCE($4, icon),
+         color = COALESCE($5, color)
+     WHERE id = $6
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color, id]
+  );
+  return rows[0];
+}
+
+export async function deleteCategory(id: number): Promise<boolean> {
+  try {
+    const { rowCount } = await pool.query("DELETE FROM categories WHERE id = $1", [id]);
+    return (rowCount ?? 0) > 0;
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23503') {
+      throw new Error("Não é possível excluir o serviço pois existem senhas vinculadas a ele.");
+    }
+    throw error;
+  }
+}
+
+export async function createNextTicketWindow(): Promise<{ id: number; name: string }> {
+  const { rows } = await pool.query(
+    `INSERT INTO ticket_windows (name)
+     VALUES (
+       'Guichê ' || LPAD(
+         COALESCE(
+           (SELECT MAX(CAST(SUBSTRING(name FROM '\\d+') AS INTEGER)) FROM ticket_windows) + 1, 
+           1
+         )::text, 
+         2, 
+         '0'
+       )
+     )
+     RETURNING id, name`
+  );
+  return rows[0];
+}
+
+export async function deleteTicketWindow(id: number): Promise<boolean> {
+  const { rowCount } = await pool.query("DELETE FROM ticket_windows WHERE id = $1", [id]);
+  return (rowCount ?? 0) > 0;
 }
