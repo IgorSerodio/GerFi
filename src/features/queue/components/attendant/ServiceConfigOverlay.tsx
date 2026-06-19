@@ -1,0 +1,73 @@
+import React from "react";
+
+interface ServiceConfigOverlayProps {
+  categories: { id: string; name: string }[];
+  allowedServices: string[];
+  toggleService: (id: string) => void;
+  setShowServiceConfig: (show: boolean) => void;
+}
+
+export default function ServiceConfigOverlay({
+  categories,
+  allowedServices,
+  toggleService,
+  setShowServiceConfig,
+}: ServiceConfigOverlayProps) {
+  return (
+    <div className="absolute inset-0 z-50 bg-sefaz-light/95 backdrop-blur-md p-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-black text-sefaz-dark">
+              MEUS SERVIÇOS
+            </h2>
+            <p className="text-sefaz-accent font-medium uppercase text-xs tracking-widest opacity-60">
+              Selecione quais senhas você pode chamar
+            </p>
+          </div>
+          <button
+            onClick={() => setShowServiceConfig(false)}
+            className="px-6 py-3 bg-sefaz-accent text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          >
+            Concluir
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => toggleService(cat.id)}
+              className={`p-4 rounded-2xl text-left border-2 transition-all cursor-pointer ${
+                allowedServices.includes(cat.id)
+                  ? "border-sefaz-accent bg-emerald-50 shadow-md"
+                  : "border-emerald-100 bg-white opacity-40 hover:opacity-100"
+              }`}
+            >
+              <p
+                className={`text-xs font-black uppercase tracking-tight ${
+                  allowedServices.includes(cat.id)
+                    ? "text-sefaz-accent"
+                    : "text-sefaz-dark"
+                }`}
+              >
+                {cat.name}
+              </p>
+              <div
+                className={`mt-2 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  allowedServices.includes(cat.id)
+                    ? "bg-sefaz-accent border-sefaz-accent"
+                    : "border-emerald-200"
+                }`}
+              >
+                {allowedServices.includes(cat.id) && (
+                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

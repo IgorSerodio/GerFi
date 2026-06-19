@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { getQueueStateAction } from "@/features/queue/actions";
-import AttendantDashboard from "@/features/queue/components/AttendantDashboard";
+import AttendantDashboard from "@/features/queue/components/attendant/AttendantDashboard";
 
 export default async function AttendantPage() {
   const session = await getServerSession(authOptions);
