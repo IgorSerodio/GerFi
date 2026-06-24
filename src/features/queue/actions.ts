@@ -9,7 +9,10 @@ import {
   getActiveQueue,
   getHistory,
   getTvSettings,
+  getAllTvSettings,
+  createTvSettings,
   updateTvSettings,
+  deleteTvSettings,
   getUsers,
   createUser,
   updateUser,
@@ -45,11 +48,11 @@ function triggerRealTimeUpdate() {
 /**
  * Obtém o estado atualizado da fila (senhas ativas e histórico)
  */
-export async function getQueueStateAction() {
+export async function getQueueStateAction(services?: number[]) {
   try {
     const [tickets, history] = await Promise.all([
-      getActiveQueue(),
-      getHistory()
+      getActiveQueue(services),
+      getHistory(services)
     ]);
     return { success: true, data: { tickets, history } };
   } catch (error) {
@@ -164,11 +167,11 @@ export async function forwardTicketAction(
 }
 
 /**
- * Busca configurações da TV
+ * Busca configurações de uma TV pelo slug
  */
-export async function getTvSettingsAction() {
+export async function getTvSettingsAction(slug: string = "global") {
   try {
-    const settings = await getTvSettings();
+    const settings = await getTvSettings(slug);
     return { success: true, data: settings };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar configurações da TV.") };
@@ -176,24 +179,84 @@ export async function getTvSettingsAction() {
 }
 
 /**
- * Atualiza configurações da TV
+ * Busca todas as TVs
  */
-export async function updateTvSettingsAction(payload: {
+export async function getAllTvSettingsAction() {
+  try {
+    const settings = await getAllTvSettings();
+    return { success: true, data: settings };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar todas as TVs.") };
+  }
+}
+
+/**
+ * Cria uma nova TV
+ */
+export async function createTvSettingsAction(payload: {
+  slug: string;
+  name: string;
   mode: "live" | "files";
   videoUrl: YouTubeVideo[];
   uploadedFiles?: string[];
+  services?: number[];
 }) {
-  const result = TvSettingsSchema.safeParse(payload);
-  if (!result.success) {
-    return { success: false, error: result.error.issues[0].message };
-  }
-
+  // Poderiamos adicionar TvSettingsSchema validando slug e name
   try {
-    const settings = await updateTvSettings(payload.mode, payload.videoUrl, payload.uploadedFiles || []);
+    const settings = await createTvSettings(
+      payload.slug,
+      payload.name,
+      payload.mode,
+      payload.videoUrl,
+      payload.uploadedFiles || [],
+      payload.services || []
+    );
+    triggerRealTimeUpdate();
+    return { success: true, data: settings };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao criar TV.") };
+  }
+}
+
+/**
+ * Atualiza configurações de uma TV
+ */
+export async function updateTvSettingsAction(payload: {
+  id: number;
+  slug: string;
+  name: string;
+  mode: "live" | "files";
+  videoUrl: YouTubeVideo[];
+  uploadedFiles?: string[];
+  services?: number[];
+}) {
+  try {
+    const settings = await updateTvSettings(
+      payload.id,
+      payload.slug,
+      payload.name,
+      payload.mode,
+      payload.videoUrl,
+      payload.uploadedFiles || [],
+      payload.services || []
+    );
     triggerRealTimeUpdate();
     return { success: true, data: settings };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao atualizar TV.") };
+  }
+}
+
+/**
+ * Exclui uma TV
+ */
+export async function deleteTvSettingsAction(id: number) {
+  try {
+    const success = await deleteTvSettings(id);
+    triggerRealTimeUpdate();
+    return { success };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao excluir TV.") };
   }
 }
 

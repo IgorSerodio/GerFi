@@ -21,8 +21,8 @@ async function main() {
     // 1. Seed TV Settings
     console.log("Seeding TV settings...");
     await client.query(`
-      INSERT INTO tv_settings (id, mode, live_url, uploaded_files)
-      VALUES (1, 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb)
+      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files)
+      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb)
       ON CONFLICT (id) DO NOTHING;
     `);
 

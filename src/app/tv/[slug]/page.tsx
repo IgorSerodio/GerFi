@@ -2,19 +2,21 @@ import React from "react";
 import { getQueueStateAction, getTvSettingsAction } from "@/features/queue/actions";
 import TvDashboard from "@/features/tv/components/TvDashboard";
 
-export default async function TvPage() {
-  const tvRes = await getTvSettingsAction();
-
+export default async function CustomTvPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const tvRes = await getTvSettingsAction(resolvedParams.slug);
+  
   const initialSettings = tvRes.success && tvRes.data ? tvRes.data : {
     id: 1,
-    slug: "global",
-    name: "TV Principal",
+    slug: resolvedParams.slug,
+    name: "TV Customizada",
     mode: "live" as const,
     videoUrl: [],
     uploadedFiles: [],
     services: [],
   };
 
+  // Puxa o estado inicial da fila já filtrado para essa TV
   const queueRes = await getQueueStateAction(initialSettings.services);
   const initialHistory = queueRes.success && queueRes.data ? queueRes.data.history : [];
 

@@ -20,10 +20,9 @@ import { ViewType } from "../types";
 
 interface ManagementDashboardProps {
   session: Session | null;
-  initialTvSettings: TvSettings;
 }
 
-export default function ManagementDashboard({ session, initialTvSettings }: ManagementDashboardProps) {
+export default function ManagementDashboard({ session }: ManagementDashboardProps) {
   const [view, setView] = useState<ViewType>("menu");
 
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -98,7 +97,7 @@ export default function ManagementDashboard({ session, initialTvSettings }: Mana
           )}
           {view === "config_services" && <ServicesConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_users" && <UsersConfigView triggerSuccess={triggerSuccess} />}
-          {view === "config_tv" && <TvConfigView initialTvSettings={initialTvSettings} triggerSuccess={triggerSuccess} />}
+          {view === "config_tv" && <TvConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_printer" && <PrinterConfigView triggerSuccess={triggerSuccess} />}
         </AnimatePresence>
       </div>

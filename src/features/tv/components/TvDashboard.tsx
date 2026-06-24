@@ -84,8 +84,8 @@ export default function TvDashboard({
 
   const refreshState = async () => {
     const [queueRes, tvRes] = await Promise.all([
-      getQueueStateAction(),
-      getTvSettingsAction(),
+      getQueueStateAction(tvSettings.services),
+      getTvSettingsAction(tvSettings.slug),
     ]);
 
     if (tvRes.success && tvRes.data) {

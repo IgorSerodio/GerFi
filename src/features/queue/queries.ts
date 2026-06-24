@@ -18,9 +18,12 @@ interface DbTicketRow {
 
 interface DbTvSettingsRow {
   id: number;
+  slug: string;
+  name: string;
   mode: "live" | "files";
   live_url: string;
   uploaded_files: string[] | string | null;
+  services: number[];
 }
 
 /**
@@ -69,20 +72,27 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
 
   return {
     id: row.id,
+    slug: row.slug || "global",
+    name: row.name || "TV",
     mode: row.mode,
     videoUrl,
     uploadedFiles,
+    services: row.services || [],
   };
 }
 
 /**
  * Busca todas as senhas aguardando atendimento
  */
-export async function getActiveQueue(): Promise<Ticket[]> {
+export async function getActiveQueue(services?: number[]): Promise<Ticket[]> {
+  const servicesArray = services && services.length > 0 ? services : null;
+
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status = 'pending' 
-     ORDER BY (priority = 'Prioritário') DESC, created_at ASC`
+       AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
+     ORDER BY (priority = 'Prioritário') DESC, created_at ASC`,
+    [servicesArray]
   );
   return rows.map(mapTicketRow);
 }
@@ -90,12 +100,16 @@ export async function getActiveQueue(): Promise<Ticket[]> {
 /**
  * Busca o histórico de senhas chamadas ou concluídas (limite de 10)
  */
-export async function getHistory(): Promise<Ticket[]> {
+export async function getHistory(services?: number[]): Promise<Ticket[]> {
+  const servicesArray = services && services.length > 0 ? services : null;
+
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status IN ('calling', 'completed') 
+       AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
-     LIMIT 10`
+     LIMIT 10`,
+    [servicesArray]
   );
   return rows.map(mapTicketRow);
 }
@@ -264,34 +278,82 @@ export async function forwardTicket(
 }
 
 /**
- * Obtém as configurações da TV
+ * Obtém as configurações de uma TV específica pelo slug
  */
-export async function getTvSettings(): Promise<TvSettings> {
-  const { rows } = await pool.query("SELECT * FROM tv_settings WHERE id = 1");
+export async function getTvSettings(slug: string = "global"): Promise<TvSettings> {
+  const { rows } = await pool.query("SELECT * FROM tv_settings WHERE slug = $1", [slug]);
   if (rows.length === 0) {
-    return { id: 1, mode: "live", videoUrl: [], uploadedFiles: [] };
+    if (slug === "global") {
+      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [] };
+    }
+    throw new Error("TV não encontrada.");
   }
   return mapTvSettingsRow(rows[0]);
 }
 
 /**
- * Atualiza as configurações da TV
+ * Obtém todas as TVs cadastradas
  */
-export async function updateTvSettings(
+export async function getAllTvSettings(): Promise<TvSettings[]> {
+  const { rows } = await pool.query("SELECT * FROM tv_settings ORDER BY id ASC");
+  return rows.map(mapTvSettingsRow);
+}
+
+/**
+ * Cria uma nova TV
+ */
+export async function createTvSettings(
+  slug: string,
+  name: string,
   mode: "live" | "files",
   videoUrl: YouTubeVideo[],
-  uploadedFiles: string[]
+  uploadedFiles: string[],
+  services: number[]
+): Promise<TvSettings> {
+  const { rows } = await pool.query(
+    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services]
+  );
+  return mapTvSettingsRow(rows[0]);
+}
+
+/**
+ * Atualiza as configurações de uma TV
+ */
+export async function updateTvSettings(
+  id: number,
+  slug: string,
+  name: string,
+  mode: "live" | "files",
+  videoUrl: YouTubeVideo[],
+  uploadedFiles: string[],
+  services: number[]
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
     `UPDATE tv_settings
-     SET mode = $1,
-         live_url = $2,
-         uploaded_files = $3
-     WHERE id = 1
+     SET slug = $1,
+         name = $2,
+         mode = $3,
+         live_url = $4,
+         uploaded_files = $5,
+         services = $6
+     WHERE id = $7
      RETURNING *`,
-    [mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles)]
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, id]
   );
   return mapTvSettingsRow(rows[0]);
+}
+
+/**
+ * Exclui uma TV
+ */
+export async function deleteTvSettings(id: number): Promise<boolean> {
+  // Não permitir exclusão da TV global
+  if (id === 1) throw new Error("A TV Principal não pode ser excluída.");
+  const { rowCount } = await pool.query("DELETE FROM tv_settings WHERE id = $1", [id]);
+  return (rowCount ?? 0) > 0;
 }
 /**
  * Retorna a lista completa de servidores/usuários cadastrados
