@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { getTvSettingsAction } from "@/features/queue/actions";
-import ManagementDashboard from "@/features/reports/components/ManagementDashboard";
+import ManagementDashboard from "@/features/management/components/ManagementDashboard";
 
 export default async function ManagementPage() {
   const session = await getServerSession(authOptions);
