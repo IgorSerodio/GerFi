@@ -16,8 +16,9 @@ import {
   EyeOff,
   LogOut,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-
+import { motion } from "motion/react";
+import { FeatureCard } from "@/components/ui/FeatureCard";
+import { Modal } from "@/components/ui/Modal";
 interface MainMenuClientProps {
   session: Session | null;
 }
@@ -75,102 +76,84 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.05),transparent)]">
-      <AnimatePresence>
-        {showLogin && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-sefaz-dark/80 backdrop-blur-md"
-              onClick={() => setShowLogin(false)}
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white rounded-[40px] p-10 max-w-md w-full shadow-2xl border border-emerald-100"
-            >
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-sefaz-accent/10 text-sefaz-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Lock size={32} />
-                </div>
-                <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tighter">
-                  ACESSO RESTRITO
-                </h3>
-                <p className="text-sefaz-accent font-bold opacity-60 text-sm">
-                  Autenticação obrigatória para este módulo
-                </p>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="relative">
-                  <UserIcon
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40"
-                    size={20}
-                  />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nome de Usuário"
-                    className="w-full pl-12 pr-4 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30"
-                    value={credentials.username}
-                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                  />
-                </div>
-
-                <div className="relative">
-                  <Lock
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40"
-                    size={20}
-                  />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="Senha"
-                    className="w-full pl-12 pr-12 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30"
-                    value={credentials.password}
-                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40 hover:text-sefaz-accent"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="text-red-500 text-xs font-black text-center uppercase tracking-widest"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-5 bg-sefaz-accent text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:bg-sefaz-dark transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {loading ? "Entrando..." : "Entrar no Sistema"} <ChevronRight size={20} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowLogin(false)}
-                  className="w-full py-4 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
-                >
-                  Cancelar Acesso
-                </button>
-              </form>
-            </motion.div>
+      <Modal isOpen={showLogin} onClose={() => setShowLogin(false)} zIndex="z-50">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-sefaz-accent/10 text-sefaz-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock size={32} />
           </div>
-        )}
-      </AnimatePresence>
+          <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tighter">
+            ACESSO RESTRITO
+          </h3>
+          <p className="text-sefaz-accent font-bold opacity-60 text-sm">
+            Autenticação obrigatória para este módulo
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="relative">
+            <UserIcon
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40"
+              size={20}
+            />
+            <input
+              type="text"
+              required
+              placeholder="Nome de Usuário"
+              className="w-full pl-12 pr-4 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30"
+              value={credentials.username}
+              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+            />
+          </div>
+
+          <div className="relative">
+            <Lock
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40"
+              size={20}
+            />
+            <input
+              type={showPassword ? "text" : "password"}
+              required
+              placeholder="Senha"
+              className="w-full pl-12 pr-12 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30"
+              value={credentials.password}
+              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40 hover:text-sefaz-accent"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-red-500 text-xs font-black text-center uppercase tracking-widest"
+            >
+              {error}
+            </motion.p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-5 bg-sefaz-accent text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:bg-sefaz-dark transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? "Entrando..." : "Entrar no Sistema"} <ChevronRight size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowLogin(false)}
+            className="w-full py-4 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+          >
+            Cancelar Acesso
+          </button>
+        </form>
+      </Modal>
 
       {/* Logged User Indicator */}
       {session && (
@@ -209,14 +192,14 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <MenuButton
+        <FeatureCard
           onClick={() => handleAccess("/tv", false)}
           title="Painel de TV"
           icon={<Tv className="h-8 w-8" />}
           description="Exibição de senhas para o público"
           color="bg-emerald-500"
         />
-        <MenuButton
+        <FeatureCard
           onClick={() => handleAccess("/triagem", true)}
           title="Triagem"
           icon={<Ticket className="h-8 w-8" />}
@@ -224,7 +207,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           color="bg-blue-500"
           needsLock={!session}
         />
-        <MenuButton
+        <FeatureCard
           onClick={() => handleAccess("/atendimento", true)}
           title="Atendimento"
           icon={<Users className="h-8 w-8" />}
@@ -232,7 +215,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           color="bg-indigo-500"
           needsLock={!session}
         />
-        <MenuButton
+        <FeatureCard
           onClick={() => handleAccess("/gerenciamento", true)}
           title="Gerenciamento"
           icon={<LayoutDashboard className="h-8 w-8" />}
@@ -249,49 +232,3 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
   );
 }
 
-interface MenuButtonProps {
-  onClick: () => void;
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-  color: string;
-  needsLock?: boolean;
-}
-
-function MenuButton({
-  onClick,
-  title,
-  icon,
-  description,
-  color,
-  needsLock,
-}: MenuButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="group relative flex items-center p-8 bg-white rounded-[32px] shadow-sm border border-emerald-100/50 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-950/5 transition-all duration-500 overflow-hidden text-left w-full cursor-pointer"
-    >
-      <div
-        className={`flex-shrink-0 w-16 h-16 ${color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-500`}
-      >
-        {icon}
-      </div>
-
-      <div className="ml-6 flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-2xl font-black text-sefaz-dark tracking-tighter leading-none mb-1 group-hover:text-emerald-600 transition-colors">
-            {title}
-          </h3>
-          {needsLock && <Lock size={12} className="text-sefaz-accent/30" />}
-        </div>
-        <p className="text-sm text-sefaz-accent font-medium opacity-60 line-clamp-1">
-          {description}
-        </p>
-      </div>
-
-      <div className="ml-4 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500">
-        <ChevronRight className="h-6 w-6 text-emerald-500" />
-      </div>
-    </button>
-  );
-}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, FileText, Briefcase, Heart, Shield, Star, Zap, Car, Smartphone, Home, Gavel, Landmark, Building, GraduationCap, Banknote, Search } from "lucide-react";
 import { DbCategory, DbTicketWindow } from "@/features/queue/types";
 import {
@@ -231,23 +232,12 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
       </div>
 
       {/* Category Edit Modal */}
-      <AnimatePresence>
-        {showCategoryModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCategoryModal(false)}
-              className="absolute inset-0 bg-sefaz-dark/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-[40px] p-8 max-w-lg w-full shadow-2xl border border-emerald-100 relative max-h-[90vh] overflow-y-auto custom-scrollbar"
-            >
-              <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
+      <Modal 
+        isOpen={showCategoryModal} 
+        onClose={() => setShowCategoryModal(false)}
+        className="max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto custom-scrollbar"
+      >
+        <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
                 {isEditingCategory ? "Editar Serviço" : "Cadastrar Serviço"}
               </h3>
 
@@ -345,10 +335,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </Modal>
     </motion.div>
   );
 }

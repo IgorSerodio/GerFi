@@ -1,5 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { Printer } from "lucide-react";
 import { Ticket as TicketType } from "@/features/queue/types";
 
@@ -13,15 +14,14 @@ export default function TicketReceiptModal({
   onClose,
 }: TicketReceiptModalProps) {
   return (
-    <AnimatePresence>
+    <Modal 
+      isOpen={!!issuedTicket} 
+      onClose={onClose}
+      zIndex="z-[70]"
+      className="!bg-transparent !border-none !shadow-none !p-0 w-auto flex items-center justify-center"
+    >
       {issuedTicket && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-sefaz-dark/60 backdrop-blur-sm p-4"
-        >
-          <div className="relative">
+        <div className="relative">
             {/* Thermal Receipt Visual */}
             <motion.div
               initial={{ y: 100, scale: 0.9 }}
@@ -137,8 +137,7 @@ export default function TicketReceiptModal({
               </button>
             </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+    </Modal>
   );
 }

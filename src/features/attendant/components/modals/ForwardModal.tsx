@@ -1,5 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
 
@@ -21,23 +22,15 @@ export default function ForwardModal({
   onForward,
 }: ForwardModalProps) {
   return (
-    <AnimatePresence>
-      {show && currentCall && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-sefaz-dark/60 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative overflow-hidden"
-          >
-            <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
+    <Modal 
+      isOpen={show && !!currentCall} 
+      onClose={onClose}
+      zIndex="z-[60]"
+      className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative overflow-hidden p-0"
+    >
+      {currentCall && (
+        <>
+          <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
                   Encaminhar Senha: {currentCall.ticketNumber}
@@ -72,9 +65,8 @@ export default function ForwardModal({
                   </button>
                 ))}
             </div>
-          </motion.div>
-        </div>
+        </>
       )}
-    </AnimatePresence>
+    </Modal>
   );
 }

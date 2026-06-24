@@ -1,5 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { Printer } from "lucide-react";
 
 interface PrinterTestModalProps {
@@ -14,21 +15,13 @@ export default function PrinterTestModal({
   printerStatus,
 }: PrinterTestModalProps) {
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            className="bg-white rounded-[40px] p-8 max-w-md w-full shadow-2xl border border-emerald-100 relative overflow-hidden"
-          >
-            <div className="text-center mb-8">
+    <Modal 
+      isOpen={show} 
+      onClose={onClose}
+      zIndex="z-[100]"
+      className="bg-white rounded-[40px] p-8 max-w-md w-full shadow-2xl border border-emerald-100 relative overflow-hidden"
+    >
+      <div className="text-center mb-8">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Printer size={32} />
               </div>
@@ -109,9 +102,6 @@ export default function PrinterTestModal({
                 </div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }

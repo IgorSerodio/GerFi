@@ -1,5 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { Users, Accessibility } from "lucide-react";
 import { Category } from "../types";
 
@@ -15,21 +16,15 @@ export default function PriorityModal({
   onIssue,
 }: PriorityModalProps) {
   return (
-    <AnimatePresence>
+    <Modal 
+      isOpen={!!selectedCategory} 
+      onClose={onClose}
+      zIndex="z-[60]"
+      className="bg-white rounded-[40px] p-8 max-w-sm w-full shadow-2xl border border-emerald-100"
+    >
       {selectedCategory && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            className="bg-white rounded-[40px] p-8 max-w-sm w-full shadow-2xl border border-emerald-100"
-          >
-            <div className="text-center mb-6">
+        <>
+          <div className="text-center mb-6">
               <div
                 className={`w-12 h-12 ${selectedCategory.color} text-white rounded-xl flex items-center justify-center mx-auto mb-3`}
               >
@@ -85,9 +80,8 @@ export default function PriorityModal({
                 Cancelar
               </button>
             </div>
-          </motion.div>
-        </motion.div>
+        </>
       )}
-    </AnimatePresence>
+    </Modal>
   );
 }

@@ -1,5 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
 
 interface GuicheModalProps {
@@ -16,22 +17,12 @@ export default function GuicheModal({
   onSelect,
 }: GuicheModalProps) {
   return (
-    <AnimatePresence>
-      {show && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-sefaz-dark/80 backdrop-blur-md"
-          />
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl relative overflow-hidden"
-          >
+    <Modal 
+      isOpen={show} 
+      onClose={onClose}
+      zIndex="z-[70]"
+      className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl relative overflow-hidden p-0"
+    >
             <div className="p-8 border-b border-emerald-50 flex justify-between items-center bg-emerald-50/30">
               <div>
                 <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
@@ -75,9 +66,6 @@ export default function GuicheModal({
                 })}
               </div>
             </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }

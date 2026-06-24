@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { FileText, LayoutDashboard, Settings } from "lucide-react";
 import { Session } from "next-auth";
-import MenuCard from "./MenuCard";
+import { FeatureCard } from "@/components/ui/FeatureCard";
 import { ViewType } from "../types";
 
 interface ManagementMenuProps {
@@ -19,7 +19,8 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
       exit={{ opacity: 0, y: -20 }}
       className="grid grid-cols-1 md:grid-cols-3 gap-8"
     >
-      <MenuCard
+      <FeatureCard
+        layout="vertical"
         onClick={() => setView("reports")}
         title="Relatórios"
         description="Consulte o histórico completo de atendimentos, tempos de espera e produtividade."
@@ -27,7 +28,8 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
         color="bg-emerald-500"
       />
 
-      <MenuCard
+      <FeatureCard
+        layout="vertical"
         onClick={() => setView("dashboard")}
         title="Dashboards"
         description="Visualize a inteligência logística e métricas preditivas de atendimento."
@@ -35,7 +37,8 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
         color="bg-blue-600"
       />
 
-      <MenuCard
+      <FeatureCard
+        layout="vertical"
         onClick={() => {
           if (session && session.user.role === "Admin") {
             setView("config_hub");

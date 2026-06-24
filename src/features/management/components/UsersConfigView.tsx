@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, Ban } from "lucide-react";
 import { User, DbTicketWindow, DbCategory } from "@/features/queue/types";
 import {
@@ -243,23 +244,12 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
       </div>
 
       {/* User Edit Modal */}
-      <AnimatePresence>
-        {showUserModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowUserModal(false)}
-              className="absolute inset-0 bg-sefaz-dark/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-[40px] p-8 max-w-lg w-full shadow-2xl border border-emerald-100 relative max-h-[90vh] overflow-y-auto custom-scrollbar"
-            >
-              <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
+      <Modal 
+        isOpen={showUserModal} 
+        onClose={() => setShowUserModal(false)}
+        className="max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto custom-scrollbar"
+      >
+        <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
                 {isEditingUser ? "Editar Servidor" : "Cadastrar Servidor"}
               </h3>
 
@@ -420,29 +410,17 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </Modal>
 
       {/* Delete User Confirmation */}
-      <AnimatePresence>
-        {showDeleteConfirm && userToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowDeleteConfirm(false)}
-              className="absolute inset-0 bg-sefaz-dark/70 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-[40px] p-8 max-w-sm w-full shadow-2xl border border-emerald-100 text-center relative"
-            >
-              <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-2">
+      <Modal 
+        isOpen={showDeleteConfirm && userToDelete !== null} 
+        onClose={() => setShowDeleteConfirm(false)}
+        className="max-w-sm w-full p-8 text-center"
+      >
+        {userToDelete && (
+          <>
+            <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-2">
                 Excluir Servidor
               </h3>
               <p className="text-xs text-sefaz-accent font-medium mb-6">
@@ -464,10 +442,9 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                   Excluir
                 </button>
               </div>
-            </motion.div>
-          </div>
+          </>
         )}
-      </AnimatePresence>
+      </Modal>
     </motion.div>
   );
 }
