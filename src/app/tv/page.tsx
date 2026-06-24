@@ -1,6 +1,6 @@
 import React from "react";
 import { getQueueStateAction, getTvSettingsAction } from "@/features/queue/actions";
-import TvDashboard from "@/features/queue/components/tv/TvDashboard";
+import TvDashboard from "@/features/tv/components/TvDashboard";
 
 export default async function TvPage() {
   const [queueRes, tvRes] = await Promise.all([getQueueStateAction(), getTvSettingsAction()]);

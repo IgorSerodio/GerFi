@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { getQueueStateAction, getCategoriesAction, getTicketWindowsAction } from "@/features/queue/actions";
-import AttendantDashboard from "@/features/queue/components/attendant/AttendantDashboard";
+import AttendantDashboard from "@/features/attendant/components/AttendantDashboard";
 import { DbCategory, DbTicketWindow } from "@/features/queue/types";
 
 export default async function AttendantPage() {

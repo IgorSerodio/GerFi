@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Session } from "next-auth";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Activity } from "lucide-react";
-import LogisticsDashboard from "@/components/LogisticsDashboard";
+import LogisticsDashboard from "@/features/reports/components/LogisticsDashboard";
 import { TvSettings } from "@/features/queue/types";
 
 // Components
