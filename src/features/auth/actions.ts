@@ -1,11 +1,32 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { ActionName, hasPermission } from "./permissions";
 import { createUser } from "@/features/queue/queries";
 import { User, UserRole } from "@/features/queue/types";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
+}
+
+/**
+ * Valida a sessão e a permissão do usuário de forma rigorosa.
+ * Pode ser invocada no topo de qualquer Server Action.
+ */
+export async function requirePermission(action: ActionName) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user) {
+    throw new Error("Não autenticado. Você precisa fazer login para realizar esta ação.");
+  }
+  
+  if (!hasPermission(action, session.user.role)) {
+    throw new Error("Acesso negado. Você não tem permissão para realizar esta ação.");
+  }
+  
+  return session;
 }
 
 /**

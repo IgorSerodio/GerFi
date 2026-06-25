@@ -28,6 +28,7 @@ import {
 } from "./queries";
 import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema, TvSettingsSchema } from "./schema";
+import { requirePermission } from "@/features/auth/actions";
 import { queueEmitter } from "@/infra/events";
 import { User, YouTubeVideo } from "./types";
 import bcrypt from "bcryptjs";
@@ -74,6 +75,7 @@ export async function issueTicketAction(payload: {
   }
 
   try {
+    await requirePermission("ISSUE_TICKETS");
     const ticket = await insertTicket(payload.categoryId, payload.categoryName, payload.priority);
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
@@ -91,6 +93,7 @@ export async function callTicketAction(
   allowedServices: number[]
 ) {
   try {
+    await requirePermission("OPERATE_QUEUE");
     const ticket = await callNextTicket(attendant, guiche, allowedServices);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
@@ -107,6 +110,7 @@ export async function callTicketAction(
  */
 export async function recallTicketAction(ticketId: string) {
   try {
+    await requirePermission("OPERATE_QUEUE");
     const ticket = await getTicketById(ticketId);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
@@ -130,6 +134,7 @@ export async function finishTicketAction(ticketId: string, observation?: string)
   }
 
   try {
+    await requirePermission("OPERATE_QUEUE");
     const ticket = await finishTicket(ticketId, observation);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
@@ -155,6 +160,7 @@ export async function forwardTicketAction(
   }
 
   try {
+    await requirePermission("OPERATE_QUEUE");
     const ticket = await forwardTicket(ticketId, targetGuiche, attendant);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
@@ -203,6 +209,7 @@ export async function createTvSettingsAction(payload: {
 }) {
   // Poderiamos adicionar TvSettingsSchema validando slug e name
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const settings = await createTvSettings(
       payload.slug,
       payload.name,
@@ -231,6 +238,7 @@ export async function updateTvSettingsAction(payload: {
   services?: number[];
 }) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const settings = await updateTvSettings(
       payload.id,
       payload.slug,
@@ -252,6 +260,7 @@ export async function updateTvSettingsAction(payload: {
  */
 export async function deleteTvSettingsAction(id: number) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const success = await deleteTvSettings(id);
     triggerRealTimeUpdate();
     return { success };
@@ -265,6 +274,7 @@ export async function deleteTvSettingsAction(id: number) {
  */
 export async function getUsersAction() {
   try {
+    await requirePermission("MANAGE_USERS");
     const users = await getUsers();
     return { success: true, data: users };
   } catch (error) {
@@ -294,6 +304,7 @@ export async function createUserAction(userData: Omit<User, "id">) {
  */
 export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
+    await requirePermission("MANAGE_USERS");
     const updatedData = { ...userData };
     if (userData.password) {
       updatedData.password = bcrypt.hashSync(userData.password, 10);
@@ -310,6 +321,7 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
  */
 export async function deleteUserAction(id: number) {
   try {
+    await requirePermission("MANAGE_USERS");
     const success = await deleteUser(id);
     return { success };
   } catch (error) {
@@ -322,6 +334,7 @@ export async function deleteUserAction(id: number) {
  */
 export async function toggleBlockUserAction(id: number) {
   try {
+    await requirePermission("MANAGE_USERS");
     const user = await toggleBlockUser(id);
     return { success: true, data: user };
   } catch (error) {
@@ -358,6 +371,7 @@ export async function getTicketWindowsAction() {
  */
 export async function createCategoryAction(data: Omit<DbCategory, "id">) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const category = await createCategory(data);
     triggerRealTimeUpdate();
     return { success: true, data: category };
@@ -371,6 +385,7 @@ export async function createCategoryAction(data: Omit<DbCategory, "id">) {
  */
 export async function updateCategoryAction(id: number, data: Partial<DbCategory>) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const category = await updateCategory(id, data);
     triggerRealTimeUpdate();
     return { success: true, data: category };
@@ -384,6 +399,7 @@ export async function updateCategoryAction(id: number, data: Partial<DbCategory>
  */
 export async function deleteCategoryAction(id: number) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const success = await deleteCategory(id);
     triggerRealTimeUpdate();
     return { success };
@@ -397,6 +413,7 @@ export async function deleteCategoryAction(id: number) {
  */
 export async function createNextTicketWindowAction() {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const window = await createNextTicketWindow();
     triggerRealTimeUpdate();
     return { success: true, data: window };
@@ -410,6 +427,7 @@ export async function createNextTicketWindowAction() {
  */
 export async function deleteTicketWindowAction(id: number) {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const success = await deleteTicketWindow(id);
     triggerRealTimeUpdate();
     return { success };
