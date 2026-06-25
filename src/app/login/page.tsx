@@ -22,6 +22,7 @@ function LoginForm() {
   useEffect(() => {
     // Definir mensagem de erro customizada baseada nos parâmetros
     if (urlError === "unauthorized") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Você precisa fazer login para acessar o módulo selecionado.");
     } else if (urlError === "forbidden") {
       setError("Acesso negado. Suas credenciais não têm permissão para acessar o módulo selecionado.");
@@ -130,13 +131,23 @@ function LoginForm() {
           {loading ? "Autenticando..." : "Entrar no Sistema"} <ChevronRight size={20} />
         </button>
 
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="w-full py-4 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-60 hover:opacity-100 cursor-pointer transition-opacity"
-        >
-          Voltar ao Início
-        </button>
+        <div className="flex flex-col gap-2 pt-2 border-t border-emerald-50">
+          <button
+            type="button"
+            onClick={() => router.push("/register")}
+            className="w-full py-3 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+          >
+            Não possui conta? Cadastre-se
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="w-full py-3 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-60 hover:opacity-100 cursor-pointer transition-opacity"
+          >
+            Voltar ao Início
+          </button>
+        </div>
       </form>
     </div>
   );

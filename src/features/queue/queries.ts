@@ -371,12 +371,12 @@ export async function getUsers(): Promise<User[]> {
  * Cria um novo servidor no banco
  */
 export async function createUser(userData: Omit<User, "id">): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, password, services } = userData;
+  const { name, role, guiche, matricula, cpf, email, username, password, services, blocked } = userData;
   const { rows } = await pool.query<User>(
     `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-    [name, role, guiche, matricula, cpf, email, username, password, services || []]
+    [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false]
   );
   return rows[0];
 }

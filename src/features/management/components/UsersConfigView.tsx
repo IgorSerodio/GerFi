@@ -67,15 +67,6 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
       } else {
         alert(res.error || "Erro ao atualizar");
       }
-    } else {
-      const res = await createUserAction(newUser);
-      if (res.success) {
-        triggerSuccess("Servidor cadastrado com sucesso!");
-        setShowUserModal(false);
-        loadData();
-      } else {
-        alert(res.error || "Erro ao cadastrar");
-      }
     }
   };
 
@@ -144,26 +135,6 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
         <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
           Servidores Cadastrados
         </h3>
-        <button
-          onClick={() => {
-            setNewUser({
-              name: "",
-              role: UserRole.Atendente,
-              guiche: "Guichê 01",
-              matricula: "",
-              cpf: "",
-              email: "",
-              username: "",
-              password: "",
-              services: [],
-            });
-            setIsEditingUser(false);
-            setShowUserModal(true);
-          }}
-          className="px-6 py-3 bg-sefaz-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-        >
-          Novo Servidor
-        </button>
       </div>
 
       <div className="bg-white rounded-[40px] border border-emerald-50 overflow-hidden shadow-sm">
@@ -251,7 +222,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
         className="max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto custom-scrollbar"
       >
         <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
-                {isEditingUser ? "Editar Servidor" : "Cadastrar Servidor"}
+                Editar Servidor
               </h3>
 
               <form onSubmit={handleUserSubmit} className="space-y-4">
@@ -309,7 +280,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
                       Username
@@ -319,18 +290,6 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                       required
                       value={newUser.username}
                       onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                      className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
-                      Senha {isEditingUser && "(Vazio para não alterar)"}
-                    </label>
-                    <input
-                      type="password"
-                      required={!isEditingUser}
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                       className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     />
                   </div>
@@ -407,7 +366,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                     type="submit"
                     className="flex-1 py-4 bg-sefaz-accent text-white rounded-2xl font-bold hover:bg-sefaz-dark transition-all shadow-lg shadow-emerald-900/20 cursor-pointer text-xs uppercase"
                   >
-                    {isEditingUser ? "Salvar Alterações" : "Cadastrar Servidor"}
+                    Salvar Alterações
                   </button>
                 </div>
               </form>
