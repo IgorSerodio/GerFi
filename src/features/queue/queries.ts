@@ -430,6 +430,38 @@ export async function toggleBlockUser(id: number): Promise<User> {
   return rows[0];
 }
 
+/**
+ * Busca um usuário pelo email (usado na recuperação de senha)
+ */
+export async function getUserByEmail(email: string) {
+  const { rows } = await pool.query(
+    "SELECT id, blocked, reset_pin, reset_pin_expires FROM users WHERE email = $1 LIMIT 1",
+    [email]
+  );
+  if (rows.length === 0) return null;
+  return rows[0];
+}
+
+/**
+ * Define um PIN de recuperação e sua data de expiração para um usuário
+ */
+export async function setUserResetPin(id: number, pin: string, expiresAt: Date): Promise<void> {
+  await pool.query(
+    "UPDATE users SET reset_pin = $1, reset_pin_expires = $2 WHERE id = $3",
+    [pin, expiresAt, id]
+  );
+}
+
+/**
+ * Limpa o PIN de recuperação e atualiza a senha de um usuário
+ */
+export async function clearUserResetPinAndUpdatePassword(id: number, hashedPassword: string): Promise<void> {
+  await pool.query(
+    "UPDATE users SET password = $1, reset_pin = NULL, reset_pin_expires = NULL WHERE id = $2",
+    [hashedPassword, id]
+  );
+}
+
 export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string }[]> {
   const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color FROM categories ORDER BY id ASC");
   return rows;

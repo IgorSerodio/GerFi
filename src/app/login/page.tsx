@@ -134,6 +134,14 @@ function LoginForm() {
         <div className="flex flex-col gap-2 pt-2 border-t border-emerald-50">
           <button
             type="button"
+            onClick={() => router.push("/recover-password")}
+            className="w-full py-3 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+          >
+            Esqueci minha senha
+          </button>
+
+          <button
+            type="button"
             onClick={() => router.push("/register")}
             className="w-full py-3 text-sefaz-accent font-bold text-xs uppercase tracking-widest opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
           >
