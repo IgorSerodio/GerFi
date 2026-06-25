@@ -23,17 +23,23 @@ export function FeatureCard({
   disabled = false,
 }: FeatureCardProps) {
   const isHorizontal = layout === "horizontal";
+  const activeColor = disabled ? "bg-slate-200 text-slate-400 shadow-none" : `${color} text-white shadow-lg`;
+  const showLock = needsLock || disabled;
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`group relative p-8 bg-white rounded-[32px] shadow-sm border border-emerald-100/50 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-950/5 transition-all duration-500 overflow-hidden text-left w-full cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex ${
+      className={`group relative p-8 rounded-[32px] border transition-all duration-500 overflow-hidden text-left w-full flex ${
         isHorizontal ? "flex-row items-center" : "flex-col"
+      } ${
+        disabled
+          ? "bg-slate-50/80 border-slate-200/50 cursor-not-allowed opacity-80 pointer-events-none"
+          : "bg-white shadow-sm border-emerald-100/50 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-950/5 cursor-pointer"
       }`}
     >
       <div
-        className={`flex-shrink-0 w-16 h-16 ${color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-500 ${
+        className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ${activeColor} ${
           isHorizontal ? "mr-6" : "mb-6"
         }`}
       >
@@ -42,10 +48,10 @@ export function FeatureCard({
 
       <div className={isHorizontal ? "flex-1" : ""}>
         <div className={`flex items-center gap-2 ${!isHorizontal ? "mb-3" : "mb-1"}`}>
-          <h3 className="text-2xl font-black text-sefaz-dark tracking-tighter leading-none group-hover:text-emerald-600 transition-colors uppercase">
+          <h3 className={`text-2xl font-black tracking-tighter leading-none transition-colors uppercase ${disabled ? "text-slate-400" : "text-sefaz-dark group-hover:text-emerald-600"}`}>
             {title}
           </h3>
-          {needsLock && <Lock size={12} className="text-sefaz-accent/30" />}
+          {showLock && <Lock size={12} className={disabled ? "text-slate-400" : "text-sefaz-accent/30"} />}
         </div>
         <p className={`text-sm text-sefaz-accent font-medium opacity-60 ${!isHorizontal ? "leading-relaxed" : "line-clamp-1"}`}>
           {description}

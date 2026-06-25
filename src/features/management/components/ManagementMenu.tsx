@@ -52,7 +52,7 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
         title="Configurações"
         description="Ajuste fino do sistema de filas, parâmetros da TV e servidores de atendimento."
         icon={<Settings size={32} />}
-        color="bg-slate-700"
+        color="bg-slate-800"
         disabled={!hasPermission("MANAGE_CONFIGS")}
       />
     </motion.div>

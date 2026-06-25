@@ -19,6 +19,7 @@ import {
 import { motion } from "motion/react";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { Modal } from "@/components/ui/Modal";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 interface MainMenuClientProps {
   session: Session | null;
 }
@@ -28,6 +29,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
   const [showLogin, setShowLogin] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
+  const { hasPermission } = usePermissions();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -206,6 +208,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           description="Emissão de senhas e tickets"
           color="bg-blue-500"
           needsLock={!session}
+          disabled={!!session && !hasPermission("ACCESS_TRIAGE")}
         />
         <FeatureCard
           onClick={() => handleAccess("/atendimento", true)}
@@ -214,6 +217,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           description="Painel para atendentes"
           color="bg-indigo-500"
           needsLock={!session}
+          disabled={!!session && !hasPermission("ACCESS_ATTENDANCE")}
         />
         <FeatureCard
           onClick={() => handleAccess("/gerenciamento", true)}
@@ -222,6 +226,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           description="Relatórios, estatísticas e configurações"
           color="bg-amber-500"
           needsLock={!session}
+          disabled={!!session && !hasPermission("ACCESS_MANAGEMENT")}
         />
       </div>
 
