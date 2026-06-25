@@ -1,6 +1,5 @@
 import React from "react";
-import { Monitor, Hash, LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Monitor, Hash, MapPin } from "lucide-react";
 
 interface AttendantState {
   name: string;
@@ -22,13 +21,29 @@ export default function AttendantSidebar({
 }: AttendantSidebarProps) {
   return (
     <div className="w-64 bg-sefaz-dark text-emerald-100 p-6 flex flex-col">
-      <div className="mb-12 text-center">
+      <div className="mb-8 text-center">
         <h1 className="text-2xl font-black tracking-tighter text-white">
           FAZENDA <span className="font-light">MUNICIPAL</span>
         </h1>
         <p className="text-[10px] opacity-50 uppercase tracking-widest text-center">
           Atendimento v1.0
         </p>
+      </div>
+
+      <div className="p-4 bg-emerald-950/20 rounded-2xl border border-emerald-800/30 text-center mb-6">
+        <p className="text-[10px] text-emerald-100/50 uppercase tracking-widest mb-2 font-bold">
+          Local de Trabalho
+        </p>
+        <div className="flex items-center justify-center gap-2 mb-3 text-white">
+          <MapPin size={16} className="text-emerald-400" />
+          <span className="font-black tracking-tight">{currentAttendant.guiche}</span>
+        </div>
+        <button
+          onClick={() => setShowGuicheModal(true)}
+          className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer"
+        >
+          Alterar Guichê
+        </button>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -55,34 +70,6 @@ export default function AttendantSidebar({
           <span className="font-bold text-sm tracking-tight">Meus Serviços</span>
         </button>
       </nav>
-
-      <div className="p-4 bg-emerald-950/20 rounded-2xl border border-emerald-800/30">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-sefaz-medium flex items-center justify-center font-bold text-white shadow-inner uppercase">
-            {currentAttendant.name.substring(0, 2)}
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-bold leading-none text-white truncate">
-              {currentAttendant.name}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-[10px] opacity-60 uppercase">{currentAttendant.guiche}</p>
-              <button
-                onClick={() => setShowGuicheModal(true)}
-                className="text-[8px] px-1.5 py-0.5 bg-white/10 hover:bg-white/20 rounded-md transition-colors cursor-pointer"
-              >
-                ALTERAR
-              </button>
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={() => signOut()}
-          className="w-full mt-2 py-2 border border-red-500/30 hover:bg-red-500/10 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 cursor-pointer transition-colors"
-        >
-          <LogOut size={12} /> Sair
-        </button>
-      </div>
     </div>
   );
 }
