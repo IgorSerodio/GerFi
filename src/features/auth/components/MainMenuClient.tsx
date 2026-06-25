@@ -43,7 +43,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           Secretaria da Fazenda Municipal
         </h1>
         <p className="text-sefaz-accent font-bold uppercase tracking-[0.3em] text-sm opacity-60">
-          Sistema de Gestão de Fila
+          GerFi - Sistema de Gerenciamento de Filas
         </p>
       </div>
 

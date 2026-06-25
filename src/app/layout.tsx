@@ -5,7 +5,7 @@ import GlobalHeader from "@/components/layout/GlobalHeader";
 import { LoginModalProvider } from "@/features/auth/contexts/LoginModalContext";
 
 export const metadata: Metadata = {
-  title: "GerFi - Sistema de Gestão de Filas - SEFAZ",
+  title: "GerFi - Sistema de Gerenciamento de Filas - SEFAZ",
   description: "Sistema de gerenciamento de filas em tempo real para a Secretaria da Fazenda Municipal de Caruaru com painel de TV, triagem e back-office.",
 };
 
