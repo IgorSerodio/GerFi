@@ -103,8 +103,16 @@ async function main() {
       `, [cat.id, cat.ticketChar, cat.name, cat.description, cat.icon, cat.color]);
     }
     await client.query("COMMIT");
-
     console.log("Database seeded successfully!");
+    
+    console.log("Fixing sequences to avoid primary key violations...");
+    await client.query(`
+      SELECT setval(pg_get_serial_sequence('users', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM users;
+      SELECT setval(pg_get_serial_sequence('tv_settings', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM tv_settings;
+      SELECT setval(pg_get_serial_sequence('ticket_windows', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM ticket_windows;
+      SELECT setval(pg_get_serial_sequence('categories', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM categories;
+    `);
+
   } catch (error) {
     await client.query("ROLLBACK");
     console.error("Error seeding database, rolled back:", error);
