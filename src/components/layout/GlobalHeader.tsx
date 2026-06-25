@@ -2,30 +2,21 @@
 
 import React from "react";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, User as UserIcon } from "lucide-react";
-import { useLoginModal } from "@/features/auth/contexts/LoginModalContext";
-import LoginModal from "@/features/auth/components/LoginModal";
 
 export default function GlobalHeader() {
   const { data: session } = useSession();
+  const router = useRouter();
   const pathname = usePathname();
-  const { openModal } = useLoginModal();
 
   // Esconder completamente o header na rota da TV (que deve ser limpa)
   if (pathname.startsWith("/tv")) {
-    return (
-      <>
-        {/* Mesmo oculto, precisamos que o LoginModal exista na árvore se houver chance de uso, 
-            mas na /tv não é necessário, porém o mantemos por precaução caso seja aberto via teclado etc. */}
-        <LoginModal />
-      </>
-    );
+    return null;
   }
 
   return (
-    <>
-      <header className="w-full bg-white border-b border-emerald-100 shadow-sm py-3 px-6 flex items-center justify-between z-40 sticky top-0">
+    <header className="w-full bg-white border-b border-emerald-100 shadow-sm py-3 px-6 flex items-center justify-between z-40 sticky top-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-sefaz-accent/10 text-sefaz-accent rounded-lg flex items-center justify-center">
             <UserIcon size={18} />
@@ -56,7 +47,7 @@ export default function GlobalHeader() {
             </div>
           ) : (
             <button
-              onClick={() => openModal()}
+              onClick={() => router.push("/login")}
               className="px-6 py-2 bg-sefaz-accent text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-sefaz-dark transition-colors cursor-pointer shadow-md shadow-emerald-900/10"
             >
               Login
@@ -64,9 +55,5 @@ export default function GlobalHeader() {
           )}
         </div>
       </header>
-
-      {/* Renderizamos o Modal Globalmente */}
-      <LoginModal />
-    </>
   );
 }

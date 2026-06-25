@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import GlobalHeader from "@/components/layout/GlobalHeader";
-import { LoginModalProvider } from "@/features/auth/contexts/LoginModalContext";
 
 export const metadata: Metadata = {
   title: "GerFi - Sistema de Gerenciamento de Filas - SEFAZ",
@@ -18,12 +17,10 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <Providers>
-          <LoginModalProvider>
-            <div className="flex flex-col min-h-screen">
-              <GlobalHeader />
-              <main className="flex-1 flex flex-col">{children}</main>
-            </div>
-          </LoginModalProvider>
+          <div className="flex flex-col min-h-screen">
+            <GlobalHeader />
+            <main className="flex-1 flex flex-col">{children}</main>
+          </div>
         </Providers>
       </body>
     </html>

@@ -9,7 +9,6 @@ import {
 import { useRouter } from "next/navigation";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
-import { useLoginModal } from "@/features/auth/contexts/LoginModalContext";
 import { Session } from "next-auth";
 
 interface MainMenuClientProps {
@@ -19,15 +18,6 @@ interface MainMenuClientProps {
 export default function MainMenuClient({ session }: MainMenuClientProps) {
   const router = useRouter();
   const { hasPermission } = usePermissions();
-  const { openModal } = useLoginModal();
-
-  const handleAccess = (href: string, needsAuth: boolean) => {
-    if (needsAuth && !session) {
-      openModal(href);
-    } else {
-      router.push(href);
-    }
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.05),transparent)]">
@@ -49,38 +39,35 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
         <FeatureCard
-          onClick={() => handleAccess("/tv", false)}
+          onClick={() => router.push("/tv")}
           title="Painel de TV"
           icon={<Tv className="h-8 w-8" />}
           description="Exibição de senhas para o público"
           color="bg-emerald-500"
         />
         <FeatureCard
-          onClick={() => handleAccess("/triagem", true)}
+          onClick={() => router.push("/triagem")}
           title="Triagem"
           icon={<Ticket className="h-8 w-8" />}
           description="Emissão de senhas e tickets"
           color="bg-blue-500"
-          needsLock={!session}
-          disabled={!!session && !hasPermission("ACCESS_TRIAGE")}
+          disabled={!session || !hasPermission("ACCESS_TRIAGE")}
         />
         <FeatureCard
-          onClick={() => handleAccess("/atendimento", true)}
+          onClick={() => router.push("/atendimento")}
           title="Atendimento"
           icon={<Users className="h-8 w-8" />}
           description="Painel para atendentes"
           color="bg-indigo-500"
-          needsLock={!session}
-          disabled={!!session && !hasPermission("ACCESS_ATTENDANCE")}
+          disabled={!session || !hasPermission("ACCESS_ATTENDANCE")}
         />
         <FeatureCard
-          onClick={() => handleAccess("/gerenciamento", true)}
+          onClick={() => router.push("/gerenciamento")}
           title="Gerenciamento"
           icon={<LayoutDashboard className="h-8 w-8" />}
           description="Relatórios, estatísticas e configurações"
           color="bg-amber-500"
-          needsLock={!session}
-          disabled={!!session && !hasPermission("ACCESS_MANAGEMENT")}
+          disabled={!session || !hasPermission("ACCESS_MANAGEMENT")}
         />
       </div>
 

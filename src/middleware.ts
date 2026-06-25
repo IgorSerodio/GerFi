@@ -8,28 +8,28 @@ export default withAuth(
     const path = req.nextUrl.pathname;
 
     if (!token) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL(`/login?error=unauthorized&callbackUrl=${encodeURIComponent(path)}`, req.url));
     }
 
     const role = (token.role as string) || "";
 
     if (path.startsWith("/gerenciamento") && !hasPermission("ACCESS_MANAGEMENT", role)) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL(`/login?error=forbidden&callbackUrl=${encodeURIComponent(path)}`, req.url));
     }
 
     if (path.startsWith("/atendimento") && !hasPermission("ACCESS_ATTENDANCE", role)) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL(`/login?error=forbidden&callbackUrl=${encodeURIComponent(path)}`, req.url));
     }
 
     if (path.startsWith("/triagem") && !hasPermission("ACCESS_TRIAGE", role)) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL(`/login?error=forbidden&callbackUrl=${encodeURIComponent(path)}`, req.url));
     }
 
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: () => true,
     },
   }
 );
