@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { hasPermission } from "./features/auth/permissions";
 
 export default withAuth(
   function middleware(req) {
@@ -12,15 +13,15 @@ export default withAuth(
 
     const role = (token.role as string) || "";
 
-    if (path.startsWith("/gerenciamento") && !["Admin", "Gerente"].includes(role)) {
+    if (path.startsWith("/gerenciamento") && !hasPermission("ACCESS_MANAGEMENT", role)) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    if (path.startsWith("/atendimento") && !["Admin", "Atendente", "Gerente"].includes(role)) {
+    if (path.startsWith("/atendimento") && !hasPermission("ACCESS_ATTENDANCE", role)) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    if (path.startsWith("/triagem") && !["Admin", "Triador", "Atendente", "Gerente"].includes(role)) {
+    if (path.startsWith("/triagem") && !hasPermission("ACCESS_TRIAGE", role)) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 

@@ -34,10 +34,17 @@ export interface QueueState {
   history: Ticket[];
 }
 
+export enum UserRole {
+  Atendente = "Atendente",
+  Gerente = "Gerente",
+  Triador = "Triador",
+  Admin = "Admin",
+}
+
 export interface User {
   id?: number;
   name: string;
-  role: string;
+  role: UserRole;
   guiche?: string | null;
   matricula: string;
   cpf: string;

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import ManagementDashboard from "@/features/management/components/ManagementDashboard";
+import { hasPermission } from "@/features/auth/permissions";
 
 export default async function ManagementPage() {
   const session = await getServerSession(authOptions);
@@ -11,7 +12,7 @@ export default async function ManagementPage() {
   }
 
   const role = session.user?.role;
-  if (role !== "Admin" && role !== "Gerente") {
+  if (!hasPermission("ACCESS_MANAGEMENT", role)) {
     redirect("/");
   }
 

@@ -4,6 +4,7 @@ import { FileText, LayoutDashboard, Settings } from "lucide-react";
 import { Session } from "next-auth";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { ViewType } from "../types";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 
 interface ManagementMenuProps {
   session: Session | null;
@@ -11,6 +12,8 @@ interface ManagementMenuProps {
 }
 
 export default function ManagementMenu({ session, setView }: ManagementMenuProps) {
+  const { hasPermission } = usePermissions();
+
   return (
     <motion.div
       key="menu"
@@ -40,7 +43,7 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
       <FeatureCard
         layout="vertical"
         onClick={() => {
-          if (session && session.user.role === "Admin") {
+          if (hasPermission("MANAGE_CONFIGS")) {
             setView("config_hub");
           } else {
             alert("Acesso restrito para administradores.");
@@ -50,7 +53,7 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
         description="Ajuste fino do sistema de filas, parâmetros da TV e servidores de atendimento."
         icon={<Settings size={32} />}
         color="bg-slate-700"
-        disabled={!session || session.user.role !== "Admin"}
+        disabled={!hasPermission("MANAGE_CONFIGS")}
       />
     </motion.div>
   );

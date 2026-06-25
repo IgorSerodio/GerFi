@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, Ban } from "lucide-react";
-import { User, DbTicketWindow, DbCategory } from "@/features/queue/types";
+import { User, DbTicketWindow, DbCategory, UserRole } from "@/features/queue/types";
 import {
   getUsersAction,
   createUserAction,
@@ -30,7 +30,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   
   const [newUser, setNewUser] = useState({
     name: "",
-    role: "Atendente",
+    role: UserRole.Atendente,
     guiche: "Guichê 01",
     matricula: "",
     cpf: "",
@@ -52,6 +52,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -147,7 +148,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
           onClick={() => {
             setNewUser({
               name: "",
-              role: "Atendente",
+              role: UserRole.Atendente,
               guiche: "Guichê 01",
               matricula: "",
               cpf: "",
@@ -190,9 +191,9 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                 <td className="px-6 py-4">
                   <span
                     className={`px-2.5 py-1 text-[9px] font-black uppercase rounded-md ${
-                      user.role === "Admin"
+                      user.role === UserRole.Admin
                         ? "bg-red-100 text-red-700"
-                        : user.role === "Gerente"
+                        : user.role === UserRole.Gerente
                         ? "bg-amber-100 text-amber-700"
                         : "bg-emerald-100 text-emerald-700"
                     }`}
@@ -342,12 +343,12 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                     </label>
                     <select
                       value={newUser.role}
-                      onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                      onChange={(e) => setNewUser({ ...newUser, role: e.target.value as UserRole })}
                       className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     >
-                      <option value="Atendente">Atendente</option>
-                      <option value="Gerente">Gerente</option>
-                      <option value="Admin">Admin</option>
+                      {Object.values(UserRole).map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-1">
