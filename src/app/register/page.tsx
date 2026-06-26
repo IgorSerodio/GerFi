@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { registerUserAction } from "@/features/auth/actions";
-import { UserRole } from "@/features/queue/types";
+import { UserRole } from "@/features/users/types";
 
 export default function RegisterPage() {
   const router = useRouter();

@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import ManagementDashboard from "@/features/management/components/ManagementDashboard";
 import { hasPermission } from "@/features/auth/permissions";
+import ReportsView from "@/features/reports/components/ReportsView";
+import LogisticsDashboard from "@/features/reports/components/LogisticsDashboard";
 
 export default async function ManagementPage() {
   const session = await getServerSession(authOptions);
@@ -19,6 +21,8 @@ export default async function ManagementPage() {
   return (
     <ManagementDashboard
       session={session}
+      reportsViewComponent={<ReportsView />}
+      dashboardViewComponent={<LogisticsDashboard showHeader />}
     />
   );
 }

@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { Session } from "next-auth";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Activity } from "lucide-react";
-import LogisticsDashboard from "@/features/reports/components/LogisticsDashboard";
-import { TvSettings } from "@/features/queue/types";
+
 
 // Components
 import ManagementMenu from "./ManagementMenu";
@@ -14,15 +13,17 @@ import ServicesConfigView from "./ServicesConfigView";
 import UsersConfigView from "./UsersConfigView";
 import TvConfigView from "./TvConfigView";
 import PrinterConfigView from "./PrinterConfigView";
-import ReportsView from "@/features/reports/components/ReportsView";
+
 
 import { ViewType } from "../types";
 
 interface ManagementDashboardProps {
   session: Session | null;
+  reportsViewComponent: React.ReactNode;
+  dashboardViewComponent: React.ReactNode;
 }
 
-export default function ManagementDashboard({ session }: ManagementDashboardProps) {
+export default function ManagementDashboard({ session, reportsViewComponent, dashboardViewComponent }: ManagementDashboardProps) {
   const [view, setView] = useState<ViewType>("menu");
 
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -84,7 +85,7 @@ export default function ManagementDashboard({ session }: ManagementDashboardProp
         <AnimatePresence mode="wait">
           {view === "menu" && <ManagementMenu session={session} setView={setView} />}
           {view === "config_hub" && <ConfigHubMenu setView={setView} />}
-          {view === "reports" && <ReportsView />}
+          {view === "reports" && reportsViewComponent}
           {view === "dashboard" && (
             <motion.div
               key="dashboard"
@@ -92,7 +93,7 @@ export default function ManagementDashboard({ session }: ManagementDashboardProp
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
             >
-              <LogisticsDashboard showHeader />
+              {dashboardViewComponent}
             </motion.div>
           )}
           {view === "config_services" && <ServicesConfigView triggerSuccess={triggerSuccess} />}

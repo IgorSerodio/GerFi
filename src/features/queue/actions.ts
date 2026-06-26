@@ -8,16 +8,6 @@ import {
   forwardTicket,
   getActiveQueue,
   getHistory,
-  getTvSettings,
-  getAllTvSettings,
-  createTvSettings,
-  updateTvSettings,
-  deleteTvSettings,
-  getUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-  toggleBlockUser,
   getCategories,
   getTicketWindows,
   createCategory,
@@ -27,11 +17,9 @@ import {
   deleteTicketWindow,
 } from "./queries";
 import { DbCategory } from "./types";
-import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema, TvSettingsSchema } from "./schema";
+import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
 import { requirePermission } from "@/features/auth/actions";
 import { queueEmitter } from "@/infra/events";
-import { User, YouTubeVideo } from "./types";
-import bcrypt from "bcryptjs";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -41,8 +29,6 @@ function getErrorMessage(error: unknown, fallback: string): string {
  * Dispara notificação em tempo real
  */
 function triggerRealTimeUpdate() {
-  // O trigger do Postgres já envia NOTIFY, mas emitimos localmente 
-  // para garantir sincronismo instantâneo em ambientes locais ou single-instance.
   queueEmitter.emit("update");
 }
 
@@ -169,176 +155,6 @@ export async function forwardTicketAction(
     return { success: true, data: ticket };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao encaminhar senha.") };
-  }
-}
-
-/**
- * Busca configurações de uma TV pelo slug
- */
-export async function getTvSettingsAction(slug: string = "global") {
-  try {
-    const settings = await getTvSettings(slug);
-    return { success: true, data: settings };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao buscar configurações da TV.") };
-  }
-}
-
-/**
- * Busca todas as TVs
- */
-export async function getAllTvSettingsAction() {
-  try {
-    const settings = await getAllTvSettings();
-    return { success: true, data: settings };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao buscar todas as TVs.") };
-  }
-}
-
-/**
- * Cria uma nova TV
- */
-export async function createTvSettingsAction(payload: {
-  slug: string;
-  name: string;
-  mode: "live" | "files";
-  videoUrl: YouTubeVideo[];
-  uploadedFiles?: string[];
-  services?: number[];
-}) {
-  // Poderiamos adicionar TvSettingsSchema validando slug e name
-  try {
-    await requirePermission("MANAGE_CONFIGS");
-    const settings = await createTvSettings(
-      payload.slug,
-      payload.name,
-      payload.mode,
-      payload.videoUrl,
-      payload.uploadedFiles || [],
-      payload.services || []
-    );
-    triggerRealTimeUpdate();
-    return { success: true, data: settings };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao criar TV.") };
-  }
-}
-
-/**
- * Atualiza configurações de uma TV
- */
-export async function updateTvSettingsAction(payload: {
-  id: number;
-  slug: string;
-  name: string;
-  mode: "live" | "files";
-  videoUrl: YouTubeVideo[];
-  uploadedFiles?: string[];
-  services?: number[];
-}) {
-  try {
-    await requirePermission("MANAGE_CONFIGS");
-    const settings = await updateTvSettings(
-      payload.id,
-      payload.slug,
-      payload.name,
-      payload.mode,
-      payload.videoUrl,
-      payload.uploadedFiles || [],
-      payload.services || []
-    );
-    triggerRealTimeUpdate();
-    return { success: true, data: settings };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao atualizar TV.") };
-  }
-}
-
-/**
- * Exclui uma TV
- */
-export async function deleteTvSettingsAction(id: number) {
-  try {
-    await requirePermission("MANAGE_CONFIGS");
-    const success = await deleteTvSettings(id);
-    triggerRealTimeUpdate();
-    return { success };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao excluir TV.") };
-  }
-}
-
-/**
- * Busca todos os usuários
- */
-export async function getUsersAction() {
-  try {
-    await requirePermission("MANAGE_USERS");
-    const users = await getUsers();
-    return { success: true, data: users };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao buscar servidores.") };
-  }
-}
-
-/**
- * Cria um usuário
- */
-export async function createUserAction(userData: Omit<User, "id">) {
-  try {
-    // Hash password before saving
-    const hashedPassword = bcrypt.hashSync(userData.password || "", 10);
-    const user = await createUser({
-      ...userData,
-      password: hashedPassword,
-    });
-    return { success: true, data: user };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao criar servidor.") };
-  }
-}
-
-/**
- * Atualiza um usuário
- */
-export async function updateUserAction(id: number, userData: Partial<User>) {
-  try {
-    await requirePermission("MANAGE_USERS");
-    const updatedData = { ...userData };
-    if (userData.password) {
-      updatedData.password = bcrypt.hashSync(userData.password, 10);
-    }
-    const user = await updateUser(id, updatedData);
-    return { success: true, data: user };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao atualizar servidor.") };
-  }
-}
-
-/**
- * Exclui um usuário
- */
-export async function deleteUserAction(id: number) {
-  try {
-    await requirePermission("MANAGE_USERS");
-    const success = await deleteUser(id);
-    return { success };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao excluir servidor.") };
-  }
-}
-
-/**
- * Bloqueia/Desbloqueia um usuário
- */
-export async function toggleBlockUserAction(id: number) {
-  try {
-    await requirePermission("MANAGE_USERS");
-    const user = await toggleBlockUser(id);
-    return { success: true, data: user };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error, "Erro ao alterar bloqueio.") };
   }
 }
 

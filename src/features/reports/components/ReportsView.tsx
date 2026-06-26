@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Printer, FileText, Clock, CalendarDays, Timer, TrendingUp, Activity, Trophy } from "lucide-react";

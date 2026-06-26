@@ -1,5 +1,5 @@
 import { pool } from "@/infra/database";
-import { Ticket, TvSettings, User, YouTubeVideo, DbCategory } from "./types";
+import { Ticket, DbCategory } from "./types";
 
 interface DbTicketRow {
   id: string;
@@ -14,16 +14,6 @@ interface DbTicketRow {
   attendant?: string | null;
   guiche?: string | null;
   observation?: string | null;
-}
-
-interface DbTvSettingsRow {
-  id: number;
-  slug: string;
-  name: string;
-  mode: "live" | "files";
-  live_url: string;
-  uploaded_files: string[] | string | null;
-  services: number[];
 }
 
 /**
@@ -43,41 +33,6 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     attendant: row.attendant || undefined,
     guiche: row.guiche || undefined,
     observation: row.observation || undefined,
-  };
-}
-
-function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
-  let uploadedFiles: string[] = [];
-  if (Array.isArray(row.uploaded_files)) {
-    uploadedFiles = row.uploaded_files;
-  } else if (typeof row.uploaded_files === "string") {
-    try {
-      uploadedFiles = JSON.parse(row.uploaded_files);
-    } catch {
-      uploadedFiles = [];
-    }
-  }
-
-  let videoUrl: YouTubeVideo[] = [];
-  if (row.live_url) {
-    try {
-      videoUrl = JSON.parse(row.live_url);
-    } catch {
-      // Legacy support for plain string URLs
-      const videoIdMatch = row.live_url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : "";
-      videoUrl = [{ url: row.live_url, videoId, title: "Vídeo TV" }];
-    }
-  }
-
-  return {
-    id: row.id,
-    slug: row.slug || "global",
-    name: row.name || "TV",
-    mode: row.mode,
-    videoUrl,
-    uploadedFiles,
-    services: row.services || [],
   };
 }
 
@@ -275,191 +230,6 @@ export async function forwardTicket(
   } finally {
     client.release();
   }
-}
-
-/**
- * Obtém as configurações de uma TV específica pelo slug
- */
-export async function getTvSettings(slug: string = "global"): Promise<TvSettings> {
-  const { rows } = await pool.query("SELECT * FROM tv_settings WHERE slug = $1", [slug]);
-  if (rows.length === 0) {
-    if (slug === "global") {
-      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [] };
-    }
-    throw new Error("TV não encontrada.");
-  }
-  return mapTvSettingsRow(rows[0]);
-}
-
-/**
- * Obtém todas as TVs cadastradas
- */
-export async function getAllTvSettings(): Promise<TvSettings[]> {
-  const { rows } = await pool.query("SELECT * FROM tv_settings ORDER BY id ASC");
-  return rows.map(mapTvSettingsRow);
-}
-
-/**
- * Cria uma nova TV
- */
-export async function createTvSettings(
-  slug: string,
-  name: string,
-  mode: "live" | "files",
-  videoUrl: YouTubeVideo[],
-  uploadedFiles: string[],
-  services: number[]
-): Promise<TvSettings> {
-  const { rows } = await pool.query(
-    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services]
-  );
-  return mapTvSettingsRow(rows[0]);
-}
-
-/**
- * Atualiza as configurações de uma TV
- */
-export async function updateTvSettings(
-  id: number,
-  slug: string,
-  name: string,
-  mode: "live" | "files",
-  videoUrl: YouTubeVideo[],
-  uploadedFiles: string[],
-  services: number[]
-): Promise<TvSettings> {
-  const { rows } = await pool.query(
-    `UPDATE tv_settings
-     SET slug = $1,
-         name = $2,
-         mode = $3,
-         live_url = $4,
-         uploaded_files = $5,
-         services = $6
-     WHERE id = $7
-     RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, id]
-  );
-  return mapTvSettingsRow(rows[0]);
-}
-
-/**
- * Exclui uma TV
- */
-export async function deleteTvSettings(id: number): Promise<boolean> {
-  // Não permitir exclusão da TV global
-  if (id === 1) throw new Error("A TV Principal não pode ser excluída.");
-  const { rowCount } = await pool.query("DELETE FROM tv_settings WHERE id = $1", [id]);
-  return (rowCount ?? 0) > 0;
-}
-/**
- * Retorna a lista completa de servidores/usuários cadastrados
- */
-export async function getUsers(): Promise<User[]> {
-  const { rows } = await pool.query<User>(
-    `SELECT id, name, role, guiche, matricula, cpf, email, username, services, blocked 
-     FROM users 
-     ORDER BY name ASC`
-  );
-  return rows;
-}
-
-/**
- * Cria um novo servidor no banco
- */
-export async function createUser(userData: Omit<User, "id">): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, password, services, blocked } = userData;
-  const { rows } = await pool.query<User>(
-    `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-    [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false]
-  );
-  return rows[0];
-}
-
-/**
- * Atualiza um servidor existente
- */
-export async function updateUser(id: number, userData: Partial<User>): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, services, password } = userData;
-  
-  if (password) {
-    const { rows } = await pool.query<User>(
-      `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9
-       WHERE id = $10
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], password, id]
-    );
-    return rows[0];
-  } else {
-    const { rows } = await pool.query<User>(
-      `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8
-       WHERE id = $9
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], id]
-    );
-    return rows[0];
-  }
-}
-
-/**
- * Exclui um servidor
- */
-export async function deleteUser(id: number): Promise<boolean> {
-  const { rowCount } = await pool.query("DELETE FROM users WHERE id = $1", [id]);
-  return (rowCount ?? 0) > 0;
-}
-
-/**
- * Bloqueia/Desbloqueia um servidor
- */
-export async function toggleBlockUser(id: number): Promise<User> {
-  const { rows } = await pool.query<User>(
-    `UPDATE users 
-     SET blocked = NOT blocked 
-     WHERE id = $1 
-     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-    [id]
-  );
-  return rows[0];
-}
-
-/**
- * Busca um usuário pelo email (usado na recuperação de senha)
- */
-export async function getUserByEmail(email: string) {
-  const { rows } = await pool.query(
-    "SELECT id, blocked, reset_pin, reset_pin_expires FROM users WHERE email = $1 LIMIT 1",
-    [email]
-  );
-  if (rows.length === 0) return null;
-  return rows[0];
-}
-
-/**
- * Define um PIN de recuperação e sua data de expiração para um usuário
- */
-export async function setUserResetPin(id: number, pin: string, expiresAt: Date): Promise<void> {
-  await pool.query(
-    "UPDATE users SET reset_pin = $1, reset_pin_expires = $2 WHERE id = $3",
-    [pin, expiresAt, id]
-  );
-}
-
-/**
- * Limpa o PIN de recuperação e atualiza a senha de um usuário
- */
-export async function clearUserResetPinAndUpdatePassword(id: number, hashedPassword: string): Promise<void> {
-  await pool.query(
-    "UPDATE users SET password = $1, reset_pin = NULL, reset_pin_expires = NULL WHERE id = $2",
-    [hashedPassword, id]
-  );
 }
 
 export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string }[]> {

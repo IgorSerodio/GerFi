@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActionName, hasPermission } from "./permissions";
-import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword } from "@/features/queue/queries";
-import { User, UserRole } from "@/features/queue/types";
+import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword } from "@/features/users/queries";
+import { User, UserRole } from "@/features/users/types";
 import { sendPasswordRecoveryEmail } from "./email";
 
 function getErrorMessage(error: unknown, fallback: string): string {

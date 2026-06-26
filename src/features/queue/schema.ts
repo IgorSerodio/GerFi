@@ -16,12 +16,3 @@ export const ForwardTicketSchema = z.object({
   targetGuiche: z.string().min(1, "O guichê de destino é obrigatório"),
 });
 
-export const TvSettingsSchema = z.object({
-  mode: z.enum(["live", "files"]),
-  videoUrl: z.array(z.object({
-    url: z.string().url("URL inválida"),
-    videoId: z.string(),
-    title: z.string()
-  })),
-  uploadedFiles: z.array(z.string()).optional(),
-});

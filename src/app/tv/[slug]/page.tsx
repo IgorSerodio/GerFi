@@ -1,5 +1,6 @@
 import React from "react";
-import { getQueueStateAction, getTvSettingsAction } from "@/features/queue/actions";
+import { getQueueStateAction } from "@/features/queue/actions";
+import { getTvSettingsAction } from "@/features/tv/actions";
 import TvDashboard from "@/features/tv/components/TvDashboard";
 
 export default async function CustomTvPage({ params }: { params: Promise<{ slug: string }> }) {

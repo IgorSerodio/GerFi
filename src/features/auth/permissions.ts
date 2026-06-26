@@ -1,4 +1,4 @@
-import { UserRole } from "@/features/queue/types";
+import { UserRole } from "@/features/users/types";
 
 export const PERMISSIONS = {
   ACCESS_MANAGEMENT: [UserRole.Admin, UserRole.Gerente],

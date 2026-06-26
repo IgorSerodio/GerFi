@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Trash2, Save, X, Plus, Tv, ExternalLink } from "lucide-react";
-import { TvSettings, DbCategory } from "@/features/queue/types";
+import { DbCategory } from "@/features/queue/types";
+import { TvSettings } from "@/features/tv/types";
 import { 
   getAllTvSettingsAction, 
   updateTvSettingsAction, 
   createTvSettingsAction,
-  deleteTvSettingsAction,
-  getCategoriesAction
-} from "@/features/queue/actions";
+  deleteTvSettingsAction
+} from "@/features/tv/actions";
+import { getCategoriesAction } from "@/features/queue/actions";
 import { Modal } from "@/components/ui/Modal";
 
 interface TvConfigViewProps {

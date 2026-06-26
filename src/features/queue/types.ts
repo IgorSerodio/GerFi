@@ -13,46 +13,9 @@ export interface Ticket {
   observation?: string;
 }
 
-export interface YouTubeVideo {
-  url: string;
-  videoId: string;
-  title: string;
-}
-
-export interface TvSettings {
-  id: number;
-  slug: string;
-  name: string;
-  mode: "live" | "files";
-  videoUrl: YouTubeVideo[];
-  uploadedFiles: string[];
-  services: number[];
-}
-
 export interface QueueState {
   tickets: Ticket[];
   history: Ticket[];
-}
-
-export enum UserRole {
-  Atendente = "Atendente",
-  Gerente = "Gerente",
-  Triador = "Triador",
-  Admin = "Admin",
-}
-
-export interface User {
-  id?: number;
-  name: string;
-  role: UserRole;
-  guiche?: string | null;
-  matricula: string;
-  cpf: string;
-  email: string;
-  username: string;
-  password?: string;
-  services?: number[];
-  blocked?: boolean;
 }
 
 export interface DbCategory {

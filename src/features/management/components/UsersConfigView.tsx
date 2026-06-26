@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, Ban } from "lucide-react";
-import { User, DbTicketWindow, DbCategory, UserRole } from "@/features/queue/types";
+import { User, UserRole } from "@/features/users/types";
+import { DbTicketWindow, DbCategory } from "@/features/queue/types";
 import {
   getUsersAction,
   createUserAction,
   updateUserAction,
   deleteUserAction,
   toggleBlockUserAction,
+} from "@/features/users/actions";
+import {
   getTicketWindowsAction,
   getCategoriesAction,
 } from "@/features/queue/actions";
