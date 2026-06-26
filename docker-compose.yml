@@ -1,4 +1,32 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gerfi-app
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=production
+      # - NEXTAUTH_URL=https://localhost
+      # - NEXTAUTH_SECRET=your_secret_here
+      # Mapeamento interno para o banco
+      - DATABASE_URL=postgresql://gerfi:gerfi_password@postgres:5432/gerfi_db
+    restart: unless-stopped
+    # Nota: a porta 3000 não é exportada para o host. O nginx lidará com isso.
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: gerfi-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+
   postgres:
     image: postgres:15-alpine
     container_name: gerfi-postgres
@@ -6,10 +34,9 @@ services:
       POSTGRES_USER: gerfi
       POSTGRES_PASSWORD: gerfi_password
       POSTGRES_DB: gerfi_db
-    ports:
-      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 
 volumes:
   pgdata:
