@@ -30,9 +30,40 @@ export const authOptions: AuthOptions = {
           throw new Error("Este usuário está bloqueado.");
         }
 
+        const agora = new Date();
+        if (user.locked_until && new Date(user.locked_until) > agora) {
+          const waitTime = Math.ceil((new Date(user.locked_until).getTime() - agora.getTime()) / 60000);
+          throw new Error(`Conta bloqueada temporariamente por excesso de tentativas. Tente novamente em ${waitTime} minuto(s).`);
+        }
+
         const isValid = bcrypt.compareSync(credentials.password, user.password);
         if (!isValid) {
+          const failedAttempts = (user.failed_login_attempts || 0) + 1;
+          let lockMinutes = 0;
+          
+          if (failedAttempts >= 10) lockMinutes = 60;
+          else if (failedAttempts >= 7) lockMinutes = 15;
+          else if (failedAttempts >= 5) lockMinutes = 5;
+          else if (failedAttempts >= 3) lockMinutes = 1;
+
+          let lockedUntil = null;
+          if (lockMinutes > 0) {
+            lockedUntil = new Date(agora.getTime() + lockMinutes * 60000);
+          }
+
+          await pool.query(
+            "UPDATE users SET failed_login_attempts = $1, locked_until = $2 WHERE id = $3",
+            [failedAttempts, lockedUntil, user.id]
+          );
+
           throw new Error("Usuário ou senha incorretos.");
+        }
+
+        if (user.failed_login_attempts > 0 || user.locked_until) {
+          await pool.query(
+            "UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1",
+            [user.id]
+          );
         }
 
         return {
