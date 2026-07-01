@@ -156,10 +156,13 @@ export async function callNextTicket(
 }
 
 /**
- * Re-chama uma senha que já está em atendimento (apenas obtém os dados para emitir sinal sonoro)
+ * Re-chama uma senha que já está em atendimento (atualiza called_at para emitir sinal sonoro)
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
-  const { rows } = await pool.query("SELECT * FROM tickets WHERE id = $1", [ticketId]);
+  const { rows } = await pool.query(
+    "UPDATE tickets SET called_at = NOW() WHERE id = $1 RETURNING *",
+    [ticketId]
+  );
   if (rows.length === 0) return null;
   return mapTicketRow(rows[0]);
 }

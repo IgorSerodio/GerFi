@@ -60,6 +60,7 @@ export default function TvDashboard({
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prevCallIdRef = useRef<string | null>(null);
+  const prevCalledAtRef = useRef<string | null>(null);
 
   const defaultSlides = [
     {
@@ -106,10 +107,13 @@ export default function TvDashboard({
           setIsIdle(false);
           resetIdleTimer();
 
-          if (first.id !== prevCallIdRef.current && soundEnabled) {
+          const currentCalledAt = first.calledAt || "";
+
+          if ((first.id !== prevCallIdRef.current || currentCalledAt !== prevCalledAtRef.current) && soundEnabled) {
             playAlert();
           }
           prevCallIdRef.current = first.id;
+          prevCalledAtRef.current = currentCalledAt;
         } else {
           setCurrentCall(null);
           setIsIdle(true);
@@ -188,7 +192,7 @@ export default function TvDashboard({
     };
   }, []);
 
-  const showMiddleBar = !soundEnabled || (isIdle && showControls);
+  const showMiddleBar = !soundEnabled || showControls;
 
   const recentTickets = history.slice(isIdle ? 0 : 1, isIdle ? 5 : 6);
   const duplicatedTickets = [...recentTickets, ...recentTickets];
