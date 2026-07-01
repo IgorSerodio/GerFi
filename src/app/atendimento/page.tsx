@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { getQueueStateAction, getCategoriesAction, getTicketWindowsAction } from "@/features/queue/actions";
+import { getUserById } from "@/features/users/queries";
 import AttendantDashboard from "@/features/attendant/components/AttendantDashboard";
 import { DbCategory, DbTicketWindow } from "@/features/queue/types";
 
@@ -12,10 +13,11 @@ export default async function AttendantPage() {
     redirect("/");
   }
 
-  const [res, catRes, twRes] = await Promise.all([
+  const [res, catRes, twRes, userProfile] = await Promise.all([
     getQueueStateAction(),
     getCategoriesAction(),
-    getTicketWindowsAction()
+    getTicketWindowsAction(),
+    getUserById(Number(session.user.id))
   ]);
 
   const initialQueue = res.success && res.data ? res.data.tickets : [];
@@ -30,6 +32,7 @@ export default async function AttendantPage() {
       initialHistory={initialHistory}
       initialCategories={initialCategories as DbCategory[]}
       initialTicketWindows={initialTicketWindows as DbTicketWindow[]}
+      initialServices={userProfile?.services || []}
     />
   );
 }

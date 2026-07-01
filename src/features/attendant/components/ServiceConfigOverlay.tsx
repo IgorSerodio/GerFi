@@ -4,14 +4,14 @@ interface ServiceConfigOverlayProps {
   categories: { id: string; name: string }[];
   allowedServices: number[];
   toggleService: (id: string) => void;
-  setShowServiceConfig: (show: boolean) => void;
+  onSave: () => void;
 }
 
 export default function ServiceConfigOverlay({
   categories,
   allowedServices,
   toggleService,
-  setShowServiceConfig,
+  onSave,
 }: ServiceConfigOverlayProps) {
   return (
     <div className="absolute inset-0 z-50 bg-sefaz-light/95 backdrop-blur-md p-10">
@@ -26,7 +26,7 @@ export default function ServiceConfigOverlay({
             </p>
           </div>
           <button
-            onClick={() => setShowServiceConfig(false)}
+            onClick={onSave}
             className="px-6 py-3 bg-sefaz-accent text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             Concluir

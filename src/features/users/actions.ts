@@ -6,6 +6,8 @@ import {
   updateUser,
   deleteUser,
   toggleBlockUser,
+  getUserById,
+  updateUserServices,
 } from "./queries";
 import { requirePermission } from "@/features/auth/actions";
 import { User } from "./types";
@@ -85,5 +87,32 @@ export async function toggleBlockUserAction(id: number) {
     return { success: true, data: user };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao alterar bloqueio.") };
+  }
+}
+
+/**
+ * Busca o perfil do usuário logado atual
+ */
+export async function getMyProfileAction() {
+  try {
+    const session = await requirePermission("ACCESS_ATTENDANCE");
+    const user = await getUserById(Number(session.user.id));
+    if (!user) return { success: false, error: "Usuário não encontrado." };
+    return { success: true, data: user };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar perfil.") };
+  }
+}
+
+/**
+ * Atualiza os serviços do usuário logado (Usado na aba 'Meus Serviços')
+ */
+export async function updateMyServicesAction(services: number[]) {
+  try {
+    const session = await requirePermission("ACCESS_ATTENDANCE");
+    const user = await updateUserServices(Number(session.user.id), services);
+    return { success: true, data: user };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao salvar serviços.") };
   }
 }

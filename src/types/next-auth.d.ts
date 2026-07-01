@@ -7,7 +7,6 @@ declare module "next-auth" {
       role: string;
       guiche: string | null;
       username: string;
-      services: number[];
     } & DefaultSession["user"];
   }
 
@@ -15,7 +14,6 @@ declare module "next-auth" {
     role: string;
     guiche: string | null;
     username: string;
-    services: number[];
   }
 }
 
@@ -24,6 +22,5 @@ declare module "next-auth/jwt" {
     role: string;
     guiche: string | null;
     username: string;
-    services: number[];
   }
 }

@@ -9,6 +9,9 @@ import {
   finishTicketAction,
   forwardTicketAction,
 } from "@/features/queue/actions";
+import {
+  updateMyServicesAction,
+} from "@/features/users/actions";
 import { Ticket, DbCategory, DbTicketWindow } from "@/features/queue/types";
 
 import AttendantSidebar from "./AttendantSidebar";
@@ -29,6 +32,7 @@ interface AttendantDashboardProps {
   initialHistory: Ticket[];
   initialCategories: DbCategory[];
   initialTicketWindows: DbTicketWindow[];
+  initialServices: number[];
 }
 
 export default function AttendantDashboard({
@@ -37,15 +41,14 @@ export default function AttendantDashboard({
   initialHistory,
   initialCategories,
   initialTicketWindows,
+  initialServices,
 }: AttendantDashboardProps) {
   const [currentAttendant, setCurrentAttendant] = useState({
     name: session?.user?.name || "Atendente",
     guiche: session?.user?.guiche || "Guichê 01",
   });
   const [showGuicheModal, setShowGuicheModal] = useState(false);
-  const [allowedServices, setAllowedServices] = useState<number[]>(
-    session?.user?.services || []
-  );
+  const [allowedServices, setAllowedServices] = useState<number[]>(initialServices);
   const [showServiceConfig, setShowServiceConfig] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -63,17 +66,16 @@ export default function AttendantDashboard({
     name: c.name,
   }));
 
-  useEffect(() => {
-    if (session?.user) {
-      setTimeout(() => {
-        setCurrentAttendant({
-          name: session.user.name || "Atendente",
-          guiche: session.user.guiche || "Guichê 01",
-        });
-        setAllowedServices(session.user.services || []);
-      }, 0);
+
+
+  const handleSaveServices = async () => {
+    const res = await updateMyServicesAction(allowedServices);
+    if (res.success) {
+      setShowServiceConfig(false);
+    } else {
+      alert(res.error || "Erro ao salvar serviços");
     }
-  }, [session]);
+  };
 
   const refreshState = async () => {
     const res = await getQueueStateAction();
@@ -183,7 +185,7 @@ export default function AttendantDashboard({
               categories={categories}
               allowedServices={allowedServices}
               toggleService={toggleService}
-              setShowServiceConfig={setShowServiceConfig}
+              onSave={handleSaveServices}
             />
           )}
 

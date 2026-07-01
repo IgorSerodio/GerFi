@@ -73,7 +73,6 @@ export const authOptions: AuthOptions = {
           role: user.role,
           guiche: user.guiche,
           username: user.username,
-          services: user.services || [],
         };
       }
     })
@@ -84,7 +83,6 @@ export const authOptions: AuthOptions = {
         token.role = user.role;
         token.guiche = user.guiche;
         token.username = user.username;
-        token.services = user.services;
       }
       return token;
     },
@@ -94,7 +92,6 @@ export const authOptions: AuthOptions = {
         session.user.role = token.role;
         session.user.guiche = token.guiche;
         session.user.username = token.username;
-        session.user.services = token.services;
       }
       return session;
     }

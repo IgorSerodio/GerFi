@@ -10,7 +10,10 @@ export async function getUsers(): Promise<User[]> {
      FROM users 
      ORDER BY name ASC`
   );
-  return rows;
+  return rows.map(row => ({
+    ...row,
+    services: (row.services || []).map(Number)
+  }));
 }
 
 /**
@@ -24,7 +27,10 @@ export async function createUser(userData: Omit<User, "id">): Promise<User> {
      RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
     [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false]
   );
-  return rows[0];
+  return {
+    ...rows[0],
+    services: (rows[0].services || []).map(Number)
+  };
 }
 
 /**
@@ -41,7 +47,10 @@ export async function updateUser(id: number, userData: Partial<User>): Promise<U
        RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
       [name, role, guiche, matricula, cpf, email, username, services || [], password, id]
     );
-    return rows[0];
+    return {
+      ...rows[0],
+      services: (rows[0].services || []).map(Number)
+    };
   } else {
     const { rows } = await pool.query<User>(
       `UPDATE users
@@ -50,7 +59,10 @@ export async function updateUser(id: number, userData: Partial<User>): Promise<U
        RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
       [name, role, guiche, matricula, cpf, email, username, services || [], id]
     );
-    return rows[0];
+    return {
+      ...rows[0],
+      services: (rows[0].services || []).map(Number)
+    };
   }
 }
 
@@ -73,7 +85,10 @@ export async function toggleBlockUser(id: number): Promise<User> {
      RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
     [id]
   );
-  return rows[0];
+  return {
+    ...rows[0],
+    services: (rows[0].services || []).map(Number)
+  };
 }
 
 /**
@@ -106,4 +121,30 @@ export async function clearUserResetPinAndUpdatePassword(id: number, hashedPassw
     "UPDATE users SET password = $1, reset_pin = NULL, reset_pin_expires = NULL WHERE id = $2",
     [hashedPassword, id]
   );
+}
+
+/**
+ * Busca um usuário pelo ID
+ */
+export async function getUserById(id: number) {
+  const { rows } = await pool.query("SELECT * FROM users WHERE id = $1 LIMIT 1", [id]);
+  if (rows.length === 0) return null;
+  return {
+    ...rows[0],
+    services: (rows[0].services || []).map(Number)
+  };
+}
+
+/**
+ * Atualiza apenas os serviços de um usuário (para a aba Meus Serviços)
+ */
+export async function updateUserServices(id: number, services: number[]) {
+  const { rows } = await pool.query(
+    "UPDATE users SET services = $1 WHERE id = $2 RETURNING *",
+    [services, id]
+  );
+  return {
+    ...rows[0],
+    services: (rows[0].services || []).map(Number)
+  };
 }
