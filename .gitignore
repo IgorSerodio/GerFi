@@ -43,3 +43,6 @@ next-env.d.ts
 # prototype
 /prototype/
 
+# images
+gerfi-images.tar.gz
+gerfi-images.tar
