@@ -11,6 +11,7 @@ import {
 } from "@/features/queue/actions";
 import {
   updateMyServicesAction,
+  updateMyGuicheAction,
 } from "@/features/users/actions";
 import { Ticket, DbCategory, DbTicketWindow } from "@/features/queue/types";
 
@@ -33,6 +34,7 @@ interface AttendantDashboardProps {
   initialCategories: DbCategory[];
   initialTicketWindows: DbTicketWindow[];
   initialServices: number[];
+  initialGuiche: string;
 }
 
 export default function AttendantDashboard({
@@ -42,10 +44,11 @@ export default function AttendantDashboard({
   initialCategories,
   initialTicketWindows,
   initialServices,
+  initialGuiche,
 }: AttendantDashboardProps) {
   const [currentAttendant, setCurrentAttendant] = useState({
     name: session?.user?.name || "Atendente",
-    guiche: session?.user?.guiche || "Guichê 01",
+    guiche: initialGuiche,
   });
   const [showGuicheModal, setShowGuicheModal] = useState(false);
   const [allowedServices, setAllowedServices] = useState<number[]>(initialServices);
@@ -74,6 +77,19 @@ export default function AttendantDashboard({
       setShowServiceConfig(false);
     } else {
       alert(res.error || "Erro ao salvar serviços");
+    }
+  };
+
+  const handleSaveGuiche = async (guicheName: string) => {
+    const res = await updateMyGuicheAction(guicheName);
+    if (res.success) {
+      setCurrentAttendant((prev) => ({
+        ...prev,
+        guiche: guicheName,
+      }));
+      setShowGuicheModal(false);
+    } else {
+      alert(res.error || "Erro ao atualizar guichê");
     }
   };
 
@@ -230,13 +246,7 @@ export default function AttendantDashboard({
                 show={showGuicheModal}
                 currentGuiche={currentAttendant.guiche}
                 onClose={() => setShowGuicheModal(false)}
-                onSelect={(guicheName) => {
-                  setCurrentAttendant((prev) => ({
-                    ...prev,
-                    guiche: guicheName,
-                  }));
-                  setShowGuicheModal(false);
-                }}
+                onSelect={handleSaveGuiche}
               />
 
               <HistoryDetailModal

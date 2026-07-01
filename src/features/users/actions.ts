@@ -8,6 +8,7 @@ import {
   toggleBlockUser,
   getUserById,
   updateUserServices,
+  updateUserGuiche,
 } from "./queries";
 import { requirePermission } from "@/features/auth/actions";
 import { User } from "./types";
@@ -114,5 +115,18 @@ export async function updateMyServicesAction(services: number[]) {
     return { success: true, data: user };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao salvar serviços.") };
+  }
+}
+
+/**
+ * Atualiza o guichê do usuário logado
+ */
+export async function updateMyGuicheAction(guiche: string) {
+  try {
+    const session = await requirePermission("ACCESS_ATTENDANCE");
+    const user = await updateUserGuiche(Number(session.user.id), guiche);
+    return { success: true, data: user };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao alterar guichê.") };
   }
 }

@@ -33,7 +33,6 @@ export default function GlobalHeader() {
                 <p className="text-xs font-black text-sefaz-dark leading-none">{session.user?.name}</p>
                 <p className="text-[10px] font-bold text-sefaz-accent uppercase tracking-wider mt-1">
                   {session.user.role}
-                  {session.user.guiche && session.user.guiche !== "-" && ` - ${session.user.guiche}`}
                 </p>
               </div>
               <button

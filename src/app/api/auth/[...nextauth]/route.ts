@@ -71,7 +71,6 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
-          guiche: user.guiche,
           username: user.username,
         };
       }
@@ -81,7 +80,6 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
-        token.guiche = user.guiche;
         token.username = user.username;
       }
       return token;
@@ -90,7 +88,6 @@ export const authOptions: AuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub || "";
         session.user.role = token.role;
-        session.user.guiche = token.guiche;
         session.user.username = token.username;
       }
       return session;

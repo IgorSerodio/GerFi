@@ -148,3 +148,17 @@ export async function updateUserServices(id: number, services: number[]) {
     services: (rows[0].services || []).map(Number)
   };
 }
+
+/**
+ * Atualiza apenas o guichê de um usuário
+ */
+export async function updateUserGuiche(id: number, guiche: string) {
+  const { rows } = await pool.query(
+    "UPDATE users SET guiche = $1 WHERE id = $2 RETURNING *",
+    [guiche, id]
+  );
+  return {
+    ...rows[0],
+    services: (rows[0].services || []).map(Number)
+  };
+}
