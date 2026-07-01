@@ -25,6 +25,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - nginx_ssl:/etc/nginx/ssl
     restart: unless-stopped
 
   postgres:
@@ -40,3 +42,4 @@ services:
 
 volumes:
   pgdata:
+  nginx_ssl:
