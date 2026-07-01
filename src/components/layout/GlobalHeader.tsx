@@ -36,7 +36,7 @@ export default function GlobalHeader() {
                 </p>
               </div>
               <button
-                onClick={() => signOut({ redirect: false })}
+                onClick={() => signOut({ callbackUrl: '/' })}
                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer flex items-center gap-2 border border-transparent hover:border-red-100"
                 title="Sair do Sistema"
               >
