@@ -18,6 +18,7 @@ import {
 import { motion } from "motion/react";
 import { registerUserAction } from "@/features/auth/actions";
 import { UserRole } from "@/features/users/types";
+import { formatCpf, formatMatricula, removeNonDigits } from "@/lib/formatters";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -42,8 +43,21 @@ export function RegisterForm() {
     setLoading(true);
     setError("");
 
-    if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password) {
+    if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password || !formData.matricula) {
       setError("Preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
+
+    const rawCpf = removeNonDigits(formData.cpf);
+    if (rawCpf.length !== 11) {
+      setError("O CPF deve conter exatamente 11 dígitos.");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.matricula.length !== 6) {
+      setError("A matrícula deve conter exatamente 6 dígitos.");
       setLoading(false);
       return;
     }
@@ -51,7 +65,7 @@ export function RegisterForm() {
     const res = await registerUserAction({
       name: formData.name,
       email: formData.email,
-      cpf: formData.cpf,
+      cpf: rawCpf,
       matricula: formData.matricula,
       username: formData.username,
       password: formData.password,
@@ -70,7 +84,16 @@ export function RegisterForm() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    const name = e.target.name;
+
+    if (name === "cpf") {
+      value = formatCpf(value);
+    } else if (name === "matricula") {
+      value = formatMatricula(value);
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   if (success) {
@@ -163,6 +186,7 @@ export function RegisterForm() {
               type="text"
               name="cpf"
               required
+              maxLength={14}
               placeholder="CPF"
               className="w-full pl-12 pr-4 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30 text-sefaz-dark"
               value={formData.cpf}
@@ -177,6 +201,7 @@ export function RegisterForm() {
               type="text"
               name="matricula"
               required
+              maxLength={6}
               placeholder="Matrícula"
               className="w-full pl-12 pr-4 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30 text-sefaz-dark"
               value={formData.matricula}

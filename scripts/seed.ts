@@ -5,7 +5,7 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_NAME = process.env.ADMIN_NAME || "Administrador GerFi";
 const ADMIN_MATRICULA = process.env.ADMIN_MATRICULA || "00000";
-const ADMIN_CPF = process.env.ADMIN_CPF || "000.000.000-00";
+const ADMIN_CPF = process.env.ADMIN_CPF || "00000000000";
 
 async function main() {
   console.log("Seeding database...");
