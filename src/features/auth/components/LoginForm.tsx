@@ -17,25 +17,27 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   const urlError = searchParams.get("error");
+  const urlAuthError = searchParams.get("authError");
+  const authStatus = urlAuthError || urlError;
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
     // Definir mensagem de erro customizada baseada nos parâmetros
-    if (urlError === "unauthorized") {
+    if (authStatus === "unauthorized") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("Você precisa fazer login para acessar o módulo selecionado.");
-    } else if (urlError === "forbidden") {
+    } else if (authStatus === "forbidden") {
       setError("Acesso negado. Suas credenciais não têm permissão para acessar o módulo selecionado.");
-    } else if (urlError === "CredentialsSignin") {
+    } else if (authStatus === "CredentialsSignin") {
       setError("Usuário ou senha incorretos.");
     }
 
     // Se houver um erro de permissão (forbidden) E o usuário estiver logado com uma sessão inválida
     // Nós o deslogamos para que possa entrar com credenciais válidas.
-    if (urlError === "forbidden" && session) {
+    if (authStatus === "forbidden" && session) {
       signOut({ redirect: false });
     }
-  }, [urlError, session]);
+  }, [authStatus, session]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +55,8 @@ export function LoginForm() {
     if (res?.error) {
       setError("Usuário ou senha incorretos.");
     } else {
-      window.location.href = callbackUrl;
+      router.push(callbackUrl);
+      router.refresh();
     }
   };
 
