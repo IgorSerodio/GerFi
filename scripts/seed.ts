@@ -72,22 +72,22 @@ async function main() {
     console.log("Seeding categories...");
     await client.query("BEGIN");
     const categories = [
-      { id: 1, ticketChar: "I", name: "IPTU", description: "Imposto Predial e Territorial Urbano", icon: "Landmark", color: "bg-emerald-600" },
-      { id: 2, ticketChar: "I", name: "ITBI", description: "Imposto sobre Transmissão de Bens Imóveis", icon: "Landmark", color: "bg-emerald-600" },
-      { id: 3, ticketChar: "S", name: "SÃO JOÃO", description: "Eventos e Autorizações", icon: "Landmark", color: "bg-blue-500" },
-      { id: 4, ticketChar: "T", name: "TRANSPORTE", description: "Mobilidade Urbana", icon: "History", color: "bg-slate-600" },
-      { id: 5, ticketChar: "M", name: "MALHA FISCAL", description: "Regularização de Pendências", icon: "Gavel", color: "bg-amber-600" },
-      { id: 6, ticketChar: "S", name: "SEMANA SANTA", description: "Eventos e Autorizações", icon: "Landmark", color: "bg-emerald-500" },
-      { id: 7, ticketChar: "F", name: "FEIRA", description: "Taxas e Licenciamento", icon: "Landmark", color: "bg-emerald-500" },
-      { id: 8, ticketChar: "P", name: "+80", description: "Atendimento Super Prioritário", icon: "Accessibility", color: "bg-emerald-700" },
-      { id: 9, ticketChar: "A", name: "AMBULANTE", description: "Licenciamento de Comércio", icon: "UserPlus", color: "bg-emerald-500" },
-      { id: 10, ticketChar: "R", name: "RECADASTRAMENTO", description: "Atualização Cadastral", icon: "UserPlus", color: "bg-indigo-600" },
-      { id: 11, ticketChar: "V", name: "2ª VIA", description: "Emissão de Documentos", icon: "FileText", color: "bg-slate-500" },
-      { id: 12, ticketChar: "T", name: "TAXI", description: "Alvarás e Taxas", icon: "History", color: "bg-slate-600" },
-      { id: 13, ticketChar: "N", name: "NOTA FISCAL", description: "Serviços e Consultas", icon: "FileText", color: "bg-emerald-600" },
-      { id: 14, ticketChar: "P", name: "PAGAMENTO", description: "Quitação de Débitos", icon: "Landmark", color: "bg-blue-600" },
-      { id: 15, ticketChar: "A", name: "ATENDIMENTO", description: "Informações Gerais", icon: "Info", color: "bg-emerald-500" },
-      { id: 16, ticketChar: "D", name: "DIVERSOS", description: "Outros Assuntos", icon: "Info", color: "bg-emerald-500" }
+      { id: 1, ticketChar: "IPT", name: "IPTU", description: "Imposto Predial e Territorial Urbano", icon: "Landmark", color: "bg-emerald-600" },
+      { id: 2, ticketChar: "ITB", name: "ITBI", description: "Imposto sobre Transmissão de Bens Imóveis", icon: "Landmark", color: "bg-emerald-600" },
+      { id: 3, ticketChar: "SJO", name: "SÃO JOÃO", description: "Eventos e Autorizações", icon: "Landmark", color: "bg-blue-500" },
+      { id: 4, ticketChar: "TRA", name: "TRANSPORTE", description: "Mobilidade Urbana", icon: "History", color: "bg-slate-600" },
+      { id: 5, ticketChar: "MAL", name: "MALHA FISCAL", description: "Regularização de Pendências", icon: "Gavel", color: "bg-amber-600" },
+      { id: 6, ticketChar: "SSA", name: "SEMANA SANTA", description: "Eventos e Autorizações", icon: "Landmark", color: "bg-emerald-500" },
+      { id: 7, ticketChar: "FEI", name: "FEIRA", description: "Taxas e Licenciamento", icon: "Landmark", color: "bg-emerald-500" },
+      { id: 8, ticketChar: "PRI", name: "+80", description: "Atendimento Super Prioritário", icon: "Accessibility", color: "bg-emerald-700" },
+      { id: 9, ticketChar: "AMB", name: "AMBULANTE", description: "Licenciamento de Comércio", icon: "UserPlus", color: "bg-emerald-500" },
+      { id: 10, ticketChar: "REC", name: "RECADASTRAMENTO", description: "Atualização Cadastral", icon: "UserPlus", color: "bg-indigo-600" },
+      { id: 11, ticketChar: "VIA", name: "2ª VIA", description: "Emissão de Documentos", icon: "FileText", color: "bg-slate-500" },
+      { id: 12, ticketChar: "TAX", name: "TAXI", description: "Alvarás e Taxas", icon: "History", color: "bg-slate-600" },
+      { id: 13, ticketChar: "NFS", name: "NOTA FISCAL", description: "Serviços e Consultas", icon: "FileText", color: "bg-emerald-600" },
+      { id: 14, ticketChar: "PAG", name: "PAGAMENTO", description: "Quitação de Débitos", icon: "Landmark", color: "bg-blue-600" },
+      { id: 15, ticketChar: "ATE", name: "ATENDIMENTO", description: "Informações Gerais", icon: "Info", color: "bg-emerald-500" },
+      { id: 16, ticketChar: "DIV", name: "DIVERSOS", description: "Outros Assuntos", icon: "Info", color: "bg-emerald-500" }
     ];
 
     for (const cat of categories) {

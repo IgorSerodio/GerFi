@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE categories ALTER COLUMN ticket_char TYPE VARCHAR(3);
+COMMIT;

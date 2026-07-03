@@ -44,7 +44,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [newCategory, setNewCategory] = useState<Omit<DbCategory, "id">>({
-    ticketChar: "A",
+    ticketChar: "SRV",
     name: "",
     description: "",
     icon: "FileText",
@@ -113,7 +113,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
 
   const handleEditCategory = (cat: DbCategory) => {
     setNewCategory({
-      ticketChar: cat.ticketChar || "A",
+      ticketChar: cat.ticketChar || "SRV",
       name: cat.name,
       description: cat.description || "",
       icon: cat.icon || "FileText",
@@ -153,7 +153,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
             </h3>
             <button
               onClick={() => {
-                setNewCategory({ ticketChar: "A", name: "", description: "", icon: "FileText", color: "#10b981" });
+                setNewCategory({ ticketChar: "SRV", name: "", description: "", icon: "FileText", color: "#10b981" });
                 setIsEditingCategory(false);
                 setShowCategoryModal(true);
               }}
@@ -166,7 +166,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
             <table className="w-full text-left">
               <thead className="bg-emerald-50/50 sticky top-0 backdrop-blur-sm z-10">
                 <tr>
-                  <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Letra</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Sigla</th>
                   <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Nome</th>
                   <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase text-right">Ações</th>
                 </tr>
@@ -245,11 +245,11 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
                 <div className="grid grid-cols-4 gap-4">
                   <div className="col-span-1 space-y-1">
                     <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
-                      Letra
+                      Sigla
                     </label>
                     <input
                       type="text"
-                      maxLength={1}
+                      maxLength={3}
                       required
                       value={newCategory.ticketChar}
                       onChange={(e) => setNewCategory({ ...newCategory, ticketChar: e.target.value.toUpperCase() })}

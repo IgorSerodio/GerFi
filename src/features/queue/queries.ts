@@ -89,9 +89,9 @@ export async function insertTicket(
     const ticketChar = catRes.rows.length > 0 ? catRes.rows[0].ticket_char : "G";
 
     // Obter o prefixo correspondente
-    let prefix = ticketChar;
+    let prefix = ticketChar.substring(0, 3);
     if (priority === "Prioritário") {
-      prefix = "P";
+      prefix = "P" + ticketChar.substring(0, 2);
     }
 
     // Contar o número de senhas geradas hoje (sem contar encaminhamentos 'E')
