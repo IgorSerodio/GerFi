@@ -24,7 +24,7 @@ export default function HistoryDetailModal({
         <>
           <div className="p-8 border-b border-emerald-50 flex justify-between items-center bg-emerald-50/30">
               <div>
-                <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
+                <h3 className={`text-2xl font-black uppercase tracking-tight ${selectedHistoryTicket.priority === "Prioritário" ? "text-red-600" : "text-sefaz-dark"}`}>
                   CUPOM: {selectedHistoryTicket.ticketNumber}
                 </h3>
                 <p className="text-xs font-bold text-sefaz-accent/60 uppercase tracking-widest">

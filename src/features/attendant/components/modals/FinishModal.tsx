@@ -25,9 +25,9 @@ export default function FinishModal({
   onClose,
   onConfirm,
 }: FinishModalProps) {
-  const ticketVisualId =
-    history.find((t) => t.id === ticketToFinish)?.ticketNumber ||
-    currentCall?.ticketNumber;
+  const ticketToFinishObj = history.find((t) => t.id === ticketToFinish) || currentCall;
+  const ticketVisualId = ticketToFinishObj?.ticketNumber;
+  const isPriority = ticketToFinishObj?.priority === "Prioritário";
 
   return (
     <Modal 
@@ -38,7 +38,7 @@ export default function FinishModal({
     >
             <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
               <div>
-                <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
+                <h3 className={`text-2xl font-black uppercase tracking-tight ${isPriority ? "text-red-600" : "text-sefaz-dark"}`}>
                   Finalizar Atendimento: {ticketVisualId}
                 </h3>
                 <p className="text-sm font-medium text-sefaz-accent/60">

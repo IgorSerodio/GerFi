@@ -29,7 +29,7 @@ export default function HistoryPanel({
             className="w-full text-left flex justify-between items-center p-4 bg-emerald-50/50 rounded-2xl border border-emerald-50 hover:border-emerald-200 hover:bg-emerald-100/30 transition-all group cursor-pointer"
           >
             <div>
-              <p className="font-black text-lg text-sefaz-accent group-hover:text-sefaz-dark transition-colors">
+              <p className={`font-black text-lg transition-colors ${h.priority === "Prioritário" ? "text-red-600 group-hover:text-red-700" : "text-sefaz-accent group-hover:text-sefaz-dark"}`}>
                 {h.ticketNumber}
               </p>
               <p className="text-[10px] text-sefaz-accent/40 font-bold uppercase tracking-widest">

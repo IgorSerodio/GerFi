@@ -30,7 +30,7 @@ export default function ActiveCallCard({
           <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest mb-4 border border-emerald-100 uppercase">
             Em Atendimento
           </div>
-          <h3 className="text-[10rem] font-black leading-none text-sefaz-accent drop-shadow-sm mb-4">
+          <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-accent"}`}>
             {currentCall.ticketNumber}
           </h3>
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-2xl">

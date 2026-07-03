@@ -43,7 +43,7 @@ export default function HistorySidebar({
                 >
                   <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <div className="text-4xl md:text-5xl font-black text-emerald-950 tracking-tighter leading-none w-36">
+                      <div className={`text-4xl md:text-5xl font-black tracking-tighter leading-none w-36 ${ticket.priority === "Prioritário" ? "text-red-600" : "text-emerald-950"}`}>
                         {ticket.ticketNumber}
                       </div>
                       <div className="h-10 w-px bg-emerald-200 mx-1" />

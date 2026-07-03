@@ -24,7 +24,7 @@ export default function QueuePreview({ availableTickets }: QueuePreviewProps) {
             <p
               className={`text-2xl font-black ${
                 t.priority === "Prioritário"
-                  ? "text-emerald-700"
+                  ? "text-red-600"
                   : "text-sefaz-accent"
               }`}
             >

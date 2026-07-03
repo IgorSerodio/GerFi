@@ -170,7 +170,7 @@ export default function TriageSidebar({
               className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex justify-between items-center group cursor-default animate-fade-in"
             >
               <div>
-                <span className="text-xl font-black text-sefaz-dark">
+                <span className={`text-xl font-black ${ticket.priority === "Prioritário" ? "text-red-600" : "text-sefaz-dark"}`}>
                   {ticket.ticketNumber}
                 </span>
                 <p className="text-[10px] font-bold text-sefaz-accent uppercase tracking-tighter">

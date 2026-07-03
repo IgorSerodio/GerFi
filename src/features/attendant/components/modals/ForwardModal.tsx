@@ -32,7 +32,7 @@ export default function ForwardModal({
         <>
           <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
               <div>
-                <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
+                <h3 className={`text-2xl font-black uppercase tracking-tight ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-dark"}`}>
                   Encaminhar Senha: {currentCall.ticketNumber}
                 </h3>
                 <p className="text-sm font-medium text-sefaz-accent/60">
