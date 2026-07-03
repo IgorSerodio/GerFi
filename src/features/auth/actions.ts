@@ -7,7 +7,7 @@ import { ActionName, hasPermission } from "./permissions";
 import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword } from "@/features/users/queries";
 import { User, UserRole } from "@/features/users/types";
 import { sendPasswordRecoveryEmail } from "./email";
-import { isValidEmail } from "@/lib/validators";
+import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -50,11 +50,11 @@ export async function registerUserAction(userData: Omit<User, "id" | "blocked">)
       return { success: false, error: "O formato do e-mail é inválido." };
     }
 
-    if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
+    if (!userData.cpf || !isValidCpf(userData.cpf)) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }
 
-    if (!userData.matricula || userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula)) {
+    if (!userData.matricula || !isValidMatricula(userData.matricula)) {
       return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
     }
 

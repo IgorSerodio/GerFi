@@ -13,7 +13,7 @@ import {
 import { requirePermission } from "@/features/auth/actions";
 import { User } from "./types";
 import bcrypt from "bcryptjs";
-import { isValidEmail } from "@/lib/validators";
+import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -40,10 +40,10 @@ export async function createUserAction(userData: Omit<User, "id">) {
     if (!userData.email || !isValidEmail(userData.email)) {
       return { success: false, error: "O formato do e-mail é inválido." };
     }
-    if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
+    if (!userData.cpf || !isValidCpf(userData.cpf)) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }
-    if (!userData.matricula || userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula)) {
+    if (!userData.matricula || !isValidMatricula(userData.matricula)) {
       return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
     }
 
@@ -69,10 +69,10 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
     if (userData.email !== undefined && !isValidEmail(userData.email)) {
       return { success: false, error: "O formato do e-mail é inválido." };
     }
-    if (userData.cpf !== undefined && (userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf))) {
+    if (userData.cpf !== undefined && !isValidCpf(userData.cpf)) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }
-    if (userData.matricula !== undefined && (userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula))) {
+    if (userData.matricula !== undefined && !isValidMatricula(userData.matricula)) {
       return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
     }
 
