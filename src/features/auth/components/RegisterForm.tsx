@@ -31,6 +31,7 @@ export function RegisterForm() {
     matricula: "",
     username: "",
     password: "",
+    confirmPassword: "",
     role: UserRole.Atendente,
   });
 
@@ -44,8 +45,14 @@ export function RegisterForm() {
     setLoading(true);
     setError("");
 
-    if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password || !formData.matricula) {
+    if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password || !formData.confirmPassword || !formData.matricula) {
       setError("Preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("As senhas não coincidem.");
       setLoading(false);
       return;
     }
@@ -251,8 +258,29 @@ export function RegisterForm() {
             </button>
           </div>
 
-          {/* Role (Papel) - Sem opção Admin */}
+          {/* Confirmar Senha */}
           <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40" size={20} />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="confirmPassword"
+              required
+              placeholder="Confirmar Senha"
+              className="w-full pl-12 pr-12 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 outline-none focus:border-sefaz-accent font-bold placeholder:text-sefaz-accent/30 text-sefaz-dark"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40 hover:text-sefaz-accent cursor-pointer transition-colors"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          {/* Role (Papel) - Sem opção Admin */}
+          <div className="relative md:col-span-2">
             <BadgeInfo className="absolute left-4 top-1/2 -translate-y-1/2 text-sefaz-accent/40 z-10" size={20} />
             <select
               name="role"
