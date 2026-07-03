@@ -42,11 +42,11 @@ export default function HistorySidebar({
                   className="relative group shrink-0 mb-5"
                 >
                   <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
-                    <div className="flex items-center gap-6">
-                      <div className="text-6xl font-black text-emerald-950 tracking-tighter leading-none">
+                    <div className="flex items-center gap-2">
+                      <div className="text-4xl md:text-5xl font-black text-emerald-950 tracking-tighter leading-none w-36">
                         {ticket.ticketNumber}
                       </div>
-                      <div className="h-10 w-px bg-emerald-200" />
+                      <div className="h-10 w-px bg-emerald-200 mx-1" />
                       <div>
                         <div className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em] mb-1 opacity-50 block">
                           GUICHÊ
