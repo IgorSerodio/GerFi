@@ -76,11 +76,12 @@ export async function issueTicketAction(payload: {
 export async function callTicketAction(
   attendant: string,
   guiche: string,
-  allowedServices: number[]
+  allowedServices: number[],
+  priorityType?: "Normal" | "Prioritário"
 ) {
   try {
     await requirePermission("OPERATE_QUEUE");
-    const ticket = await callNextTicket(attendant, guiche, allowedServices);
+    const ticket = await callNextTicket(attendant, guiche, allowedServices, priorityType);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }

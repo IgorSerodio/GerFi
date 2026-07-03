@@ -110,6 +110,11 @@ export default function TriageSidebar({
                           ? "Você é o próximo!"
                           : `Existem ${searchResult.ahead} senhas na sua frente.`}
                       </p>
+                      {searchResult.ahead > 0 && (
+                        <p className="text-[10px] text-emerald-400 opacity-80 mt-1">
+                          ({searchResult.priorityAhead} prioritárias, {searchResult.normalAhead} normais)
+                        </p>
+                      )}
                     </div>
                   )}
 

@@ -119,11 +119,12 @@ export default function AttendantDashboard({
     };
   }, []);
 
-  const handleCall = async () => {
+  const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
     const res = await callTicketAction(
       currentAttendant.name,
       currentAttendant.guiche,
-      allowedServices
+      allowedServices,
+      priorityType
     );
     if (!res.success) {
       alert(res.error || "Erro ao chamar senha");
@@ -181,6 +182,9 @@ export default function AttendantDashboard({
       ? queue.filter((t) => allowedServices.includes(t.categoryId))
       : queue;
 
+  const availableNormal = availableTickets.filter((t) => t.priority === "Normal");
+  const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário");
+
   const currentCall = history.find(
     (h) => h.attendant === currentAttendant.name && h.status === "calling"
   );
@@ -215,7 +219,8 @@ export default function AttendantDashboard({
               <ActiveCallCard
                 currentCall={currentCall}
                 allowedServicesCount={allowedServices.length}
-                availableTicketsCount={availableTickets.length}
+                availableNormalCount={availableNormal.length}
+                availablePriorityCount={availablePriority.length}
                 handleCall={handleCall}
                 handleRecall={handleRecall}
                 setShowForwardModal={setShowForwardModal}

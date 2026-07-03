@@ -5,8 +5,9 @@ import { Ticket } from "@/features/queue/types";
 interface ActiveCallCardProps {
   currentCall?: Ticket;
   allowedServicesCount: number;
-  availableTicketsCount: number;
-  handleCall: () => void;
+  availableNormalCount: number;
+  availablePriorityCount: number;
+  handleCall: (priorityType?: "Normal" | "Prioritário") => void;
   handleRecall: (ticketId: string) => void;
   setShowForwardModal: (show: boolean) => void;
   handleFinish: (ticketId: string) => void;
@@ -15,7 +16,8 @@ interface ActiveCallCardProps {
 export default function ActiveCallCard({
   currentCall,
   allowedServicesCount,
-  availableTicketsCount,
+  availableNormalCount,
+  availablePriorityCount,
   handleCall,
   handleRecall,
   setShowForwardModal,
@@ -62,7 +64,7 @@ export default function ActiveCallCard({
               Ninguém sendo atendido
             </h3>
             <p className="text-sefaz-accent/60 font-medium">
-              Clique no botão abaixo para chamar o próximo da fila
+              Escolha qual fila deseja chamar
             </p>
             {allowedServicesCount > 0 && (
               <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2">
@@ -70,13 +72,24 @@ export default function ActiveCallCard({
               </p>
             )}
           </div>
-          <button
-            onClick={handleCall}
-            disabled={availableTicketsCount === 0}
-            className="px-12 py-6 bg-sefaz-accent text-white rounded-3xl font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-emerald-950/30 disabled:grayscale disabled:opacity-50 cursor-pointer"
-          >
-            CHAMAR PRÓXIMO
-          </button>
+          <div className="flex gap-4 w-full px-8 max-w-lg mx-auto">
+            <button
+              onClick={() => handleCall("Prioritário")}
+              disabled={availablePriorityCount === 0}
+              className="flex-1 px-4 py-6 bg-amber-500 text-white rounded-3xl font-black text-lg hover:bg-amber-600 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-amber-900/20 disabled:grayscale disabled:opacity-50 cursor-pointer flex flex-col items-center gap-1"
+            >
+              <span>CHAMAR PRIORIDADE</span>
+              <span className="text-sm font-bold opacity-80">{availablePriorityCount} na fila</span>
+            </button>
+            <button
+              onClick={() => handleCall("Normal")}
+              disabled={availableNormalCount === 0}
+              className="flex-1 px-4 py-6 bg-sefaz-accent text-white rounded-3xl font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-emerald-950/30 disabled:grayscale disabled:opacity-50 cursor-pointer flex flex-col items-center gap-1"
+            >
+              <span>CHAMAR NORMAL</span>
+              <span className="text-sm font-bold opacity-80">{availableNormalCount} na fila</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

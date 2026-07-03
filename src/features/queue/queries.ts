@@ -128,15 +128,18 @@ export async function insertTicket(
 export async function callNextTicket(
   attendant: string,
   guiche: string,
-  allowedServices: number[]
+  allowedServices: number[],
+  priorityType?: "Normal" | "Prioritário"
 ): Promise<Ticket | null> {
   const servicesArray = allowedServices && allowedServices.length > 0 ? allowedServices : null;
+  const priorityParam = priorityType || null;
 
   const { rows } = await pool.query(
     `WITH next_ticket AS (
       SELECT id FROM tickets
       WHERE status = 'pending'
         AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
+        AND ($4::text IS NULL OR priority = $4)
       ORDER BY (priority = 'Prioritário') DESC, created_at ASC
       LIMIT 1
       FOR UPDATE SKIP LOCKED
@@ -148,7 +151,7 @@ export async function callNextTicket(
         guiche = $3
     WHERE id = (SELECT id FROM next_ticket)
     RETURNING *`,
-    [servicesArray, attendant, guiche]
+    [servicesArray, attendant, guiche, priorityParam]
   );
 
   if (rows.length === 0) return null;

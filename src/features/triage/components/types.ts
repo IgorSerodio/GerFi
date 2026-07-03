@@ -14,6 +14,8 @@ export type SearchResult =
       id: string;
       status: "pending";
       ahead: number;
+      normalAhead: number;
+      priorityAhead: number;
       ticket: TicketType;
     }
   | {

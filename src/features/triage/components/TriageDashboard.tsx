@@ -117,10 +117,16 @@ export default function TriageDashboard({
 
     const queuePos = queue.findIndex((t) => t.ticketNumber === query);
     if (queuePos !== -1) {
+      const ticketsAhead = queue.slice(0, queuePos);
+      const normalAhead = ticketsAhead.filter((t) => t.priority === "Normal").length;
+      const priorityAhead = ticketsAhead.filter((t) => t.priority === "Prioritário").length;
+
       setSearchResult({
         id: query,
         status: "pending",
         ahead: queuePos,
+        normalAhead,
+        priorityAhead,
         ticket: queue[queuePos],
       });
       return;
