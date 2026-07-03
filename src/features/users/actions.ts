@@ -36,6 +36,13 @@ export async function getUsersAction() {
  */
 export async function createUserAction(userData: Omit<User, "id">) {
   try {
+    if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
+      return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
+    }
+    if (!userData.matricula || userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula)) {
+      return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
+    }
+
     // Hash password before saving
     const hashedPassword = bcrypt.hashSync(userData.password || "", 10);
     const user = await createUser({
@@ -54,6 +61,14 @@ export async function createUserAction(userData: Omit<User, "id">) {
 export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
     await requirePermission("MANAGE_USERS");
+    
+    if (userData.cpf !== undefined && (userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf))) {
+      return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
+    }
+    if (userData.matricula !== undefined && (userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula))) {
+      return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
+    }
+
     const updatedData = { ...userData };
     if (userData.password) {
       updatedData.password = bcrypt.hashSync(userData.password, 10);

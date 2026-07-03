@@ -44,6 +44,15 @@ export async function registerUserAction(userData: Omit<User, "id" | "blocked">)
       return { success: false, error: "Cadastro com papel Admin não é permitido." };
     }
 
+    // Validações de domínio
+    if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
+      return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
+    }
+
+    if (!userData.matricula || userData.matricula.length !== 6 || !/^\d+$/.test(userData.matricula)) {
+      return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
+    }
+
     // Hash password before saving
     const hashedPassword = bcrypt.hashSync(userData.password || "", 10);
     
