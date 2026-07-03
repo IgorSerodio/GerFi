@@ -7,6 +7,7 @@ import { ActionName, hasPermission } from "./permissions";
 import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword } from "@/features/users/queries";
 import { User, UserRole } from "@/features/users/types";
 import { sendPasswordRecoveryEmail } from "./email";
+import { isValidEmail } from "@/lib/validators";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -45,6 +46,10 @@ export async function registerUserAction(userData: Omit<User, "id" | "blocked">)
     }
 
     // Validações de domínio
+    if (!userData.email || !isValidEmail(userData.email)) {
+      return { success: false, error: "O formato do e-mail é inválido." };
+    }
+
     if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }

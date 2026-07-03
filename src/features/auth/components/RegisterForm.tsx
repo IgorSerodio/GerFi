@@ -19,6 +19,7 @@ import { motion } from "motion/react";
 import { registerUserAction } from "@/features/auth/actions";
 import { UserRole } from "@/features/users/types";
 import { formatCpf, formatMatricula, removeNonDigits } from "@/lib/formatters";
+import { isValidEmail } from "@/lib/validators";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -45,6 +46,12 @@ export function RegisterForm() {
 
     if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password || !formData.matricula) {
       setError("Preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      setError("O formato do e-mail é inválido.");
       setLoading(false);
       return;
     }

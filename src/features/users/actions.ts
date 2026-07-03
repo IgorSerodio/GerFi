@@ -13,6 +13,7 @@ import {
 import { requirePermission } from "@/features/auth/actions";
 import { User } from "./types";
 import bcrypt from "bcryptjs";
+import { isValidEmail } from "@/lib/validators";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -36,6 +37,9 @@ export async function getUsersAction() {
  */
 export async function createUserAction(userData: Omit<User, "id">) {
   try {
+    if (!userData.email || !isValidEmail(userData.email)) {
+      return { success: false, error: "O formato do e-mail é inválido." };
+    }
     if (!userData.cpf || userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf)) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }
@@ -62,6 +66,9 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
     await requirePermission("MANAGE_USERS");
     
+    if (userData.email !== undefined && !isValidEmail(userData.email)) {
+      return { success: false, error: "O formato do e-mail é inválido." };
+    }
     if (userData.cpf !== undefined && (userData.cpf.length !== 11 || !/^\d+$/.test(userData.cpf))) {
       return { success: false, error: "O CPF deve conter exatamente 11 dígitos numéricos." };
     }
