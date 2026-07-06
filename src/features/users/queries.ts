@@ -6,7 +6,7 @@ import { User } from "./types";
  */
 export async function getUsers(): Promise<User[]> {
   const { rows } = await pool.query<User>(
-    `SELECT id, name, role, guiche, matricula, cpf, email, username, services, blocked 
+    `SELECT id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority" 
      FROM users 
      ORDER BY name ASC`
   );
@@ -20,12 +20,12 @@ export async function getUsers(): Promise<User[]> {
  * Cria um novo servidor no banco
  */
 export async function createUser(userData: Omit<User, "id">): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, password, services, blocked } = userData;
+  const { name, role, guiche, matricula, cpf, email, username, password, services, blocked, canCallNormal, canCallPriority } = userData;
   const { rows } = await pool.query<User>(
-    `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-    [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false]
+    `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked, can_call_normal, can_call_priority)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+    [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false, canCallNormal ?? true, canCallPriority ?? true]
   );
   return {
     ...rows[0],
@@ -37,15 +37,15 @@ export async function createUser(userData: Omit<User, "id">): Promise<User> {
  * Atualiza um servidor existente
  */
 export async function updateUser(id: number, userData: Partial<User>): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, services, password } = userData;
+  const { name, role, guiche, matricula, cpf, email, username, services, password, canCallNormal, canCallPriority } = userData;
   
   if (password) {
     const { rows } = await pool.query<User>(
       `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9
-       WHERE id = $10
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], password, id]
+       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9, can_call_normal = COALESCE($10, can_call_normal), can_call_priority = COALESCE($11, can_call_priority)
+       WHERE id = $12
+       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+      [name, role, guiche, matricula, cpf, email, username, services || [], password, canCallNormal, canCallPriority, id]
     );
     return {
       ...rows[0],
@@ -54,10 +54,10 @@ export async function updateUser(id: number, userData: Partial<User>): Promise<U
   } else {
     const { rows } = await pool.query<User>(
       `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8
-       WHERE id = $9
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], id]
+       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, can_call_normal = COALESCE($9, can_call_normal), can_call_priority = COALESCE($10, can_call_priority)
+       WHERE id = $11
+       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+      [name, role, guiche, matricula, cpf, email, username, services || [], canCallNormal, canCallPriority, id]
     );
     return {
       ...rows[0],
@@ -82,7 +82,7 @@ export async function toggleBlockUser(id: number): Promise<User> {
     `UPDATE users 
      SET blocked = NOT blocked 
      WHERE id = $1 
-     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked`,
+     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
     [id]
   );
   return {
@@ -127,7 +127,7 @@ export async function clearUserResetPinAndUpdatePassword(id: number, hashedPassw
  * Busca um usuário pelo ID
  */
 export async function getUserById(id: number) {
-  const { rows } = await pool.query("SELECT * FROM users WHERE id = $1 LIMIT 1", [id]);
+  const { rows } = await pool.query('SELECT *, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority" FROM users WHERE id = $1 LIMIT 1', [id]);
   if (rows.length === 0) return null;
   return {
     ...rows[0],

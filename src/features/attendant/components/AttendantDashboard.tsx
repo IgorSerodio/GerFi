@@ -58,6 +58,8 @@ export default function AttendantDashboard({
   const [showStartModal, setShowStartModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [canCallNormal, setCanCallNormal] = useState<boolean>(true);
+  const [canCallPriority, setCanCallPriority] = useState<boolean>(true);
   const [observation, setObservation] = useState("");
   const [selectedResolutions, setSelectedResolutions] = useState<string[]>([]);
   const [ticketToFinish, setTicketToFinish] = useState<string | null>(null);
@@ -102,6 +104,8 @@ export default function AttendantDashboard({
     const profileRes = await getMyProfileAction();
     if (profileRes.success && profileRes.data) {
       setAllowedServices(profileRes.data.services || []);
+      setCanCallNormal(profileRes.data.canCallNormal ?? true);
+      setCanCallPriority(profileRes.data.canCallPriority ?? true);
     }
   };
 
@@ -233,6 +237,8 @@ export default function AttendantDashboard({
                 allowedServicesCount={allowedServices.length}
                 availableNormalCount={availableNormal.length}
                 availablePriorityCount={availablePriority.length}
+                canCallNormal={canCallNormal}
+                canCallPriority={canCallPriority}
                 handleCall={handleCall}
                 handleRecall={handleRecall}
                 setShowStartModal={setShowStartModal}

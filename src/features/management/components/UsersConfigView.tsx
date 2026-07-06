@@ -41,6 +41,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     username: "",
     password: "",
     services: [] as number[],
+    canCallNormal: true,
+    canCallPriority: true,
   });
 
   const loadData = React.useCallback(async () => {
@@ -84,6 +86,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
       username: user.username,
       password: "",
       services: user.services || [],
+      canCallNormal: user.canCallNormal ?? true,
+      canCallPriority: user.canCallPriority ?? true,
     });
     setEditingUserId(user.id || null);
     setIsEditingUser(true);
@@ -354,6 +358,33 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Permissões de Chamada */}
+                <div className="space-y-2 pt-2">
+                  <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2 block">
+                    Permissões de Chamada
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 text-xs font-bold text-sefaz-dark cursor-pointer select-none bg-emerald-50/30 p-2 rounded-lg border border-emerald-50 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={newUser.canCallNormal}
+                        onChange={(e) => setNewUser({ ...newUser, canCallNormal: e.target.checked })}
+                        className="accent-sefaz-accent w-4 h-4 cursor-pointer"
+                      />
+                      Pode Atender Normal
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-bold text-sefaz-dark cursor-pointer select-none bg-emerald-50/30 p-2 rounded-lg border border-emerald-50 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={newUser.canCallPriority}
+                        onChange={(e) => setNewUser({ ...newUser, canCallPriority: e.target.checked })}
+                        className="accent-sefaz-accent w-4 h-4 cursor-pointer"
+                      />
+                      Pode Atender Prioridade
+                    </label>
                   </div>
                 </div>
 

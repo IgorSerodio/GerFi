@@ -20,6 +20,7 @@ import {
 import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
 import { requirePermission } from "@/features/auth/actions";
+import { getUserById } from "@/features/users/queries";
 import { queueEmitter } from "@/infra/events";
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -81,7 +82,16 @@ export async function callTicketAction(
   priorityType?: "Normal" | "Prioritário"
 ) {
   try {
-    await requirePermission("OPERATE_QUEUE");
+    const session = await requirePermission("OPERATE_QUEUE");
+    const user = await getUserById(Number(session.user.id));
+    
+    if (priorityType === "Normal" && user && user.canCallNormal === false) {
+      return { success: false, error: "Você não tem permissão para chamar senhas Normais." };
+    }
+    if (priorityType === "Prioritário" && user && user.canCallPriority === false) {
+      return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
+    }
+
     const ticket = await callNextTicket(attendant, guiche, allowedServices, priorityType);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila

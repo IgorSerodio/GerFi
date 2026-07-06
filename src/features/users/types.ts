@@ -17,4 +17,6 @@ export interface User {
   password?: string;
   services?: number[];
   blocked?: boolean;
+  canCallNormal?: boolean;
+  canCallPriority?: boolean;
 }
