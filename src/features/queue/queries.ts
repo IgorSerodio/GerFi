@@ -45,6 +45,7 @@ export async function getActiveQueue(services?: number[]): Promise<Ticket[]> {
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status = 'pending' 
+       AND created_at >= CURRENT_DATE
        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY (priority = 'Prioritário') DESC, created_at ASC`,
     [servicesArray]
@@ -61,6 +62,7 @@ export async function getHistory(services?: number[]): Promise<Ticket[]> {
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status IN ('calling', 'completed') 
+       AND created_at >= CURRENT_DATE
        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
      LIMIT 10`,
@@ -138,6 +140,7 @@ export async function callNextTicket(
     `WITH next_ticket AS (
       SELECT id FROM tickets
       WHERE status = 'pending'
+        AND created_at >= CURRENT_DATE
         AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
         AND ($4::text IS NULL OR priority = $4)
       ORDER BY (priority = 'Prioritário') DESC, created_at ASC
