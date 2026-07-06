@@ -49,6 +49,8 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
     description: "",
     icon: "FileText",
     color: "#10b981",
+    expectedTimeNormal: 30,
+    expectedTimePriority: 30,
   });
 
   const loadData = React.useCallback(async () => {
@@ -118,6 +120,8 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
       description: cat.description || "",
       icon: cat.icon || "FileText",
       color: cat.color || "#10b981",
+      expectedTimeNormal: cat.expectedTimeNormal || 30,
+      expectedTimePriority: cat.expectedTimePriority || 30,
     });
     setEditingCategoryId(cat.id);
     setIsEditingCategory(true);
@@ -153,7 +157,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
             </h3>
             <button
               onClick={() => {
-                setNewCategory({ ticketChar: "SRV", name: "", description: "", icon: "FileText", color: "#10b981" });
+                setNewCategory({ ticketChar: "SRV", name: "", description: "", icon: "FileText", color: "#10b981", expectedTimeNormal: 30, expectedTimePriority: 30 });
                 setIsEditingCategory(false);
                 setShowCategoryModal(true);
               }}
@@ -315,6 +319,35 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
                       value={newCategory.color}
                       onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
                       className="w-full h-10 p-1 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+                      Tempo Normal (min)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newCategory.expectedTimeNormal}
+                      onChange={(e) => setNewCategory({ ...newCategory, expectedTimeNormal: parseInt(e.target.value) || 30 })}
+                      className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+                      Tempo Prioritário (min)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newCategory.expectedTimePriority}
+                      onChange={(e) => setNewCategory({ ...newCategory, expectedTimePriority: parseInt(e.target.value) || 30 })}
+                      className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     />
                   </div>
                 </div>

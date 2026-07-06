@@ -1,6 +1,7 @@
 import React from "react";
 import { PhoneForwarded, Send, CheckCircle2, Users } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
+import WaitTimer from "./WaitTimer";
 
 interface ActiveCallCardProps {
   currentCall?: Ticket;
@@ -11,6 +12,7 @@ interface ActiveCallCardProps {
   handleRecall: (ticketId: string) => void;
   setShowForwardModal: (show: boolean) => void;
   handleFinish: (ticketId: string) => void;
+  categories: { id: string; name: string; expectedTimeNormal: number; expectedTimePriority: number }[];
 }
 
 export default function ActiveCallCard({
@@ -22,13 +24,25 @@ export default function ActiveCallCard({
   handleRecall,
   setShowForwardModal,
   handleFinish,
+  categories,
 }: ActiveCallCardProps) {
+  const currentCategory = categories?.find((c) => c.id === String(currentCall?.categoryId));
   return (
     <div className="bg-white rounded-[40px] shadow-sm border-2 border-emerald-50 p-10 flex flex-col items-center min-h-[400px] justify-center shadow-glow">
       {currentCall ? (
         <div className="w-full text-center space-y-6 animate-fade-in">
-          <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest mb-4 border border-emerald-100 uppercase">
-            Em Atendimento
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
+              Em Atendimento
+            </div>
+            <WaitTimer
+              createdAt={currentCall.createdAt}
+              calledAt={currentCall.calledAt}
+              expectedTimeNormal={currentCategory?.expectedTimeNormal || 30}
+              expectedTimePriority={currentCategory?.expectedTimePriority || 30}
+              priority={currentCall.priority}
+              className="mt-2 scale-110"
+            />
           </div>
           <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-accent"}`}>
             {currentCall.ticketNumber}

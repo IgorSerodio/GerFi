@@ -65,8 +65,10 @@ export default function AttendantDashboard({
   const attendants = initialTicketWindows.map((tw) => tw.name);
 
   const categories = initialCategories.map((c) => ({
-    id: String(c.id), // the UI might still expect string id for simple value selection, let's keep Category type in sync with UI or change UI.
+    id: String(c.id),
     name: c.name,
+    expectedTimeNormal: c.expectedTimeNormal,
+    expectedTimePriority: c.expectedTimePriority
   }));
 
 
@@ -218,6 +220,7 @@ export default function AttendantDashboard({
             <div className="lg:col-span-2 space-y-8">
               <ActiveCallCard
                 currentCall={currentCall}
+                categories={categories}
                 allowedServicesCount={allowedServices.length}
                 availableNormalCount={availableNormal.length}
                 availablePriorityCount={availablePriority.length}
@@ -259,7 +262,7 @@ export default function AttendantDashboard({
                 onClose={() => setSelectedHistoryTicket(null)}
               />
 
-              <QueuePreview availableTickets={availableTickets} />
+              <QueuePreview availableTickets={availableTickets} categories={categories} />
             </div>
 
             <div className="space-y-8">

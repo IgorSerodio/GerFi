@@ -25,6 +25,8 @@ export interface DbCategory {
   description: string;
   icon: string;
   color: string;
+  expectedTimeNormal: number;
+  expectedTimePriority: number;
 }
 
 export interface DbTicketWindow {

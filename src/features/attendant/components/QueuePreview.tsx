@@ -1,11 +1,13 @@
 import React from "react";
 import { Ticket } from "@/features/queue/types";
+import WaitTimer from "./WaitTimer";
 
 interface QueuePreviewProps {
   availableTickets: Ticket[];
+  categories: { id: string; name: string; expectedTimeNormal: number; expectedTimePriority: number }[];
 }
 
-export default function QueuePreview({ availableTickets }: QueuePreviewProps) {
+export default function QueuePreview({ availableTickets, categories }: QueuePreviewProps) {
   return (
     <div className="bg-white rounded-[40px] shadow-sm border border-emerald-100 p-10">
       <h4 className="text-xl font-black text-sefaz-dark mb-6 tracking-tighter uppercase">
@@ -30,9 +32,18 @@ export default function QueuePreview({ availableTickets }: QueuePreviewProps) {
             >
               {t.ticketNumber}
             </p>
-            <p className="text-[10px] font-bold text-sefaz-accent/50 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-sefaz-accent/50 uppercase tracking-widest mb-2">
               {t.priority === "Prioritário" ? "Prioridade" : "Normal"}
             </p>
+            <div className="flex justify-center">
+              <WaitTimer
+                createdAt={t.createdAt}
+                calledAt={t.calledAt}
+                expectedTimeNormal={categories.find(c => c.id === String(t.categoryId))?.expectedTimeNormal || 30}
+                expectedTimePriority={categories.find(c => c.id === String(t.categoryId))?.expectedTimePriority || 30}
+                priority={t.priority}
+              />
+            </div>
           </div>
         ))}
         {availableTickets.length === 0 && (

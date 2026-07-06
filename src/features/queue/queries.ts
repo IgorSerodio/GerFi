@@ -241,8 +241,8 @@ export async function forwardTicket(
   }
 }
 
-export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string }[]> {
-  const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color FROM categories ORDER BY id ASC");
+export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string; expectedTimeNormal: number; expectedTimePriority: number }[]> {
+  const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color, expected_time_normal as \"expectedTimeNormal\", expected_time_priority as \"expectedTimePriority\" FROM categories ORDER BY id ASC");
   return rows;
 }
 
@@ -253,10 +253,10 @@ export async function getTicketWindows(): Promise<{ id: number; name: string }[]
 
 export async function createCategory(data: Omit<DbCategory, "id">): Promise<DbCategory> {
   const { rows } = await pool.query(
-    `INSERT INTO categories (ticket_char, name, description, icon, color)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, ticket_char as "ticketChar", name, description, icon, color`,
-    [data.ticketChar, data.name, data.description, data.icon, data.color]
+    `INSERT INTO categories (ticket_char, name, description, icon, color, expected_time_normal, expected_time_priority)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority"`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority]
   );
   return rows[0];
 }
@@ -268,10 +268,12 @@ export async function updateCategory(id: number, data: Partial<DbCategory>): Pro
          name = COALESCE($2, name),
          description = COALESCE($3, description),
          icon = COALESCE($4, icon),
-         color = COALESCE($5, color)
-     WHERE id = $6
-     RETURNING id, ticket_char as "ticketChar", name, description, icon, color`,
-    [data.ticketChar, data.name, data.description, data.icon, data.color, id]
+         color = COALESCE($5, color),
+         expected_time_normal = COALESCE($6, expected_time_normal),
+         expected_time_priority = COALESCE($7, expected_time_priority)
+     WHERE id = $8
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority"`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority, id]
   );
   return rows[0];
 }
