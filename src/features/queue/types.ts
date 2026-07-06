@@ -13,6 +13,7 @@ export interface Ticket {
   observation?: string;
   securityCode?: string;
   startedAt?: string;
+  resolutions?: string[];
 }
 
 export interface QueueState {
@@ -29,6 +30,7 @@ export interface DbCategory {
   color: string;
   expectedTimeNormal: number;
   expectedTimePriority: number;
+  resolutions: string[];
 }
 
 export interface DbTicketWindow {

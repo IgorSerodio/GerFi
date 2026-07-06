@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
-import { Pen, Trash2, FileText, Briefcase, Heart, Shield, Star, Zap, Car, Smartphone, Home, Gavel, Landmark, Building, GraduationCap, Banknote, Search } from "lucide-react";
+import { Pen, Trash2, FileText, Briefcase, Heart, Shield, Star, Zap, Car, Smartphone, Home, Gavel, Landmark, Building, GraduationCap, Banknote, Search, X, Plus } from "lucide-react";
 import { DbCategory, DbTicketWindow } from "@/features/queue/types";
 import {
   getCategoriesAction,
@@ -43,6 +43,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [newResolution, setNewResolution] = useState("");
   const [newCategory, setNewCategory] = useState<Omit<DbCategory, "id">>({
     ticketChar: "SRV",
     name: "",
@@ -51,6 +52,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
     color: "#10b981",
     expectedTimeNormal: 30,
     expectedTimePriority: 30,
+    resolutions: [],
   });
 
   const loadData = React.useCallback(async () => {
@@ -65,6 +67,7 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -122,7 +125,9 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
       color: cat.color || "#10b981",
       expectedTimeNormal: cat.expectedTimeNormal || 30,
       expectedTimePriority: cat.expectedTimePriority || 30,
+      resolutions: cat.resolutions || [],
     });
+    setNewResolution("");
     setEditingCategoryId(cat.id);
     setIsEditingCategory(true);
     setShowCategoryModal(true);
@@ -157,7 +162,8 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
             </h3>
             <button
               onClick={() => {
-                setNewCategory({ ticketChar: "SRV", name: "", description: "", icon: "FileText", color: "#10b981", expectedTimeNormal: 30, expectedTimePriority: 30 });
+                setNewCategory({ ticketChar: "SRV", name: "", description: "", icon: "FileText", color: "#10b981", expectedTimeNormal: 30, expectedTimePriority: 30, resolutions: [] });
+                setNewResolution("");
                 setIsEditingCategory(false);
                 setShowCategoryModal(true);
               }}
@@ -350,6 +356,63 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
                       className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+                    Subcategorias do Serviço
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newResolution}
+                      onChange={(e) => setNewResolution(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (newResolution.trim()) {
+                            setNewCategory({ ...newCategory, resolutions: [...(newCategory.resolutions || []), newResolution.trim()] });
+                            setNewResolution("");
+                          }
+                        }
+                      }}
+                      className="flex-1 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+                      placeholder="Adicionar nova subcategoria..."
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newResolution.trim()) {
+                          setNewCategory({ ...newCategory, resolutions: [...(newCategory.resolutions || []), newResolution.trim()] });
+                          setNewResolution("");
+                        }
+                      }}
+                      className="p-3 bg-sefaz-accent text-white rounded-xl hover:bg-sefaz-dark transition-all cursor-pointer flex items-center justify-center"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newCategory.resolutions?.map((res, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-emerald-50 text-sefaz-dark px-3 py-1.5 rounded-lg border border-emerald-100 text-xs font-bold">
+                        <span>{res}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newRes = [...(newCategory.resolutions || [])];
+                            newRes.splice(idx, 1);
+                            setNewCategory({ ...newCategory, resolutions: newRes });
+                          }}
+                          className="text-red-500 hover:text-red-700 cursor-pointer p-0.5 rounded-md hover:bg-red-50 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-gray-500 pl-2">
+                    A opção &quot;Outro(s)&quot; será adicionada automaticamente.
+                  </p>
                 </div>
 
                 <div className="flex gap-4 pt-4">

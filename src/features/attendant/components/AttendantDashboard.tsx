@@ -59,6 +59,7 @@ export default function AttendantDashboard({
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [observation, setObservation] = useState("");
+  const [selectedResolutions, setSelectedResolutions] = useState<string[]>([]);
   const [ticketToFinish, setTicketToFinish] = useState<string | null>(null);
   const [selectedHistoryTicket, setSelectedHistoryTicket] =
     useState<Ticket | null>(null);
@@ -71,7 +72,8 @@ export default function AttendantDashboard({
     id: String(c.id),
     name: c.name,
     expectedTimeNormal: c.expectedTimeNormal,
-    expectedTimePriority: c.expectedTimePriority
+    expectedTimePriority: c.expectedTimePriority,
+    resolutions: c.resolutions || [],
   }));
 
 
@@ -155,16 +157,18 @@ export default function AttendantDashboard({
   const handleFinish = (ticketId: string) => {
     setTicketToFinish(ticketId);
     setObservation("");
+    setSelectedResolutions([]);
     setShowFinishModal(true);
   };
 
   const confirmFinish = async () => {
     if (ticketToFinish) {
-      const res = await finishTicketAction(ticketToFinish, observation);
+      const res = await finishTicketAction(ticketToFinish, observation, selectedResolutions);
       if (res.success) {
         setShowFinishModal(false);
         setTicketToFinish(null);
         setObservation("");
+        setSelectedResolutions([]);
       } else {
         alert(res.error || "Erro ao finalizar senha");
       }
@@ -257,8 +261,11 @@ export default function AttendantDashboard({
                 ticketToFinish={ticketToFinish}
                 history={history}
                 currentCall={currentCall}
+                categories={categories}
                 observation={observation}
                 setObservation={setObservation}
+                selectedResolutions={selectedResolutions}
+                setSelectedResolutions={setSelectedResolutions}
                 onClose={() => setShowFinishModal(false)}
                 onConfirm={confirmFinish}
               />

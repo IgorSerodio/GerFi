@@ -9,8 +9,11 @@ interface FinishModalProps {
   ticketToFinish: string | null;
   history: Ticket[];
   currentCall?: Ticket;
+  categories: { id: string; name: string; resolutions: string[] }[];
   observation: string;
   setObservation: (obs: string) => void;
+  selectedResolutions: string[];
+  setSelectedResolutions: (res: string[]) => void;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -20,14 +23,30 @@ export default function FinishModal({
   ticketToFinish,
   history,
   currentCall,
+  categories,
   observation,
   setObservation,
+  selectedResolutions,
+  setSelectedResolutions,
   onClose,
   onConfirm,
 }: FinishModalProps) {
   const ticketToFinishObj = history.find((t) => t.id === ticketToFinish) || currentCall;
   const ticketVisualId = ticketToFinishObj?.ticketNumber;
   const isPriority = ticketToFinishObj?.priority === "Prioritário";
+  const categoryId = ticketToFinishObj?.categoryId;
+  
+  const category = categories.find(c => c.id === String(categoryId));
+  const categoryResolutions = category?.resolutions || [];
+  const allResolutions = [...categoryResolutions, "Outro(s)"];
+
+  const handleCheckboxChange = (res: string) => {
+    if (selectedResolutions.includes(res)) {
+      setSelectedResolutions(selectedResolutions.filter(r => r !== res));
+    } else {
+      setSelectedResolutions([...selectedResolutions, res]);
+    }
+  };
 
   return (
     <Modal 
@@ -54,6 +73,27 @@ export default function FinishModal({
             </div>
 
             <div className="p-8 space-y-6">
+              {allResolutions.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
+                    Motivos do Atendimento
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 bg-emerald-50/20 p-4 rounded-2xl border border-emerald-50">
+                    {allResolutions.map((res, index) => (
+                      <label key={index} className="flex items-start gap-2 cursor-pointer p-2 hover:bg-emerald-50/50 rounded-lg transition-colors">
+                        <input
+                          type="checkbox"
+                          className="mt-1 accent-sefaz-accent"
+                          checked={selectedResolutions.includes(res)}
+                          onChange={() => handleCheckboxChange(res)}
+                        />
+                        <span className="text-sm font-medium text-sefaz-dark">{res}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest">

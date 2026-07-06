@@ -9,6 +9,7 @@ export const IssueTicketSchema = z.object({
 export const FinishTicketSchema = z.object({
   ticketId: z.string().min(1, "O ID do ticket é obrigatório"),
   observation: z.string().max(300, "A observação deve ter no máximo 300 caracteres").optional(),
+  resolutions: z.array(z.string()).optional(),
 });
 
 export const ForwardTicketSchema = z.object({

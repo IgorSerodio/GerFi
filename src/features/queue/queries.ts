@@ -16,6 +16,7 @@ interface DbTicketRow {
   observation?: string | null;
   security_code?: string;
   started_at?: Date | null;
+  resolutions?: string[];
 }
 
 /**
@@ -37,6 +38,7 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     observation: row.observation || undefined,
     securityCode: row.security_code || undefined,
     startedAt: row.started_at?.toISOString() || undefined,
+    resolutions: row.resolutions || [],
   };
 }
 
@@ -184,17 +186,18 @@ export async function getTicketById(ticketId: string): Promise<Ticket | null> {
 }
 
 /**
- * Finaliza um atendimento gravando a observação
+ * Finaliza um atendimento gravando a observação e as resoluções (checklists)
  */
-export async function finishTicket(ticketId: string, observation?: string): Promise<Ticket | null> {
+export async function finishTicket(ticketId: string, observation?: string, resolutions?: string[]): Promise<Ticket | null> {
   const { rows } = await pool.query(
     `UPDATE tickets
      SET status = 'completed',
          completed_at = NOW(),
-         observation = $2
+         observation = $2,
+         resolutions = $3::jsonb
      WHERE id = $1
      RETURNING *`,
-    [ticketId, observation || null]
+    [ticketId, observation || null, JSON.stringify(resolutions || [])]
   );
   if (rows.length === 0) return null;
   return mapTicketRow(rows[0]);
@@ -273,8 +276,8 @@ export async function forwardTicket(
   }
 }
 
-export async function getCategories(): Promise<{ id: number; ticketChar: string; name: string; description: string; icon: string; color: string; expectedTimeNormal: number; expectedTimePriority: number }[]> {
-  const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color, expected_time_normal as \"expectedTimeNormal\", expected_time_priority as \"expectedTimePriority\" FROM categories ORDER BY id ASC");
+export async function getCategories(): Promise<DbCategory[]> {
+  const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color, expected_time_normal as \"expectedTimeNormal\", expected_time_priority as \"expectedTimePriority\", resolutions FROM categories ORDER BY id ASC");
   return rows;
 }
 
@@ -285,10 +288,10 @@ export async function getTicketWindows(): Promise<{ id: number; name: string }[]
 
 export async function createCategory(data: Omit<DbCategory, "id">): Promise<DbCategory> {
   const { rows } = await pool.query(
-    `INSERT INTO categories (ticket_char, name, description, icon, color, expected_time_normal, expected_time_priority)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority"`,
-    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority]
+    `INSERT INTO categories (ticket_char, name, description, icon, color, expected_time_normal, expected_time_priority, resolutions)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority", resolutions`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority, JSON.stringify(data.resolutions || [])]
   );
   return rows[0];
 }
@@ -302,10 +305,11 @@ export async function updateCategory(id: number, data: Partial<DbCategory>): Pro
          icon = COALESCE($4, icon),
          color = COALESCE($5, color),
          expected_time_normal = COALESCE($6, expected_time_normal),
-         expected_time_priority = COALESCE($7, expected_time_priority)
-     WHERE id = $8
-     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority"`,
-    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority, id]
+         expected_time_priority = COALESCE($7, expected_time_priority),
+         resolutions = COALESCE($8::jsonb, resolutions)
+     WHERE id = $9
+     RETURNING id, ticket_char as "ticketChar", name, description, icon, color, expected_time_normal as "expectedTimeNormal", expected_time_priority as "expectedTimePriority", resolutions`,
+    [data.ticketChar, data.name, data.description, data.icon, data.color, data.expectedTimeNormal, data.expectedTimePriority, data.resolutions ? JSON.stringify(data.resolutions) : null, id]
   );
   return rows[0];
 }

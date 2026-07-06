@@ -135,15 +135,15 @@ export async function startTicketAction(ticketId: string, code: string) {
 /**
  * Conclui um atendimento
  */
-export async function finishTicketAction(ticketId: string, observation?: string) {
-  const result = FinishTicketSchema.safeParse({ ticketId, observation });
+export async function finishTicketAction(ticketId: string, observation?: string, resolutions?: string[]) {
+  const result = FinishTicketSchema.safeParse({ ticketId, observation, resolutions });
   if (!result.success) {
     return { success: false, error: result.error.issues[0].message };
   }
 
   try {
     await requirePermission("OPERATE_QUEUE");
-    const ticket = await finishTicket(ticketId, observation);
+    const ticket = await finishTicket(ticketId, observation, resolutions);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
     }
