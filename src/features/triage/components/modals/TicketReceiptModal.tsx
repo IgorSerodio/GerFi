@@ -91,6 +91,15 @@ export default function TicketReceiptModal({
                   TEMPO MÉDIO DE ESPERA: 15 MIN
                 </p>
 
+                <div className="border border-dashed border-gray-400 p-2 mb-4 mx-4">
+                  <p className="text-[8px] uppercase font-bold tracking-widest mb-1">
+                    CÓDIGO DE INICIALIZAÇÃO
+                  </p>
+                  <p className="text-xl font-black tracking-[0.2em] leading-none">
+                    {issuedTicket.securityCode}
+                  </p>
+                </div>
+
                 {/* Fake barcode */}
                 <div className="h-10 w-full bg-gray-200 flex justify-center items-center overflow-hidden mb-2">
                   {[...Array(40)].map((_, i) => (

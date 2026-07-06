@@ -14,6 +14,8 @@ interface DbTicketRow {
   attendant?: string | null;
   guiche?: string | null;
   observation?: string | null;
+  security_code?: string;
+  started_at?: Date | null;
 }
 
 /**
@@ -33,6 +35,8 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     attendant: row.attendant || undefined,
     guiche: row.guiche || undefined,
     observation: row.observation || undefined,
+    securityCode: row.security_code || undefined,
+    startedAt: row.started_at?.toISOString() || undefined,
   };
 }
 
@@ -107,11 +111,17 @@ export async function insertTicket(
     const numberStr = String(nextNum).padStart(3, "0");
     const ticketNumber = `${prefix}${numberStr}`;
 
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let securityCode = "";
+    for (let i = 0; i < 4; i++) {
+      securityCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
     const insertRes = await client.query(
-      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status)
-       VALUES ($1, $2, $3, $4, 'pending')
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, security_code)
+       VALUES ($1, $2, $3, $4, 'pending', $5)
        RETURNING *`,
-      [ticketNumber, categoryId, categoryName, priority]
+      [ticketNumber, categoryId, categoryName, priority, securityCode]
     );
 
     await client.query("COMMIT");
@@ -188,6 +198,28 @@ export async function finishTicket(ticketId: string, observation?: string): Prom
   );
   if (rows.length === 0) return null;
   return mapTicketRow(rows[0]);
+}
+
+/**
+ * Inicializa um ticket mediante a validação do código de segurança de 4 letras.
+ */
+export async function startTicket(ticketId: string, code: string): Promise<{ success: boolean; error?: string; ticket?: Ticket }> {
+  const { rows } = await pool.query("SELECT security_code FROM tickets WHERE id = $1", [ticketId]);
+  if (rows.length === 0) return { success: false, error: "Senha não encontrada." };
+  
+  if (rows[0].security_code !== code.toUpperCase()) {
+    return { success: false, error: "Código inválido." };
+  }
+
+  const updateRes = await pool.query(
+    `UPDATE tickets
+     SET started_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [ticketId]
+  );
+  
+  return { success: true, ticket: mapTicketRow(updateRes.rows[0]) };
 }
 
 /**

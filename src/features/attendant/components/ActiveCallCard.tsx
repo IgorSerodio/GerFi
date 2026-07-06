@@ -11,6 +11,7 @@ interface ActiveCallCardProps {
   handleCall: (priorityType?: "Normal" | "Prioritário") => void;
   handleRecall: (ticketId: string) => void;
   setShowForwardModal: (show: boolean) => void;
+  setShowStartModal: (show: boolean) => void;
   handleFinish: (ticketId: string) => void;
   categories: { id: string; name: string; expectedTimeNormal: number; expectedTimePriority: number }[];
 }
@@ -23,6 +24,7 @@ export default function ActiveCallCard({
   handleCall,
   handleRecall,
   setShowForwardModal,
+  setShowStartModal,
   handleFinish,
   categories,
 }: ActiveCallCardProps) {
@@ -33,7 +35,7 @@ export default function ActiveCallCard({
         <div className="w-full text-center space-y-6 animate-fade-in">
           <div className="flex flex-col items-center gap-2 mb-4">
             <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
-              Em Atendimento
+              {currentCall.startedAt ? "Em Atendimento" : "Em Chamada"}
             </div>
             <WaitTimer
               createdAt={currentCall.createdAt}
@@ -48,24 +50,37 @@ export default function ActiveCallCard({
             {currentCall.ticketNumber}
           </h3>
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-2xl">
-            <button
-              onClick={() => handleRecall(currentCall.id)}
-              className="min-w-[160px] flex-1 py-6 bg-white text-emerald-700 border-2 border-emerald-100 rounded-3xl font-bold hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-            >
-              <PhoneForwarded size={24} /> RECHAMAR
-            </button>
-            <button
-              onClick={() => setShowForwardModal(true)}
-              className="min-w-[160px] flex-1 py-6 bg-white text-amber-600 border-2 border-amber-100 rounded-3xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-            >
-              <Send size={24} /> ENCAMINHAR
-            </button>
-            <button
-              onClick={() => handleFinish(currentCall.id)}
-              className="min-w-[160px] flex-1 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
-            >
-              <CheckCircle2 size={24} /> FINALIZAR
-            </button>
+            {!currentCall.startedAt ? (
+              <>
+                <button
+                  onClick={() => handleRecall(currentCall.id)}
+                  className="min-w-[160px] flex-1 py-6 bg-white text-emerald-700 border-2 border-emerald-100 rounded-3xl font-bold hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <PhoneForwarded size={24} /> RECHAMAR
+                </button>
+                <button
+                  onClick={() => setShowStartModal(true)}
+                  className="min-w-[160px] flex-1 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+                >
+                  <CheckCircle2 size={24} /> INICIAR
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowForwardModal(true)}
+                  className="min-w-[160px] flex-1 py-6 bg-white text-amber-600 border-2 border-amber-100 rounded-3xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Send size={24} /> ENCAMINHAR
+                </button>
+                <button
+                  onClick={() => handleFinish(currentCall.id)}
+                  className="min-w-[160px] flex-1 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+                >
+                  <CheckCircle2 size={24} /> FINALIZAR
+                </button>
+              </>
+            )}
           </div>
         </div>
       ) : (

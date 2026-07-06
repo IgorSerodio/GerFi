@@ -6,6 +6,7 @@ import {
   getQueueStateAction,
   callTicketAction,
   recallTicketAction,
+  startTicketAction,
   finishTicketAction,
   forwardTicketAction,
 } from "@/features/queue/actions";
@@ -24,6 +25,7 @@ import HistoryPanel from "./HistoryPanel";
 
 import ForwardModal from "./modals/ForwardModal";
 import FinishModal from "./modals/FinishModal";
+import StartModal from "./modals/StartModal";
 import GuicheModal from "./modals/GuicheModal";
 import HistoryDetailModal from "./modals/HistoryDetailModal";
 
@@ -53,6 +55,7 @@ export default function AttendantDashboard({
   const [showGuicheModal, setShowGuicheModal] = useState(false);
   const [allowedServices, setAllowedServices] = useState<number[]>(initialServices);
   const [showServiceConfig, setShowServiceConfig] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [observation, setObservation] = useState("");
@@ -137,6 +140,18 @@ export default function AttendantDashboard({
     }
   };
 
+  const confirmStart = async (code: string) => {
+    if (currentCall) {
+      const res = await startTicketAction(currentCall.id, code);
+      if (res.success) {
+        setShowStartModal(false);
+        // Will refresh state automatically via SSE or wait for the user action finish
+      } else {
+        alert(res.error || "Erro ao inicializar senha");
+      }
+    }
+  };
+
   const handleFinish = (ticketId: string) => {
     setTicketToFinish(ticketId);
     setObservation("");
@@ -216,8 +231,16 @@ export default function AttendantDashboard({
                 availablePriorityCount={availablePriority.length}
                 handleCall={handleCall}
                 handleRecall={handleRecall}
+                setShowStartModal={setShowStartModal}
                 setShowForwardModal={setShowForwardModal}
                 handleFinish={handleFinish}
+              />
+
+              <StartModal
+                show={showStartModal}
+                currentCall={currentCall}
+                onClose={() => setShowStartModal(false)}
+                onConfirm={confirmStart}
               />
 
               <ForwardModal

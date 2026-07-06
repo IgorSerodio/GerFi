@@ -11,6 +11,8 @@ export interface Ticket {
   attendant?: string;
   guiche?: string;
   observation?: string;
+  securityCode?: string;
+  startedAt?: string;
 }
 
 export interface QueueState {

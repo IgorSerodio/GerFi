@@ -4,6 +4,7 @@ import {
   insertTicket,
   callNextTicket,
   getTicketById,
+  startTicket,
   finishTicket,
   forwardTicket,
   getActiveQueue,
@@ -108,6 +109,26 @@ export async function recallTicketAction(ticketId: string) {
     return { success: true, data: ticket };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao rechamar senha.") };
+  }
+}
+
+/**
+ * Inicializa uma senha mediante código
+ */
+export async function startTicketAction(ticketId: string, code: string) {
+  try {
+    await requirePermission("OPERATE_QUEUE");
+    if (!code || code.length !== 4) {
+      return { success: false, error: "O código deve ter 4 letras." };
+    }
+    const res = await startTicket(ticketId, code);
+    if (!res.success) {
+      return res;
+    }
+    triggerRealTimeUpdate();
+    return res;
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao inicializar senha.") };
   }
 }
 
