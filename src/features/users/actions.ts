@@ -10,6 +10,7 @@ import {
   updateUserServices,
   updateUserGuiche,
 } from "./queries";
+import { queueEmitter } from "@/infra/events";
 import { requirePermission } from "@/features/auth/actions";
 import { User } from "./types";
 import bcrypt from "bcryptjs";
@@ -81,6 +82,10 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
       updatedData.password = bcrypt.hashSync(userData.password, 10);
     }
     const user = await updateUser(id, updatedData);
+    
+    // Notify clients to refresh their queues and their updated service profiles
+    queueEmitter.emit("update");
+
     return { success: true, data: user };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao atualizar servidor.") };

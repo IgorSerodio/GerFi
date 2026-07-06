@@ -10,7 +10,7 @@ import {
   forwardTicketAction,
 } from "@/features/queue/actions";
 import {
-  updateMyServicesAction,
+  getMyProfileAction,
   updateMyGuicheAction,
 } from "@/features/users/actions";
 import { Ticket, DbCategory, DbTicketWindow } from "@/features/queue/types";
@@ -73,14 +73,7 @@ export default function AttendantDashboard({
 
 
 
-  const handleSaveServices = async () => {
-    const res = await updateMyServicesAction(allowedServices);
-    if (res.success) {
-      setShowServiceConfig(false);
-    } else {
-      alert(res.error || "Erro ao salvar serviços");
-    }
-  };
+
 
   const handleSaveGuiche = async (guicheName: string) => {
     const res = await updateMyGuicheAction(guicheName);
@@ -100,6 +93,10 @@ export default function AttendantDashboard({
     if (res.success && res.data) {
       setQueue(res.data.tickets);
       setHistory(res.data.history);
+    }
+    const profileRes = await getMyProfileAction();
+    if (profileRes.success && profileRes.data) {
+      setAllowedServices(profileRes.data.services || []);
     }
   };
 
@@ -172,12 +169,7 @@ export default function AttendantDashboard({
     }
   };
 
-  const toggleService = (idStr: string) => {
-    const id = Number(idStr);
-    setAllowedServices((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
+
 
   const availableTickets =
     allowedServices.length > 0
@@ -206,8 +198,6 @@ export default function AttendantDashboard({
             <ServiceConfigOverlay
               categories={categories}
               allowedServices={allowedServices}
-              toggleService={toggleService}
-              onSave={handleSaveServices}
             />
           )}
 
