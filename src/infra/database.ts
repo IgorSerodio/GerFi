@@ -1,4 +1,7 @@
-import { Pool } from "pg";
+import { Pool, types } from "pg";
+
+// Garante que o pg interprete as datas do Postgres (TIMESTAMP sem fuso horário) como UTC
+types.setTypeParser(1114, (stringValue) => new Date(stringValue + "Z"));
 
 const globalForPool = globalThis as unknown as {
   pool: Pool | undefined;

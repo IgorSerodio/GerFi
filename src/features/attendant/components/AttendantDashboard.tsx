@@ -9,6 +9,7 @@ import {
   startTicketAction,
   finishTicketAction,
   forwardTicketAction,
+  noShowTicketAction,
 } from "@/features/queue/actions";
 import {
   getMyProfileAction,
@@ -146,6 +147,13 @@ export default function AttendantDashboard({
     }
   };
 
+  const handleNoShow = async (ticketId: string) => {
+    const res = await noShowTicketAction(ticketId);
+    if (!res.success) {
+      alert(res.error || "Erro ao marcar senha como não comparecimento");
+    }
+  };
+
   const confirmStart = async (code: string) => {
     if (currentCall) {
       const res = await startTicketAction(currentCall.id, code);
@@ -241,6 +249,7 @@ export default function AttendantDashboard({
                 canCallPriority={canCallPriority}
                 handleCall={handleCall}
                 handleRecall={handleRecall}
+                handleNoShow={handleNoShow}
                 setShowStartModal={setShowStartModal}
                 setShowForwardModal={setShowForwardModal}
                 handleFinish={handleFinish}

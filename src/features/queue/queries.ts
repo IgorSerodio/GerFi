@@ -7,7 +7,7 @@ interface DbTicketRow {
   category_id: number;
   category_name: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "completed";
+  status: "pending" | "calling" | "completed" | "no_show";
   created_at: Date;
   called_at?: Date | null;
   completed_at?: Date | null;
@@ -17,6 +17,7 @@ interface DbTicketRow {
   security_code?: string;
   started_at?: Date | null;
   resolutions?: string[];
+  recall_history?: Date[] | null;
 }
 
 /**
@@ -39,6 +40,7 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     securityCode: row.security_code || undefined,
     startedAt: row.started_at?.toISOString() || undefined,
     resolutions: row.resolutions || [],
+    recallHistory: row.recall_history?.map(d => d.toISOString()) || [],
   };
 }
 
@@ -67,7 +69,7 @@ export async function getHistory(services?: number[]): Promise<Ticket[]> {
 
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
-     WHERE status IN ('calling', 'completed') 
+     WHERE status IN ('calling', 'completed', 'no_show') 
        AND created_at >= CURRENT_DATE
        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
@@ -174,11 +176,27 @@ export async function callNextTicket(
 }
 
 /**
- * Re-chama uma senha que já está em atendimento (atualiza called_at para emitir sinal sonoro)
+ * Re-chama uma senha que já está em atendimento (atualiza called_at para emitir sinal sonoro e guarda no histórico)
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    "UPDATE tickets SET called_at = NOW() WHERE id = $1 RETURNING *",
+    "UPDATE tickets SET called_at = NOW(), recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
+    [ticketId]
+  );
+  if (rows.length === 0) return null;
+  return mapTicketRow(rows[0]);
+}
+
+/**
+ * Marca uma senha como não compareceu.
+ */
+export async function markAsNoShow(ticketId: string): Promise<Ticket | null> {
+  const { rows } = await pool.query(
+    `UPDATE tickets
+     SET status = 'no_show',
+         completed_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
     [ticketId]
   );
   if (rows.length === 0) return null;

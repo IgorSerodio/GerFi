@@ -1,5 +1,5 @@
-import React from "react";
-import { PhoneForwarded, Send, CheckCircle2, Users } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { PhoneForwarded, Send, CheckCircle2, Users, UserX } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
 import WaitTimer from "./WaitTimer";
 
@@ -12,6 +12,7 @@ interface ActiveCallCardProps {
   canCallPriority: boolean;
   handleCall: (priorityType?: "Normal" | "Prioritário") => void;
   handleRecall: (ticketId: string) => void;
+  handleNoShow: (ticketId: string) => void;
   setShowForwardModal: (show: boolean) => void;
   setShowStartModal: (show: boolean) => void;
   handleFinish: (ticketId: string) => void;
@@ -27,12 +28,40 @@ export default function ActiveCallCard({
   canCallPriority,
   handleCall,
   handleRecall,
+  handleNoShow,
   setShowForwardModal,
   setShowStartModal,
   handleFinish,
   categories,
 }: ActiveCallCardProps) {
   const currentCategory = categories?.find((c) => c.id === String(currentCall?.categoryId));
+  
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+  const RECALL_COOLDOWN_MS = 15000;
+
+  useEffect(() => {
+    if (!currentCall || currentCall.startedAt) return;
+
+    const checkCooldown = () => {
+      const now = Date.now();
+      const lastCallTime = currentCall.calledAt ? new Date(currentCall.calledAt).getTime() : 0;
+      const timeSinceLastCall = now - lastCallTime;
+      if (timeSinceLastCall < RECALL_COOLDOWN_MS) {
+        setCooldownLeft(Math.ceil((RECALL_COOLDOWN_MS - timeSinceLastCall) / 1000));
+      } else {
+        setCooldownLeft(0);
+      }
+    };
+
+    checkCooldown(); // initial check
+    const intervalId = setInterval(checkCooldown, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [currentCall]);
+
+  const recallCount = currentCall?.recallHistory?.length || 0;
+  const canRecall = cooldownLeft === 0;
+
   return (
     <div className="bg-white rounded-[40px] shadow-sm border-2 border-emerald-50 p-10 flex flex-col items-center min-h-[400px] justify-center shadow-glow">
       {currentCall ? (
@@ -53,35 +82,58 @@ export default function ActiveCallCard({
           <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-accent"}`}>
             {currentCall.ticketNumber}
           </h3>
-          <div className="flex flex-wrap justify-center gap-4 w-full max-w-2xl">
+          <div className="flex flex-wrap justify-center gap-4 w-full max-w-3xl">
             {!currentCall.startedAt ? (
               <>
                 <button
                   onClick={() => handleRecall(currentCall.id)}
-                  className="min-w-[160px] flex-1 py-6 bg-white text-emerald-700 border-2 border-emerald-100 rounded-3xl font-bold hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                  disabled={!canRecall}
+                  className={`min-w-[160px] flex-1 px-4 py-6 border-2 border-emerald-100 rounded-3xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all ${
+                    canRecall 
+                      ? "bg-white text-emerald-700 hover:bg-emerald-50 cursor-pointer" 
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                  }`}
                 >
-                  <PhoneForwarded size={24} /> RECHAMAR
+                  <PhoneForwarded size={24} className="shrink-0" />
+                  <span className="text-left leading-tight text-sm sm:text-base">
+                    {canRecall ? "RECHAMAR" : `AGUARDE (${cooldownLeft}s)`}
+                  </span>
                 </button>
+                {recallCount >= 3 && (
+                  <button
+                    onClick={() => handleNoShow(currentCall.id)}
+                    className="min-w-[160px] flex-1 px-4 py-6 bg-red-50 text-red-600 border-2 border-red-200 rounded-3xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                  >
+                    <UserX size={24} className="shrink-0" />
+                    <div className="flex flex-col items-center text-center leading-tight text-sm sm:text-base">
+                      <span>NÃO</span>
+                      <span>COMPARECEU</span>
+                    </div>
+                  </button>
+                )}
                 <button
                   onClick={() => setShowStartModal(true)}
-                  className="min-w-[160px] flex-1 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+                  className="min-w-[160px] flex-1 px-4 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
                 >
-                  <CheckCircle2 size={24} /> INICIAR
+                  <CheckCircle2 size={24} className="shrink-0" />
+                  <span className="text-left leading-tight text-sm sm:text-base">INICIAR</span>
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={() => setShowForwardModal(true)}
-                  className="min-w-[160px] flex-1 py-6 bg-white text-amber-600 border-2 border-amber-100 rounded-3xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                  className="min-w-[160px] flex-1 px-4 py-6 bg-white text-amber-600 border-2 border-amber-100 rounded-3xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                 >
-                  <Send size={24} /> ENCAMINHAR
+                  <Send size={24} className="shrink-0" />
+                  <span className="text-left leading-tight text-sm sm:text-base">ENCAMINHAR</span>
                 </button>
                 <button
                   onClick={() => handleFinish(currentCall.id)}
-                  className="min-w-[160px] flex-1 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+                  className="min-w-[160px] flex-1 px-4 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
                 >
-                  <CheckCircle2 size={24} /> FINALIZAR
+                  <CheckCircle2 size={24} className="shrink-0" />
+                  <span className="text-left leading-tight text-sm sm:text-base">FINALIZAR</span>
                 </button>
               </>
             )}

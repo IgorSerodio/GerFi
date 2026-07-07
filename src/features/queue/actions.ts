@@ -16,6 +16,7 @@ import {
   deleteCategory,
   createNextTicketWindow,
   deleteTicketWindow,
+  markAsNoShow,
 } from "./queries";
 import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
@@ -161,6 +162,23 @@ export async function finishTicketAction(ticketId: string, observation?: string,
     return { success: true, data: ticket };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao concluir senha.") };
+  }
+}
+
+/**
+ * Marca uma senha como não compareceu
+ */
+export async function noShowTicketAction(ticketId: string) {
+  try {
+    await requirePermission("OPERATE_QUEUE");
+    const ticket = await markAsNoShow(ticketId);
+    if (!ticket) {
+      return { success: false, error: "Senha não encontrada." };
+    }
+    triggerRealTimeUpdate();
+    return { success: true, data: ticket };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao marcar como não compareceu.") };
   }
 }
 
