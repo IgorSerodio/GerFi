@@ -10,7 +10,9 @@ interface ActiveCallCardProps {
   availablePriorityCount: number;
   canCallNormal: boolean;
   canCallPriority: boolean;
+  forwardedCount: number;
   handleCall: (priorityType?: "Normal" | "Prioritário") => void;
+  handleCallForwarded: () => void;
   handleRecall: (ticketId: string) => void;
   handleNoShow: (ticketId: string) => void;
   setShowForwardModal: (show: boolean) => void;
@@ -26,7 +28,9 @@ export default function ActiveCallCard({
   availablePriorityCount,
   canCallNormal,
   canCallPriority,
+  forwardedCount,
   handleCall,
+  handleCallForwarded,
   handleRecall,
   handleNoShow,
   setShowForwardModal,
@@ -158,32 +162,44 @@ export default function ActiveCallCard({
             )}
           </div>
           <div className="flex gap-4 w-full px-8 max-w-4xl mx-auto">
-            <button
-              onClick={() => handleCall("Prioritário")}
-              disabled={availablePriorityCount === 0 || !canCallPriority}
-              className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
-                canCallPriority
-                  ? "bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:grayscale disabled:opacity-50"
-                  : "bg-gray-400 cursor-not-allowed opacity-50"
-              }`}
-              title={!canCallPriority ? "Você não tem permissão para chamar esta fila." : undefined}
-            >
-              <span className="whitespace-nowrap">CHAMAR PRIORIDADE</span>
-              <span className="text-sm font-bold opacity-80">{availablePriorityCount} na fila</span>
-            </button>
-            <button
-              onClick={() => handleCall("Normal")}
-              disabled={availableNormalCount === 0 || !canCallNormal}
-              className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
-                canCallNormal
-                  ? "bg-sefaz-accent hover:scale-105 active:scale-95 shadow-xl shadow-emerald-950/30 cursor-pointer disabled:grayscale disabled:opacity-50"
-                  : "bg-gray-400 cursor-not-allowed opacity-50"
-              }`}
-              title={!canCallNormal ? "Você não tem permissão para chamar esta fila." : undefined}
-            >
-              <span className="whitespace-nowrap">CHAMAR NORMAL</span>
-              <span className="text-sm font-bold opacity-80">{availableNormalCount} na fila</span>
-            </button>
+            {forwardedCount > 0 ? (
+              <button
+                onClick={handleCallForwarded}
+                className="flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
+              >
+                <span className="whitespace-nowrap">CHAMAR ENCAMINHADO</span>
+                <span className="text-sm font-bold opacity-80">{forwardedCount} na fila</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleCall("Prioritário")}
+                  disabled={availablePriorityCount === 0 || !canCallPriority}
+                  className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
+                    canCallPriority
+                      ? "bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:grayscale disabled:opacity-50"
+                      : "bg-gray-400 cursor-not-allowed opacity-50"
+                  }`}
+                  title={!canCallPriority ? "Você não tem permissão para chamar esta fila." : undefined}
+                >
+                  <span className="whitespace-nowrap">CHAMAR PRIORIDADE</span>
+                  <span className="text-sm font-bold opacity-80">{availablePriorityCount} na fila</span>
+                </button>
+                <button
+                  onClick={() => handleCall("Normal")}
+                  disabled={availableNormalCount === 0 || !canCallNormal}
+                  className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
+                    canCallNormal
+                      ? "bg-sefaz-accent hover:scale-105 active:scale-95 shadow-xl shadow-emerald-950/30 cursor-pointer disabled:grayscale disabled:opacity-50"
+                      : "bg-gray-400 cursor-not-allowed opacity-50"
+                  }`}
+                  title={!canCallNormal ? "Você não tem permissão para chamar esta fila." : undefined}
+                >
+                  <span className="whitespace-nowrap">CHAMAR NORMAL</span>
+                  <span className="text-sm font-bold opacity-80">{availableNormalCount} na fila</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

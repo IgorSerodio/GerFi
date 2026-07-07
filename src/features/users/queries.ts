@@ -17,6 +17,16 @@ export async function getUsers(): Promise<User[]> {
 }
 
 /**
+ * Retorna os guichês que estão atualmente ocupados por algum atendente.
+ */
+export async function getActiveGuiches(): Promise<{ guiche: string, attendantName: string }[]> {
+  const { rows } = await pool.query(
+    `SELECT guiche, name as "attendantName" FROM users WHERE guiche IS NOT NULL AND guiche != ''`
+  );
+  return rows;
+}
+
+/**
  * Cria um novo servidor no banco
  */
 export async function createUser(userData: Omit<User, "id">): Promise<User> {

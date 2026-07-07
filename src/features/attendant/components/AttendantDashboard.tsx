@@ -10,6 +10,7 @@ import {
   finishTicketAction,
   forwardTicketAction,
   noShowTicketAction,
+  getActiveGuichesAction,
 } from "@/features/queue/actions";
 import {
   getMyProfileAction,
@@ -69,7 +70,15 @@ export default function AttendantDashboard({
   const [queue, setQueue] = useState<Ticket[]>(initialQueue);
   const [history, setHistory] = useState<Ticket[]>(initialHistory);
 
-  const attendants = initialTicketWindows.map((tw) => tw.name);
+  const [activeGuiches, setActiveGuiches] = useState<{ guiche: string; attendantName: string }[]>([]);
+
+  const attendants = initialTicketWindows.map((tw) => {
+    const active = activeGuiches.find((a) => a.guiche === tw.name);
+    return {
+      guiche: tw.name,
+      attendantName: active?.attendantName,
+    };
+  });
 
   const categories = initialCategories.map((c) => ({
     id: String(c.id),
@@ -102,6 +111,10 @@ export default function AttendantDashboard({
       setQueue(res.data.tickets);
       setHistory(res.data.history);
     }
+    const activeRes = await getActiveGuichesAction();
+    if (activeRes.success && activeRes.data) {
+      setActiveGuiches(activeRes.data);
+    }
     const profileRes = await getMyProfileAction();
     if (profileRes.success && profileRes.data) {
       setAllowedServices(profileRes.data.services || []);
@@ -133,10 +146,24 @@ export default function AttendantDashboard({
       currentAttendant.name,
       currentAttendant.guiche,
       allowedServices,
-      priorityType
+      priorityType,
+      false // isForwardedCall
     );
     if (!res.success) {
       alert(res.error || "Erro ao chamar senha");
+    }
+  };
+
+  const handleCallForwarded = async () => {
+    const res = await callTicketAction(
+      currentAttendant.name,
+      currentAttendant.guiche,
+      allowedServices,
+      undefined,
+      true // isForwardedCall
+    );
+    if (!res.success) {
+      alert(res.error || "Erro ao chamar senha encaminhada");
     }
   };
 
@@ -207,8 +234,9 @@ export default function AttendantDashboard({
       ? queue.filter((t) => allowedServices.includes(t.categoryId))
       : queue;
 
-  const availableNormal = availableTickets.filter((t) => t.priority === "Normal");
-  const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário");
+  const availableNormal = availableTickets.filter((t) => t.priority === "Normal" && !t.forwardedTo);
+  const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário" && !t.forwardedTo);
+  const forwardedCount = queue.filter((t) => t.status === "pending" && t.forwardedTo === currentAttendant.guiche).length;
 
   const currentCall = history.find(
     (h) => h.attendant === currentAttendant.name && h.status === "calling"
@@ -247,7 +275,9 @@ export default function AttendantDashboard({
                 availablePriorityCount={availablePriority.length}
                 canCallNormal={canCallNormal}
                 canCallPriority={canCallPriority}
+                forwardedCount={forwardedCount}
                 handleCall={handleCall}
+                handleCallForwarded={handleCallForwarded}
                 handleRecall={handleRecall}
                 handleNoShow={handleNoShow}
                 setShowStartModal={setShowStartModal}

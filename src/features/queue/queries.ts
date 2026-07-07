@@ -7,7 +7,7 @@ interface DbTicketRow {
   category_id: number;
   category_name: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "completed" | "no_show";
+  status: "pending" | "calling" | "completed" | "no_show" | "forwarded";
   created_at: Date;
   called_at?: Date | null;
   completed_at?: Date | null;
@@ -18,6 +18,7 @@ interface DbTicketRow {
   started_at?: Date | null;
   resolutions?: string[];
   recall_history?: Date[] | null;
+  forwarded_to?: string | null;
 }
 
 /**
@@ -41,6 +42,7 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     startedAt: row.started_at?.toISOString() || undefined,
     resolutions: row.resolutions || [],
     recallHistory: row.recall_history?.map(d => d.toISOString()) || [],
+    forwardedTo: row.forwarded_to || undefined,
   };
 }
 
@@ -69,11 +71,11 @@ export async function getHistory(services?: number[]): Promise<Ticket[]> {
 
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
-     WHERE status IN ('calling', 'completed', 'no_show') 
+     WHERE status IN ('calling', 'completed', 'no_show', 'forwarded') 
        AND created_at >= CURRENT_DATE
        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
-     LIMIT 10`,
+     LIMIT 50`,
     [servicesArray]
   );
   return rows.map(mapTicketRow);
@@ -145,31 +147,40 @@ export async function callNextTicket(
   attendant: string,
   guiche: string,
   allowedServices: number[],
-  priorityType?: "Normal" | "Prioritário"
+  priorityParam?: "Normal" | "Prioritário",
+  isForwardedCall?: boolean
 ): Promise<Ticket | null> {
-  const servicesArray = allowedServices && allowedServices.length > 0 ? allowedServices : null;
-  const priorityParam = priorityType || null;
+  const servicesArray = allowedServices.length > 0 ? allowedServices : null;
 
-  const { rows } = await pool.query(
-    `WITH next_ticket AS (
-      SELECT id FROM tickets
-      WHERE status = 'pending'
+  let queryStr = `
+    UPDATE tickets 
+    SET status = 'calling', called_at = NOW(), attendant = $2, guiche = $3
+    WHERE id = (
+      SELECT id FROM tickets 
+      WHERE status = 'pending' 
         AND created_at >= CURRENT_DATE
-        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
-        AND ($4::text IS NULL OR priority = $4)
-      ORDER BY (priority = 'Prioritário') DESC, created_at ASC
-      LIMIT 1
+  `;
+  const queryParams: any[] = [servicesArray, attendant, guiche];
+
+  if (isForwardedCall) {
+    queryStr += ` AND forwarded_to = $3`;
+  } else {
+    queryStr += ` AND forwarded_to IS NULL`;
+    if (priorityParam) {
+      queryStr += ` AND priority = $4`;
+      queryParams.push(priorityParam);
+    }
+  }
+
+  queryStr += `
+      AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
+      ORDER BY created_at ASC 
+      LIMIT 1 
       FOR UPDATE SKIP LOCKED
     )
-    UPDATE tickets
-    SET status = 'calling',
-        called_at = NOW(),
-        attendant = $2,
-        guiche = $3
-    WHERE id = (SELECT id FROM next_ticket)
-    RETURNING *`,
-    [servicesArray, attendant, guiche, priorityParam]
-  );
+    RETURNING *`;
+
+  const { rows } = await pool.query(queryStr, queryParams);
 
   if (rows.length === 0) return null;
   return mapTicketRow(rows[0]);
@@ -266,22 +277,19 @@ export async function forwardTicket(
     // Finalizar o ticket original como encaminhado
     await client.query(
       `UPDATE tickets 
-       SET status = 'completed', 
+       SET status = 'forwarded', 
            completed_at = NOW(), 
            observation = $2 
        WHERE id = $1`,
       [ticketId, `Encaminhado para ${targetGuiche}`]
     );
 
-    // Criar o novo ID adicionando 'E' (ou incrementando a contagem de encaminhados se já possuir 'E')
-    const nextId = `${original.id}E`;
-    
-    // Inserir o novo ticket já em status 'calling' para chamar diretamente na TV
+    // Inserir o novo ticket como pendente, associado ao guichê de destino
     const newRes = await client.query(
-      `INSERT INTO tickets (id, category_id, category_name, priority, status, called_at, attendant, guiche)
-       VALUES ($1, $2, $3, $4, 'calling', NOW(), $5, $6)
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to)
+       VALUES ($1, $2, $3, $4, 'pending', $5)
        RETURNING *`,
-      [nextId, original.category_id, original.category_name, original.priority, attendant, targetGuiche]
+      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche]
     );
 
     await client.query("COMMIT");

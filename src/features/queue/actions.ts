@@ -21,7 +21,7 @@ import {
 import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
 import { requirePermission } from "@/features/auth/actions";
-import { getUserById } from "@/features/users/queries";
+import { getUserById, getActiveGuiches } from "@/features/users/queries";
 import { queueEmitter } from "@/infra/events";
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -80,7 +80,8 @@ export async function callTicketAction(
   attendant: string,
   guiche: string,
   allowedServices: number[],
-  priorityType?: "Normal" | "Prioritário"
+  priorityType?: "Normal" | "Prioritário",
+  isForwardedCall?: boolean
 ) {
   try {
     const session = await requirePermission("OPERATE_QUEUE");
@@ -93,7 +94,7 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const ticket = await callNextTicket(attendant, guiche, allowedServices, priorityType);
+    const ticket = await callNextTicket(attendant, guiche, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }
@@ -229,6 +230,19 @@ export async function getTicketWindowsAction() {
     return { success: true, data: ticketWindows };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês.") };
+  }
+}
+
+/**
+ * Busca os guichês ativamente ocupados
+ */
+export async function getActiveGuichesAction() {
+  try {
+    await requirePermission("OPERATE_QUEUE");
+    const active = await getActiveGuiches();
+    return { success: true, data: active };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês ativos.") };
   }
 }
 

@@ -7,7 +7,7 @@ import { Ticket } from "@/features/queue/types";
 interface ForwardModalProps {
   show: boolean;
   currentCall?: Ticket;
-  attendants: string[];
+  attendants: { guiche: string; attendantName?: string }[];
   currentGuiche: string;
   onClose: () => void;
   onForward: (ticketId: string, guiche: string) => void;
@@ -21,6 +21,11 @@ export default function ForwardModal({
   onClose,
   onForward,
 }: ForwardModalProps) {
+  // Only show active guiches (occupied by an attendant) and not the current one
+  const activeAttendants = attendants.filter(
+    (a) => a.guiche !== currentGuiche && !!a.attendantName
+  );
+
   return (
     <Modal 
       isOpen={show && !!currentCall} 
@@ -48,22 +53,26 @@ export default function ForwardModal({
             </div>
 
             <div className="p-8 grid grid-cols-2 gap-4">
-              {attendants
-                .filter((g) => g !== currentGuiche)
-                .map((guiche) => (
+              {activeAttendants.length === 0 ? (
+                <div className="col-span-2 text-center py-6">
+                  <p className="text-sefaz-accent/60 font-medium">Nenhum outro guichê disponível.</p>
+                </div>
+              ) : (
+                activeAttendants.map(({ guiche, attendantName }) => (
                   <button
                     key={guiche}
                     onClick={() => onForward(currentCall.id, guiche)}
-                    className="p-6 bg-emerald-50/50 hover:bg-emerald-100/50 border-2 border-emerald-100 rounded-3xl text-left transition-all group cursor-pointer"
+                    className="p-4 bg-emerald-50/50 hover:bg-emerald-100/50 border-2 border-emerald-100 rounded-3xl text-left transition-all group cursor-pointer flex flex-col"
                   >
                     <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest mb-1">
-                      Destino
-                    </p>
-                    <p className="text-lg font-black text-sefaz-dark group-hover:text-sefaz-accent transition-colors">
                       {guiche}
                     </p>
+                    <p className="text-sm font-black text-sefaz-dark group-hover:text-sefaz-accent transition-colors truncate w-full" title={attendantName}>
+                      {attendantName}
+                    </p>
                   </button>
-                ))}
+                ))
+              )}
             </div>
         </>
       )}
