@@ -7,7 +7,7 @@ interface DbTicketRow {
   category_id: number;
   category_name: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "completed" | "no_show" | "forwarded";
+  status: "pending" | "calling" | "started" | "completed" | "no_show" | "forwarded";
   created_at: Date;
   called_at?: Date | null;
   completed_at?: Date | null;
@@ -71,7 +71,7 @@ export async function getHistory(services?: number[]): Promise<Ticket[]> {
 
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
-     WHERE status IN ('calling', 'completed', 'no_show', 'forwarded') 
+     WHERE status IN ('calling', 'started', 'completed', 'no_show', 'forwarded') 
        AND created_at >= CURRENT_DATE
        AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
@@ -245,7 +245,8 @@ export async function startTicket(ticketId: string, code: string): Promise<{ suc
 
   const updateRes = await pool.query(
     `UPDATE tickets
-     SET started_at = NOW()
+     SET status = 'started',
+         started_at = NOW()
      WHERE id = $1
      RETURNING *`,
     [ticketId]

@@ -44,7 +44,7 @@ export default function ActiveCallCard({
   const RECALL_COOLDOWN_MS = 15000;
 
   useEffect(() => {
-    if (!currentCall || currentCall.startedAt) return;
+    if (!currentCall || currentCall.status === "started") return;
 
     const checkCooldown = () => {
       const now = Date.now();
@@ -72,7 +72,7 @@ export default function ActiveCallCard({
         <div className="w-full text-center space-y-6 animate-fade-in">
           <div className="flex flex-col items-center gap-2 mb-4">
             <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
-              {currentCall.startedAt ? "Em Atendimento" : "Em Chamada"}
+              {currentCall.status === "started" ? "Em Atendimento" : "Em Chamada"}
             </div>
             <WaitTimer
               createdAt={currentCall.createdAt}
@@ -87,7 +87,7 @@ export default function ActiveCallCard({
             {currentCall.ticketNumber}
           </h3>
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-3xl">
-            {!currentCall.startedAt ? (
+            {currentCall.status !== "started" ? (
               <>
                 <button
                   onClick={() => handleRecall(currentCall.id)}

@@ -4,7 +4,7 @@ export interface Ticket {
   categoryId: number;
   categoryName: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "completed" | "no_show" | "forwarded";
+  status: "pending" | "calling" | "started" | "completed" | "no_show" | "forwarded";
   createdAt: string;
   calledAt?: string;
   completedAt?: string;

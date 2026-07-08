@@ -137,7 +137,7 @@ export async function getReportsDataAction(payload: {
         ref: row.id,
         desk: row.guiche ? row.guiche.replace("Guichê ", "") : "-",
         user: row.attendant || "-",
-        status: row.status === "completed" ? "CONCLUÍDO" : row.status === "calling" ? "CHAMADO" : "AGUARDANDO",
+        status: row.status === "completed" ? "CONCLUÍDO" : row.status === "started" ? "EM ATENDIMENTO" : row.status === "calling" ? "CHAMADO" : "AGUARDANDO",
       }));
     }
 

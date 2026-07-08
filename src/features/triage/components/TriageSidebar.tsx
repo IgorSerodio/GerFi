@@ -119,6 +119,7 @@ export default function TriageSidebar({
                   )}
 
                   {(searchResult.status === "calling" ||
+                    searchResult.status === "started" ||
                     searchResult.status === "completed") && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-amber-400">

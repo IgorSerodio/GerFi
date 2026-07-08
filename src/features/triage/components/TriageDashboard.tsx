@@ -136,7 +136,7 @@ export default function TriageDashboard({
     if (historyItem) {
       setSearchResult({
         id: query,
-        status: historyItem.status as "calling" | "completed",
+        status: historyItem.status as "calling" | "started" | "completed",
         guiche: historyItem.guiche,
         attendant: historyItem.attendant,
         ticket: historyItem,

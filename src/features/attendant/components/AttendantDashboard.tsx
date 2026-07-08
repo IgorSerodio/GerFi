@@ -260,7 +260,7 @@ export default function AttendantDashboard({
   const forwardedCount = queue.filter((t) => t.status === "pending" && t.forwardedTo === currentAttendant.guiche).length;
 
   const currentCall = history.find(
-    (h) => h.attendant === currentAttendant.name && h.status === "calling"
+    (h) => h.attendant === currentAttendant.name && (h.status === "calling" || h.status === "started")
   );
 
   return (

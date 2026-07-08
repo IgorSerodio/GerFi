@@ -20,7 +20,7 @@ export type SearchResult =
     }
   | {
       id: string;
-      status: "calling" | "completed";
+      status: "calling" | "started" | "completed";
       guiche?: string;
       attendant?: string;
       ticket: TicketType;
