@@ -286,10 +286,10 @@ export async function forwardTicket(
 
     // Inserir o novo ticket como pendente, associado ao guichê de destino
     const newRes = await client.query(
-      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to)
-       VALUES ($1, $2, $3, $4, 'pending', $5)
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code)
+       VALUES ($1, $2, $3, $4, 'pending', $5, $6)
        RETURNING *`,
-      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche]
+      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code]
     );
 
     await client.query("COMMIT");
