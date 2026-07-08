@@ -12,7 +12,7 @@ import {
 } from "./queries";
 import { queueEmitter } from "@/infra/events";
 import { requirePermission } from "@/features/auth/actions";
-import { User } from "./types";
+import { User, UserRole } from "./types";
 import bcrypt from "bcryptjs";
 import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
 
@@ -25,8 +25,11 @@ function getErrorMessage(error: unknown, fallback: string): string {
  */
 export async function getUsersAction() {
   try {
-    await requirePermission("MANAGE_USERS");
+    const session = await requirePermission("MANAGE_USERS");
     const users = await getUsers();
+    if (session.user.role === UserRole.Gerente) {
+      return { success: true, data: users.filter((u: User) => u.role !== UserRole.Admin) };
+    }
     return { success: true, data: users };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar servidores.") };
@@ -38,6 +41,14 @@ export async function getUsersAction() {
  */
 export async function createUserAction(userData: Omit<User, "id">) {
   try {
+    const session = await requirePermission("MANAGE_USERS");
+    
+    if (session.user.role === UserRole.Gerente) {
+      if (userData.role === UserRole.Admin || userData.role === UserRole.Gerente) {
+        return { success: false, error: "Gerentes não podem criar usuários com perfil de Admin ou Gerente." };
+      }
+    }
+
     if (!userData.email || !isValidEmail(userData.email)) {
       return { success: false, error: "O formato do e-mail é inválido." };
     }
@@ -65,7 +76,18 @@ export async function createUserAction(userData: Omit<User, "id">) {
  */
 export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
-    await requirePermission("MANAGE_USERS");
+    const session = await requirePermission("MANAGE_USERS");
+    
+    if (session.user.role === UserRole.Gerente) {
+      const targetUser = await getUserById(id);
+      if (!targetUser) return { success: false, error: "Usuário não encontrado." };
+      if (targetUser.role === UserRole.Admin || targetUser.role === UserRole.Gerente) {
+        return { success: false, error: "Gerentes não podem editar Admins ou outros Gerentes." };
+      }
+      if (userData.role === UserRole.Admin || userData.role === UserRole.Gerente) {
+        return { success: false, error: "Gerentes não podem promover usuários para Admin ou Gerente." };
+      }
+    }
     
     if (userData.email !== undefined && !isValidEmail(userData.email)) {
       return { success: false, error: "O formato do e-mail é inválido." };
@@ -97,7 +119,10 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
  */
 export async function deleteUserAction(id: number) {
   try {
-    await requirePermission("MANAGE_USERS");
+    const session = await requirePermission("MANAGE_USERS");
+    if (session.user.role === UserRole.Gerente) {
+      return { success: false, error: "Gerentes não têm permissão para excluir usuários." };
+    }
     const success = await deleteUser(id);
     return { success };
   } catch (error) {
@@ -110,7 +135,14 @@ export async function deleteUserAction(id: number) {
  */
 export async function toggleBlockUserAction(id: number) {
   try {
-    await requirePermission("MANAGE_USERS");
+    const session = await requirePermission("MANAGE_USERS");
+    if (session.user.role === UserRole.Gerente) {
+      const targetUser = await getUserById(id);
+      if (!targetUser) return { success: false, error: "Usuário não encontrado." };
+      if (targetUser.role === UserRole.Admin || targetUser.role === UserRole.Gerente) {
+        return { success: false, error: "Gerentes não podem alterar o bloqueio de Admins ou Gerentes." };
+      }
+    }
     const user = await toggleBlockUser(id);
     return { success: true, data: user };
   } catch (error) {

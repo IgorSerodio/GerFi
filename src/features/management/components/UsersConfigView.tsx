@@ -11,6 +11,7 @@ import {
   deleteUserAction,
   toggleBlockUserAction,
 } from "@/features/users/actions";
+import { useSession } from "next-auth/react";
 import {
   getTicketWindowsAction,
   getCategoriesAction,
@@ -44,6 +45,10 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     canCallNormal: true,
     canCallPriority: true,
   });
+
+  const { data: session } = useSession();
+  const isGerente = session?.user?.role === UserRole.Gerente;
+  const isAdmin = session?.user?.role === UserRole.Admin;
 
   const loadData = React.useCallback(async () => {
     const resUsers = await getUsersAction();
@@ -130,6 +135,11 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     });
   };
 
+  const visibleUsers = users.filter((u) => {
+    if (isGerente && u.role === UserRole.Admin) return false;
+    return true;
+  });
+
   return (
     <motion.div
       key="config_users"
@@ -157,7 +167,11 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
             </tr>
           </thead>
           <tbody className="divide-y divide-emerald-50">
-            {users.map((user) => (
+            {visibleUsers.map((user) => {
+              const canEdit = isAdmin || (isGerente && user.role !== UserRole.Gerente && user.role !== UserRole.Admin);
+              const canDelete = isAdmin;
+
+              return (
               <tr key={user.id} className="hover:bg-emerald-50/30">
                 <td className="px-6 py-4">
                   <p className="text-xs font-black text-sefaz-dark">{user.name}</p>
@@ -194,30 +208,36 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
-                  <button
-                    onClick={() => handleToggleBlock(user.id!)}
-                    className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer transition-colors"
-                    title={user.blocked ? "Desbloquear" : "Bloquear"}
-                  >
-                    <Ban size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleEditUser(user)}
-                    className="p-2 text-sefaz-accent hover:bg-emerald-50 rounded-lg cursor-pointer transition-colors"
-                    title="Editar"
-                  >
-                    <Pen size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUserClick(user)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
-                    title="Excluir"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {canEdit && (
+                    <>
+                      <button
+                        onClick={() => handleToggleBlock(user.id!)}
+                        className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer transition-colors"
+                        title={user.blocked ? "Desbloquear" : "Bloquear"}
+                      >
+                        <Ban size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="p-2 text-sefaz-accent hover:bg-emerald-50 rounded-lg cursor-pointer transition-colors"
+                        title="Editar"
+                      >
+                        <Pen size={16} />
+                      </button>
+                    </>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDeleteUserClick(user)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
@@ -312,7 +332,10 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                       onChange={(e) => setNewUser({ ...newUser, role: e.target.value as UserRole })}
                       className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     >
-                      {Object.values(UserRole).map((role) => (
+                      {Object.values(UserRole).filter(r => {
+                        if (isGerente && (r === UserRole.Admin || r === UserRole.Gerente)) return false;
+                        return true;
+                      }).map((role) => (
                         <option key={role} value={role}>{role}</option>
                       ))}
                     </select>

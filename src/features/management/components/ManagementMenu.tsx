@@ -43,17 +43,17 @@ export default function ManagementMenu({ session, setView }: ManagementMenuProps
       <FeatureCard
         layout="vertical"
         onClick={() => {
-          if (hasPermission("MANAGE_CONFIGS")) {
+          if (hasPermission("MANAGE_CONFIGS") || hasPermission("MANAGE_USERS")) {
             setView("config_hub");
           } else {
-            alert("Acesso restrito para administradores.");
+            alert("Acesso restrito para administradores e gerentes.");
           }
         }}
         title="Configurações"
         description="Ajuste fino do sistema de filas, parâmetros da TV e servidores de atendimento."
         icon={<Settings size={32} />}
         color="bg-slate-800"
-        disabled={!hasPermission("MANAGE_CONFIGS")}
+        disabled={!hasPermission("MANAGE_CONFIGS") && !hasPermission("MANAGE_USERS")}
       />
     </motion.div>
   );
