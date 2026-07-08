@@ -105,6 +105,19 @@ export default function AttendantDashboard({
     }
   };
 
+  const handleVacateGuiche = async () => {
+    const res = await updateMyGuicheAction(null);
+    if (res.success) {
+      setCurrentAttendant((prev) => ({
+        ...prev,
+        guiche: "",
+      }));
+      setShowGuicheModal(false);
+    } else {
+      alert(res.error || "Erro ao desocupar guichê");
+    }
+  };
+
   const refreshState = async () => {
     const res = await getQueueStateAction();
     if (res.success && res.data) {
@@ -120,6 +133,14 @@ export default function AttendantDashboard({
       setAllowedServices(profileRes.data.services || []);
       setCanCallNormal(profileRes.data.canCallNormal ?? true);
       setCanCallPriority(profileRes.data.canCallPriority ?? true);
+      
+      // Update guiche locally just in case it was changed/cleared remotely
+      if (currentAttendant.guiche !== profileRes.data.guiche) {
+        setCurrentAttendant(prev => ({
+          ...prev,
+          guiche: profileRes.data.guiche || ""
+        }));
+      }
     }
   };
 
@@ -266,24 +287,43 @@ export default function AttendantDashboard({
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <ActiveCallCard
-                currentCall={currentCall}
-                categories={categories}
-                allowedServicesCount={allowedServices.length}
-                availableNormalCount={availableNormal.length}
-                availablePriorityCount={availablePriority.length}
-                canCallNormal={canCallNormal}
-                canCallPriority={canCallPriority}
-                forwardedCount={forwardedCount}
-                handleCall={handleCall}
-                handleCallForwarded={handleCallForwarded}
-                handleRecall={handleRecall}
-                handleNoShow={handleNoShow}
-                setShowStartModal={setShowStartModal}
-                setShowForwardModal={setShowForwardModal}
-                handleFinish={handleFinish}
-              />
+            <div className="lg:col-span-2 space-y-8 min-w-0">
+              {!currentAttendant.guiche ? (
+                <div className="bg-white rounded-[40px] shadow-sm border-2 border-amber-100 p-10 flex flex-col items-center justify-center min-h-[400px] text-center">
+                  <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-amber-500 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="15" y1="9" y2="9"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
+                  </div>
+                  <h3 className="text-3xl font-black text-sefaz-dark mb-2">Você está sem Guichê</h3>
+                  <p className="text-sefaz-accent/60 font-medium mb-8 max-w-md">Para começar a chamar as senhas e realizar atendimentos, você precisa informar em qual guichê você está operando.</p>
+                  <button 
+                    onClick={() => setShowGuicheModal(true)}
+                    className="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-3xl font-bold shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95"
+                  >
+                    SELECIONAR GUICHÊ AGORA
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <ActiveCallCard
+                    currentCall={currentCall}
+                  categories={categories}
+                  allowedServicesCount={allowedServices.length}
+                  availableNormalCount={availableNormal.length}
+                  availablePriorityCount={availablePriority.length}
+                  canCallNormal={canCallNormal}
+                  canCallPriority={canCallPriority}
+                  forwardedCount={forwardedCount}
+                  handleCall={handleCall}
+                  handleCallForwarded={handleCallForwarded}
+                  handleRecall={handleRecall}
+                  handleNoShow={handleNoShow}
+                  setShowStartModal={setShowStartModal}
+                  setShowForwardModal={setShowForwardModal}
+                  handleFinish={handleFinish}
+                />
+                <QueuePreview availableTickets={availableTickets} categories={categories} />
+              </>
+              )}
 
               <StartModal
                 show={showStartModal}
@@ -318,8 +358,11 @@ export default function AttendantDashboard({
               <GuicheModal
                 show={showGuicheModal}
                 currentGuiche={currentAttendant.guiche}
+                ticketWindows={initialTicketWindows.map((tw) => tw.name)}
+                activeGuiches={activeGuiches}
                 onClose={() => setShowGuicheModal(false)}
                 onSelect={handleSaveGuiche}
+                onVacate={handleVacateGuiche}
               />
 
               <HistoryDetailModal
@@ -327,10 +370,9 @@ export default function AttendantDashboard({
                 onClose={() => setSelectedHistoryTicket(null)}
               />
 
-              <QueuePreview availableTickets={availableTickets} categories={categories} />
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-8 min-w-0">
               <HistoryPanel
                 history={history}
                 attendantName={currentAttendant.name}

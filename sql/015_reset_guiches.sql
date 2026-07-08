@@ -1,0 +1,3 @@
+BEGIN;
+UPDATE users SET guiche = NULL;
+COMMIT;

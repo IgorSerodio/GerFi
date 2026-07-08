@@ -162,13 +162,35 @@ export async function updateUserServices(id: number, services: number[]) {
 /**
  * Atualiza apenas o guichê de um usuário
  */
-export async function updateUserGuiche(id: number, guiche: string) {
-  const { rows } = await pool.query(
-    "UPDATE users SET guiche = $1 WHERE id = $2 RETURNING *",
-    [guiche, id]
-  );
-  return {
-    ...rows[0],
-    services: (rows[0].services || []).map(Number)
-  };
+export async function updateUserGuiche(id: number, guiche: string | null) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Se o usuário selecionou um guichê (não null/vazio), remover esse guichê de qualquer outro usuário
+    if (guiche) {
+      await client.query(
+        "UPDATE users SET guiche = NULL WHERE guiche = $1 AND id != $2",
+        [guiche, id]
+      );
+    }
+
+    // Atualizar o guichê do usuário solicitante
+    const { rows } = await client.query(
+      "UPDATE users SET guiche = $1 WHERE id = $2 RETURNING *",
+      [guiche, id]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      ...rows[0],
+      services: (rows[0].services || []).map(Number)
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }

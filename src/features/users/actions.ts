@@ -148,10 +148,11 @@ export async function updateMyServicesAction(services: number[]) {
 /**
  * Atualiza o guichê do usuário logado
  */
-export async function updateMyGuicheAction(guiche: string) {
+export async function updateMyGuicheAction(guiche: string | null) {
   try {
     const session = await requirePermission("ACCESS_ATTENDANCE");
     const user = await updateUserGuiche(Number(session.user.id), guiche);
+    queueEmitter.emit("update");
     return { success: true, data: user };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao alterar guichê.") };

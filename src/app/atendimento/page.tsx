@@ -33,7 +33,7 @@ export default async function AttendantPage() {
       initialCategories={initialCategories as DbCategory[]}
       initialTicketWindows={initialTicketWindows as DbTicketWindow[]}
       initialServices={userProfile?.services || []}
-      initialGuiche={userProfile?.guiche || "Guichê 01"}
+      initialGuiche={userProfile?.guiche || ""}
     />
   );
 }
