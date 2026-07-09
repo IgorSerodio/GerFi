@@ -226,7 +226,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
             locations={locations}
             value={filterLocationId}
             onChange={setFilterLocationId}
-            heightClass="h-[52px]"
+            heightClass="h-12"
             textSizeClass="text-xs"
             className="rounded-2xl"
           />

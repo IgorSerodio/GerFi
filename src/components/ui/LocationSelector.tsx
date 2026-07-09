@@ -33,15 +33,17 @@ export default function LocationSelector({
   const roundedRightClass = radiusMap[roundedClass] || 'rounded-r-xl';
 
   return (
-    <div className={`flex items-center bg-sefaz-dark pl-4 transition-all focus-within:ring-2 focus-within:ring-sefaz-accent/50 cursor-pointer ${heightClass} ${className}`}>
-      <label htmlFor="location-select" className={`${textSizeClass} font-black text-emerald-50 uppercase tracking-widest cursor-pointer shrink-0 mr-3`}>
-        Local:
-      </label>
+    <div className={`flex items-center transition-all focus-within:ring-2 focus-within:ring-sefaz-accent/50 cursor-pointer overflow-hidden ${heightClass} ${className}`}>
+      <div className="bg-sefaz-dark h-full flex items-center pl-4 pr-3 shrink-0">
+        <label htmlFor="location-select" className={`${textSizeClass} font-black text-emerald-50 uppercase tracking-widest cursor-pointer`}>
+          Local:
+        </label>
+      </div>
       <select
         id="location-select"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className={`bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent outline-none px-4 h-full ${textSizeClass} font-black uppercase tracking-widest cursor-pointer flex-1 transition-colors border border-emerald-200 ${roundedRightClass}`}
+        className={`bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent outline-none px-4 py-0 m-0 box-border h-full ${textSizeClass} font-black uppercase tracking-widest cursor-pointer flex-1 transition-colors border border-emerald-200 ${roundedRightClass}`}
       >
         {locations.map((loc) => (
           <option key={loc.id} value={loc.id}>
