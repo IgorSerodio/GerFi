@@ -53,6 +53,7 @@ export async function createTvSettingsAction(payload: {
   videoUrl: YouTubeVideo[];
   uploadedFiles?: string[];
   services?: number[];
+  locationId: number;
 }) {
   try {
     await requirePermission("MANAGE_CONFIGS");
@@ -62,7 +63,8 @@ export async function createTvSettingsAction(payload: {
       payload.mode,
       payload.videoUrl,
       payload.uploadedFiles || [],
-      payload.services || []
+      payload.services || [],
+      payload.locationId
     );
     triggerRealTimeUpdate();
     return { success: true, data: settings };
@@ -82,6 +84,7 @@ export async function updateTvSettingsAction(payload: {
   videoUrl: YouTubeVideo[];
   uploadedFiles?: string[];
   services?: number[];
+  locationId: number;
 }) {
   try {
     await requirePermission("MANAGE_CONFIGS");
@@ -92,7 +95,8 @@ export async function updateTvSettingsAction(payload: {
       payload.mode,
       payload.videoUrl,
       payload.uploadedFiles || [],
-      payload.services || []
+      payload.services || [],
+      payload.locationId
     );
     triggerRealTimeUpdate();
     return { success: true, data: settings };

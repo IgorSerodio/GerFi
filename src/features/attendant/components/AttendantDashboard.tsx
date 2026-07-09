@@ -16,7 +16,7 @@ import {
   getMyProfileAction,
   updateMyGuicheAction,
 } from "@/features/users/actions";
-import { Ticket, DbCategory, DbTicketWindow } from "@/features/queue/types";
+import { Ticket, DbCategory, DbTicketWindow, Location } from "@/features/queue/types";
 
 import AttendantSidebar from "./AttendantSidebar";
 import ServiceConfigOverlay from "./ServiceConfigOverlay";
@@ -31,22 +31,19 @@ import StartModal from "./modals/StartModal";
 import GuicheModal from "./modals/GuicheModal";
 import HistoryDetailModal from "./modals/HistoryDetailModal";
 
+
 interface AttendantDashboardProps {
   session: Session | null;
-  initialQueue: Ticket[];
-  initialHistory: Ticket[];
   initialCategories: DbCategory[];
-  initialTicketWindows: DbTicketWindow[];
+  initialLocations: Location[];
   initialServices: number[];
   initialGuiche: string;
 }
 
 export default function AttendantDashboard({
   session,
-  initialQueue,
-  initialHistory,
   initialCategories,
-  initialTicketWindows,
+  initialLocations,
   initialServices,
   initialGuiche,
 }: AttendantDashboardProps) {
@@ -67,12 +64,25 @@ export default function AttendantDashboard({
   const [ticketToFinish, setTicketToFinish] = useState<string | null>(null);
   const [selectedHistoryTicket, setSelectedHistoryTicket] =
     useState<Ticket | null>(null);
-  const [queue, setQueue] = useState<Ticket[]>(initialQueue);
-  const [history, setHistory] = useState<Ticket[]>(initialHistory);
+  const [queue, setQueue] = useState<Ticket[]>([]);
+  const [history, setHistory] = useState<Ticket[]>([]);
 
   const [activeGuiches, setActiveGuiches] = useState<{ guiche: string; attendantName: string }[]>([]);
+  const [ticketWindows, setTicketWindows] = useState<DbTicketWindow[]>([]);
+  
+  const [locationId, setLocationId] = useState<number | null>(null);
 
-  const attendants = initialTicketWindows.map((tw) => {
+  useEffect(() => {
+    const stored = localStorage.getItem("attendant_locationId");
+    if (stored) {
+      setLocationId(Number(stored));
+    } else {
+      setLocationId(0);
+      localStorage.setItem("attendant_locationId", "0");
+    }
+  }, []);
+
+  const attendants = ticketWindows.map((tw) => {
     const active = activeGuiches.find((a) => a.guiche === tw.name);
     return {
       guiche: tw.name,
@@ -119,7 +129,8 @@ export default function AttendantDashboard({
   };
 
   const refreshState = async () => {
-    const res = await getQueueStateAction();
+    if (locationId === null) return;
+    const res = await getQueueStateAction(locationId);
     if (res.success && res.data) {
       setQueue(res.data.tickets);
       setHistory(res.data.history);
@@ -128,6 +139,13 @@ export default function AttendantDashboard({
     if (activeRes.success && activeRes.data) {
       setActiveGuiches(activeRes.data);
     }
+    // Fetch windows for this location
+    import("@/features/queue/actions").then(m => {
+      m.getTicketWindowsAction(locationId).then(wRes => {
+        if (wRes.success && wRes.data) setTicketWindows(wRes.data as DbTicketWindow[]);
+      });
+    });
+
     const profileRes = await getMyProfileAction();
     if (profileRes.success && profileRes.data) {
       setAllowedServices(profileRes.data.services || []);
@@ -145,10 +163,12 @@ export default function AttendantDashboard({
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      refreshState();
-    }, 0);
-  }, []);
+    if (locationId !== null) {
+      setTimeout(() => {
+        refreshState();
+      }, 0);
+    }
+  }, [locationId]);
 
   useEffect(() => {
     const eventSource = new EventSource("/api/queue/stream");
@@ -163,7 +183,9 @@ export default function AttendantDashboard({
   }, []);
 
   const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
+    if (locationId === null) return;
     const res = await callTicketAction(
+      locationId,
       currentAttendant.name,
       currentAttendant.guiche,
       allowedServices,
@@ -176,7 +198,9 @@ export default function AttendantDashboard({
   };
 
   const handleCallForwarded = async () => {
+    if (locationId === null) return;
     const res = await callTicketAction(
+      locationId,
       currentAttendant.name,
       currentAttendant.guiche,
       allowedServices,
@@ -271,6 +295,13 @@ export default function AttendantDashboard({
           showServiceConfig={showServiceConfig}
           setShowServiceConfig={setShowServiceConfig}
           setShowGuicheModal={setShowGuicheModal}
+          locations={initialLocations}
+          locationId={locationId}
+          onLocationChange={async (id) => {
+            localStorage.setItem("attendant_locationId", String(id));
+            setLocationId(id);
+            await handleVacateGuiche();
+          }}
         />
 
         <div className="flex-1 p-10 flex flex-col space-y-8 overflow-auto relative">
@@ -358,7 +389,7 @@ export default function AttendantDashboard({
               <GuicheModal
                 show={showGuicheModal}
                 currentGuiche={currentAttendant.guiche}
-                ticketWindows={initialTicketWindows.map((tw) => tw.name)}
+                ticketWindows={ticketWindows.map((tw) => tw.name)}
                 activeGuiches={activeGuiches}
                 onClose={() => setShowGuicheModal(false)}
                 onSelect={handleSaveGuiche}

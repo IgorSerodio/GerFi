@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Tv, Settings, Users as UsersIcon, Printer } from "lucide-react";
+import { Tv, Settings, Users as UsersIcon, Printer, MapPin } from "lucide-react";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { ViewType } from "../types";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
@@ -50,9 +50,18 @@ export default function ConfigHubMenu({ setView }: ConfigHubMenuProps) {
         />
         <FeatureCard
           layout="vertical"
+          onClick={() => hasPermission("MANAGE_CONFIGS") && setView("config_locations")}
+          title="Locais & Guichês"
+          description="Gerencie os locais físicos e cadastre guichês específicos para eles."
+          icon={<MapPin size={32} />}
+          color="bg-amber-600"
+          disabled={!hasPermission("MANAGE_CONFIGS")}
+        />
+        <FeatureCard
+          layout="vertical"
           onClick={() => hasPermission("MANAGE_CONFIGS") && setView("config_services")}
-          title="Guichês & Serviços"
-          description="Crie novos guichês ou ajuste serviços e categorias."
+          title="Serviços"
+          description="Ajuste serviços, resoluções e categorias de atendimento."
           icon={<Settings size={32} />}
           color="bg-purple-600"
           disabled={!hasPermission("MANAGE_CONFIGS")}

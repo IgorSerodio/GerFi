@@ -13,6 +13,7 @@ import ServicesConfigView from "./ServicesConfigView";
 import UsersConfigView from "./UsersConfigView";
 import TvConfigView from "./TvConfigView";
 import PrinterConfigView from "./PrinterConfigView";
+import LocationsConfigView from "./LocationsConfigView";
 
 
 import { ViewType } from "../types";
@@ -97,6 +98,7 @@ export default function ManagementDashboard({ session, reportsViewComponent, das
             </motion.div>
           )}
           {view === "config_services" && <ServicesConfigView triggerSuccess={triggerSuccess} />}
+          {view === "config_locations" && <LocationsConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_users" && <UsersConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_tv" && <TvConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_printer" && <PrinterConfigView triggerSuccess={triggerSuccess} />}

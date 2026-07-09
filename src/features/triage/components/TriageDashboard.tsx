@@ -14,17 +14,18 @@ import PriorityModal from "./modals/PriorityModal";
 import PrinterTestModal from "./modals/PrinterTestModal";
 import TicketReceiptModal from "./modals/TicketReceiptModal";
 
+import { Location } from "@/features/queue/types";
+import LocationSelector from "@/components/ui/LocationSelector";
+
 interface TriageDashboardProps {
   session: Session | null;
-  initialQueue: TicketType[];
-  initialHistory: TicketType[];
+  initialLocations: Location[];
   initialCategories: DbCategory[];
 }
 
 export default function TriageDashboard({
   session,
-  initialQueue,
-  initialHistory,
+  initialLocations,
   initialCategories,
 }: TriageDashboardProps) {
   const [issuedTicket, setIssuedTicket] = useState<TicketType | null>(null);
@@ -33,8 +34,8 @@ export default function TriageDashboard({
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
-  const [queue, setQueue] = useState<TicketType[]>(initialQueue);
-  const [history, setHistory] = useState<TicketType[]>(initialHistory);
+  const [queue, setQueue] = useState<TicketType[]>([]);
+  const [history, setHistory] = useState<TicketType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -43,6 +44,18 @@ export default function TriageDashboard({
     "idle" | "testing" | "success" | "error"
   >("idle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  const [locationId, setLocationId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("triage_locationId");
+    if (stored) {
+      setLocationId(Number(stored));
+    } else {
+      setLocationId(0);
+      localStorage.setItem("triage_locationId", "0");
+    }
+  }, []);
 
   const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
     Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info
@@ -57,7 +70,8 @@ export default function TriageDashboard({
   }));
 
   const refreshState = async () => {
-    const res = await getQueueStateAction();
+    if (locationId === null) return;
+    const res = await getQueueStateAction(locationId);
     if (res.success && res.data) {
       setQueue(res.data.tickets);
       setHistory(res.data.history);
@@ -65,10 +79,12 @@ export default function TriageDashboard({
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      refreshState();
-    }, 0);
-  }, []);
+    if (locationId !== null) {
+      setTimeout(() => {
+        refreshState();
+      }, 0);
+    }
+  }, [locationId]);
 
   useEffect(() => {
     const eventSource = new EventSource("/api/queue/stream");
@@ -87,13 +103,14 @@ export default function TriageDashboard({
   };
 
   const handleIssue = async (priority: "Normal" | "Prioritário") => {
-    if (!selectedCategory) return;
+    if (!selectedCategory || locationId === null) return;
     setPrinting(true);
 
     const res = await issueTicketAction({
       categoryId: selectedCategory.id,
       categoryName: selectedCategory.name,
       priority,
+      locationId,
     });
 
     if (res.success && res.data) {
@@ -170,6 +187,8 @@ export default function TriageDashboard({
           setIssuedTicket={setIssuedTicket}
           session={session}
         />
+        
+
 
         {/* Main Area: Categories */}
         <main className="flex-1 p-4 lg:p-6 flex flex-col overflow-hidden">
@@ -197,9 +216,20 @@ export default function TriageDashboard({
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
+              <LocationSelector
+                locations={initialLocations}
+                value={locationId ?? 0}
+                onChange={(newLocId) => {
+                  setLocationId(newLocId);
+                  localStorage.setItem("triage_locationId", String(newLocId));
+                }}
+                heightClass="h-10"
+                textSizeClass="text-[10px]"
+                className="rounded-xl"
+              />
               <button
                 onClick={handleTestPrinter}
-                className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 py-2.5 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
+                className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 h-10 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
               >
                 <Printer
                   size={18}

@@ -6,6 +6,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_NAME = process.env.ADMIN_NAME || "Administrador GerFi";
 const ADMIN_MATRICULA = process.env.ADMIN_MATRICULA || "00000";
 const ADMIN_CPF = process.env.ADMIN_CPF || "00000000000";
+const MAIN_LOCATION_NAME = process.env.MAIN_LOCATION_NAME || "SEFAZ";
 
 async function main() {
   console.log("Seeding database...");
@@ -18,11 +19,19 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    // 1. Seed TV Settings
+    // 1. Seed Main Location
+    console.log(`Seeding main location (${MAIN_LOCATION_NAME})...`);
+    await client.query(`
+      INSERT INTO locations (id, name, is_active)
+      VALUES (0, $1, true)
+      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+    `, [MAIN_LOCATION_NAME]);
+
+    // 2. Seed TV Settings
     console.log("Seeding TV settings...");
     await client.query(`
-      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files)
-      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb)
+      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files, location_id)
+      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 0)
       ON CONFLICT (id) DO NOTHING;
     `);
 
@@ -63,8 +72,8 @@ async function main() {
     ];
     for (const tw of ticketWindows) {
       await client.query(`
-        INSERT INTO ticket_windows (name) VALUES ($1)
-        ON CONFLICT (name) DO NOTHING;
+        INSERT INTO ticket_windows (location_id, name) VALUES (0, $1)
+        ON CONFLICT (location_id, name) DO NOTHING;
       `, [tw]);
     }
     await client.query("COMMIT");
@@ -111,6 +120,7 @@ async function main() {
       SELECT setval(pg_get_serial_sequence('tv_settings', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM tv_settings;
       SELECT setval(pg_get_serial_sequence('ticket_windows', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM ticket_windows;
       SELECT setval(pg_get_serial_sequence('categories', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM categories;
+      SELECT setval(pg_get_serial_sequence('locations', 'id'), GREATEST(coalesce(max(id), 1), 1), max(id) IS NOT null) FROM locations;
     `);
 
   } catch (error) {

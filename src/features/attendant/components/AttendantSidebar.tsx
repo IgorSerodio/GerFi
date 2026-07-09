@@ -1,6 +1,8 @@
 import React from "react";
 import { Monitor, Hash, MapPin } from "lucide-react";
 
+import { Location } from "@/features/queue/types";
+
 interface AttendantState {
   name: string;
   guiche: string;
@@ -11,6 +13,9 @@ interface AttendantSidebarProps {
   showServiceConfig: boolean;
   setShowServiceConfig: (show: boolean) => void;
   setShowGuicheModal: (show: boolean) => void;
+  locations: Location[];
+  locationId: number | null;
+  onLocationChange: (id: number) => void;
 }
 
 export default function AttendantSidebar({
@@ -18,6 +23,9 @@ export default function AttendantSidebar({
   showServiceConfig,
   setShowServiceConfig,
   setShowGuicheModal,
+  locations,
+  locationId,
+  onLocationChange,
 }: AttendantSidebarProps) {
   return (
     <div className="w-64 bg-sefaz-dark text-emerald-100 p-6 flex flex-col">
@@ -30,19 +38,32 @@ export default function AttendantSidebar({
         </p>
       </div>
 
-      <div className="p-4 bg-emerald-950/20 rounded-2xl border border-emerald-800/30 text-center mb-6">
-        <p className="text-[10px] text-emerald-100/50 uppercase tracking-widest mb-2 font-bold">
+      <div className="p-4 bg-emerald-950/20 rounded-2xl border border-emerald-800/30 text-center mb-6 flex flex-col gap-3">
+        <p className="text-[10px] text-emerald-100/50 uppercase tracking-widest font-bold">
           Local de Trabalho
         </p>
-        <div className="flex items-center justify-center gap-2 mb-3 text-white">
+        
+        <select
+          value={locationId ?? 0}
+          onChange={(e) => onLocationChange(Number(e.target.value))}
+          className="w-full bg-sefaz-dark text-emerald-100 px-3 py-2 rounded-xl border border-emerald-800/50 outline-none text-[11px] font-black uppercase tracking-widest cursor-pointer text-center"
+        >
+          {locations.map((loc) => (
+            <option key={loc.id} value={loc.id}>
+              {loc.name}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex items-center justify-center gap-2 text-white">
           <MapPin size={16} className="text-emerald-400" />
-          <span className="font-black tracking-tight">{currentAttendant.guiche}</span>
+          <span className="font-black tracking-tight">{currentAttendant.guiche || "Sem Guichê"}</span>
         </div>
         <button
           onClick={() => setShowGuicheModal(true)}
           className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer"
         >
-          Alterar Guichê
+          {currentAttendant.guiche ? "Alterar Guichê" : "Selecionar Guichê"}
         </button>
       </div>
 

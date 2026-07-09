@@ -1,7 +1,6 @@
 import React from "react";
 import NextLink from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
-
 interface AttendantHeaderProps {
   availableTicketsCount: number;
   totalQueueCount: number;
@@ -21,7 +20,7 @@ export default function AttendantHeader({
           <ArrowLeft size={28} />
         </NextLink>
         <div>
-          <h2 className="text-3xl font-black text-sefaz-dark">
+          <h2 className="text-3xl font-black text-sefaz-dark flex items-center gap-4">
             CENTRAL DE CHAMADAS
           </h2>
           <p className="text-sefaz-accent font-medium">

@@ -17,6 +17,10 @@ import {
   createNextTicketWindow,
   deleteTicketWindow,
   markAsNoShow,
+  getLocations,
+  createLocation,
+  updateLocation,
+  deleteLocation,
 } from "./queries";
 import { DbCategory } from "./types";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
@@ -38,11 +42,11 @@ function triggerRealTimeUpdate() {
 /**
  * Obtém o estado atualizado da fila (senhas ativas e histórico)
  */
-export async function getQueueStateAction(services?: number[]) {
+export async function getQueueStateAction(locationId: number, services?: number[]) {
   try {
     const [tickets, history] = await Promise.all([
-      getActiveQueue(services),
-      getHistory(services)
+      getActiveQueue(locationId, services),
+      getHistory(locationId, services)
     ]);
     return { success: true, data: { tickets, history } };
   } catch (error) {
@@ -57,6 +61,7 @@ export async function issueTicketAction(payload: {
   categoryId: number;
   categoryName: string;
   priority: "Normal" | "Prioritário";
+  locationId: number;
 }) {
   const result = IssueTicketSchema.safeParse(payload);
   if (!result.success) {
@@ -65,7 +70,7 @@ export async function issueTicketAction(payload: {
 
   try {
     await requirePermission("ISSUE_TICKETS");
-    const ticket = await insertTicket(payload.categoryId, payload.categoryName, payload.priority);
+    const ticket = await insertTicket(payload.categoryId, payload.categoryName, payload.priority, payload.locationId);
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
   } catch (error) {
@@ -77,6 +82,7 @@ export async function issueTicketAction(payload: {
  * Atendente chama a próxima senha disponível
  */
 export async function callTicketAction(
+  locationId: number,
   attendant: string,
   guiche: string,
   allowedServices: number[],
@@ -94,7 +100,7 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const ticket = await callNextTicket(attendant, guiche, allowedServices, priorityType, isForwardedCall);
+    const ticket = await callNextTicket(locationId, attendant, guiche, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }
@@ -222,11 +228,11 @@ export async function getCategoriesAction() {
 }
 
 /**
- * Busca todos os guichês (ticket windows) do banco
+ * Busca todos os guichês (ticket windows) de um local
  */
-export async function getTicketWindowsAction() {
+export async function getTicketWindowsAction(locationId: number) {
   try {
-    const ticketWindows = await getTicketWindows();
+    const ticketWindows = await getTicketWindows(locationId);
     return { success: true, data: ticketWindows };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês.") };
@@ -291,10 +297,10 @@ export async function deleteCategoryAction(id: number) {
 /**
  * Cria o próximo guichê sequencial
  */
-export async function createNextTicketWindowAction() {
+export async function createNextTicketWindowAction(locationId: number) {
   try {
     await requirePermission("MANAGE_CONFIGS");
-    const window = await createNextTicketWindow();
+    const window = await createNextTicketWindow(locationId);
     triggerRealTimeUpdate();
     return { success: true, data: window };
   } catch (error) {
@@ -313,5 +319,44 @@ export async function deleteTicketWindowAction(id: number) {
     return { success };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao excluir guichê.") };
+  }
+}
+
+export async function getLocationsAction() {
+  try {
+    const locations = await getLocations();
+    return { success: true, data: locations };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao buscar locais.") };
+  }
+}
+
+export async function createLocationAction(name: string) {
+  try {
+    await requirePermission("MANAGE_CONFIGS");
+    const location = await createLocation(name);
+    return { success: true, data: location };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao criar local.") };
+  }
+}
+
+export async function updateLocationAction(id: number, name: string, isActive: boolean) {
+  try {
+    await requirePermission("MANAGE_CONFIGS");
+    const location = await updateLocation(id, name, isActive);
+    return { success: true, data: location };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao atualizar local.") };
+  }
+}
+
+export async function deleteLocationAction(id: number) {
+  try {
+    await requirePermission("MANAGE_CONFIGS");
+    const success = await deleteLocation(id);
+    return { success };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao excluir local.") };
   }
 }

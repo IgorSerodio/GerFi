@@ -12,4 +12,5 @@ export interface TvSettings {
   videoUrl: YouTubeVideo[];
   uploadedFiles: string[];
   services: number[];
+  locationId: number;
 }

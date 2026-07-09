@@ -9,6 +9,7 @@ interface DbTvSettingsRow {
   live_url: string;
   uploaded_files: string[] | string | null;
   services: number[];
+  location_id: number;
 }
 
 function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
@@ -43,6 +44,7 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
     videoUrl,
     uploadedFiles,
     services: row.services || [],
+    locationId: row.location_id || 0,
   };
 }
 
@@ -53,7 +55,7 @@ export async function getTvSettings(slug: string = "global"): Promise<TvSettings
   const { rows } = await pool.query("SELECT * FROM tv_settings WHERE slug = $1", [slug]);
   if (rows.length === 0) {
     if (slug === "global") {
-      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [] };
+      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [], locationId: 0 };
     }
     throw new Error("TV não encontrada.");
   }
@@ -77,13 +79,14 @@ export async function createTvSettings(
   mode: "live" | "files",
   videoUrl: YouTubeVideo[],
   uploadedFiles: string[],
-  services: number[]
+  services: number[],
+  locationId: number
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
-    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services, location_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services]
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId]
   );
   return mapTvSettingsRow(rows[0]);
 }
@@ -98,7 +101,8 @@ export async function updateTvSettings(
   mode: "live" | "files",
   videoUrl: YouTubeVideo[],
   uploadedFiles: string[],
-  services: number[]
+  services: number[],
+  locationId: number
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
     `UPDATE tv_settings
@@ -107,10 +111,11 @@ export async function updateTvSettings(
          mode = $3,
          live_url = $4,
          uploaded_files = $5,
-         services = $6
-     WHERE id = $7
+         services = $6,
+         location_id = $7
+     WHERE id = $8
      RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, id]
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId, id]
   );
   return mapTvSettingsRow(rows[0]);
 }

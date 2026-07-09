@@ -5,12 +5,9 @@ import { Pen, Trash2, FileText, Briefcase, Heart, Shield, Star, Zap, Car, Smartp
 import { DbCategory, DbTicketWindow } from "@/features/queue/types";
 import {
   getCategoriesAction,
-  getTicketWindowsAction,
   createCategoryAction,
   updateCategoryAction,
   deleteCategoryAction,
-  createNextTicketWindowAction,
-  deleteTicketWindowAction,
 } from "@/features/queue/actions";
 
 const AVAILABLE_ICONS = [
@@ -38,7 +35,6 @@ interface ServicesConfigViewProps {
 
 export default function ServicesConfigView({ triggerSuccess }: ServicesConfigViewProps) {
   const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [ticketWindows, setTicketWindows] = useState<DbTicketWindow[]>([]);
   
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -60,38 +56,12 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
     if (resCategories.success && resCategories.data) {
       setCategories(resCategories.data as DbCategory[]);
     }
-    const resWindows = await getTicketWindowsAction();
-    if (resWindows.success && resWindows.data) {
-      setTicketWindows(resWindows.data as DbTicketWindow[]);
-    }
   }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
-
-  const handleCreateTicketWindow = async () => {
-    const res = await createNextTicketWindowAction();
-    if (res.success) {
-      triggerSuccess("Guichê criado com sucesso!");
-      loadData();
-    } else {
-      alert(res.error || "Erro ao criar guichê");
-    }
-  };
-
-  const handleDeleteTicketWindow = async (id: number) => {
-    if (window.confirm("Deseja realmente excluir este guichê?")) {
-      const res = await deleteTicketWindowAction(id);
-      if (res.success) {
-        triggerSuccess("Guichê excluído!");
-        loadData();
-      } else {
-        alert(res.error || "Erro ao excluir guichê");
-      }
-    }
-  };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,9 +121,9 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -30 }}
-      className="max-w-6xl mx-auto space-y-8"
+      className="max-w-4xl mx-auto space-y-8"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Serviços */}
         <div className="bg-white p-8 rounded-[40px] border border-emerald-100 shadow-sm flex flex-col h-[600px]">
           <div className="flex justify-between items-center mb-6">
@@ -191,45 +161,6 @@ export default function ServicesConfigView({ triggerSuccess }: ServicesConfigVie
                         <Pen size={16} />
                       </button>
                       <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer">
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Guichês */}
-        <div className="bg-white p-8 rounded-[40px] border border-emerald-100 shadow-sm flex flex-col h-[600px]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight">
-              Guichês
-            </h3>
-            <button
-              onClick={handleCreateTicketWindow}
-              className="px-4 py-2 bg-sefaz-accent text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-sefaz-dark transition-all cursor-pointer"
-            >
-              + Novo Guichê
-            </button>
-          </div>
-          <div className="overflow-y-auto custom-scrollbar flex-1 border border-emerald-50 rounded-2xl p-2 bg-emerald-50/20">
-            <table className="w-full text-left">
-              <thead className="bg-emerald-50/50 sticky top-0 backdrop-blur-sm z-10">
-                <tr>
-                  <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">ID</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Nome</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-50">
-                {ticketWindows.map((tw) => (
-                  <tr key={tw.id} className="hover:bg-emerald-50/50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">#{tw.id}</td>
-                    <td className="px-4 py-3 text-xs font-black text-sefaz-dark">{tw.name}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleDeleteTicketWindow(tw.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer">
                         <Trash2 size={16} />
                       </button>
                     </td>

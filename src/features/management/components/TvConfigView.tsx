@@ -9,8 +9,10 @@ import {
   createTvSettingsAction,
   deleteTvSettingsAction
 } from "@/features/tv/actions";
-import { getCategoriesAction } from "@/features/queue/actions";
+import { getCategoriesAction, getLocationsAction } from "@/features/queue/actions";
 import { Modal } from "@/components/ui/Modal";
+import LocationSelector from "@/components/ui/LocationSelector";
+import { Location } from "@/features/queue/types";
 
 interface TvConfigViewProps {
   triggerSuccess: (msg: string) => void;
@@ -19,6 +21,8 @@ interface TvConfigViewProps {
 export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
   const [tvs, setTvs] = useState<TvSettings[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [filterLocationId, setFilterLocationId] = useState<number>(0);
   
   const [editingTv, setEditingTv] = useState<TvSettings | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -26,15 +30,21 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
 
   const loadData = async () => {
-    const [tvsRes, catRes] = await Promise.all([
+    const [tvsRes, catRes, locRes] = await Promise.all([
       getAllTvSettingsAction(),
-      getCategoriesAction()
+      getCategoriesAction(),
+      getLocationsAction()
     ]);
     if (tvsRes.success && tvsRes.data) {
       setTvs(tvsRes.data as TvSettings[]);
     }
     if (catRes.success && catRes.data) {
       setCategories(catRes.data as DbCategory[]);
+    }
+    if (locRes.success && locRes.data) {
+      const locs = locRes.data as Location[];
+      setLocations(locs);
+      setFilterLocationId(prev => locs.some(l => l.id === prev) ? prev : (locs[0]?.id ?? 0));
     }
   };
 
@@ -52,7 +62,8 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
       mode: globalTv?.mode || "live",
       videoUrl: globalTv?.videoUrl ? [...globalTv.videoUrl] : [],
       uploadedFiles: globalTv?.uploadedFiles ? [...globalTv.uploadedFiles] : [],
-      services: []
+      services: [],
+      locationId: filterLocationId
     });
     setIsCreating(true);
   };
@@ -96,7 +107,8 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         mode: editingTv.mode,
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
-        services: editingTv.services
+        services: editingTv.services,
+        locationId: editingTv.locationId || 0
       });
       if (res.success) {
         triggerSuccess("TV criada com sucesso!");
@@ -113,7 +125,8 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         mode: editingTv.mode,
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
-        services: editingTv.services
+        services: editingTv.services,
+        locationId: editingTv.locationId || 0
       });
       if (res.success) {
         triggerSuccess("Configurações da TV salvas!");
@@ -208,16 +221,26 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
             Gerencie múltiplas TVs departamentais e suas configurações.
           </p>
         </div>
-        <button
-          onClick={handleCreateNew}
-          className="px-6 py-4 bg-sefaz-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-sefaz-dark transition-all cursor-pointer shadow-lg flex items-center gap-2"
-        >
-          <Plus size={16} /> Nova TV
-        </button>
+        <div className="flex items-center gap-4">
+          <LocationSelector
+            locations={locations}
+            value={filterLocationId}
+            onChange={setFilterLocationId}
+            heightClass="h-[52px]"
+            textSizeClass="text-xs"
+            className="rounded-2xl"
+          />
+          <button
+            onClick={handleCreateNew}
+            className="px-6 py-4 bg-sefaz-accent text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-sefaz-dark transition-all cursor-pointer shadow-lg flex items-center gap-2"
+          >
+            <Plus size={16} /> Nova TV
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tvs.map((tv) => (
+        {tvs.filter((tv) => tv.locationId === filterLocationId).map((tv) => (
           <div key={tv.id} className="bg-white p-6 rounded-[30px] border border-emerald-100 shadow-sm relative group hover:border-sefaz-accent transition-colors flex flex-col h-full">
             <div className="w-12 h-12 bg-emerald-50 text-sefaz-accent rounded-xl flex items-center justify-center mb-4">
               <Tv size={24} />
@@ -237,6 +260,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
             </div>
 
             <div className="flex-1 text-[10px] text-gray-500 mb-6 space-y-1">
+              <p><strong>Local:</strong> {locations.find(l => l.id === tv.locationId)?.name || 'Principal'}</p>
               <p><strong>Modo:</strong> {tv.mode === 'live' ? 'YouTube' : 'Mídias'}</p>
               <p><strong>Serviços Exibidos:</strong> {tv.services.length === 0 ? 'Todos (Global)' : `${tv.services.length} serviços selecionados`}</p>
             </div>
@@ -321,7 +345,6 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
                 </div>
               </div>
 
-              <hr className="border-emerald-50" />
 
               {/* Filtro de Serviços */}
               <div className="space-y-4">

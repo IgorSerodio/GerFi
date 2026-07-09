@@ -19,6 +19,7 @@ interface DbTicketRow {
   resolutions?: string[];
   recall_history?: Date[] | null;
   forwarded_to?: string | null;
+  location_id: number;
 }
 
 /**
@@ -43,22 +44,24 @@ function mapTicketRow(row: DbTicketRow): Ticket {
     resolutions: row.resolutions || [],
     recallHistory: row.recall_history?.map(d => d.toISOString()) || [],
     forwardedTo: row.forwarded_to || undefined,
+    locationId: row.location_id,
   };
 }
 
 /**
  * Busca todas as senhas aguardando atendimento
  */
-export async function getActiveQueue(services?: number[]): Promise<Ticket[]> {
+export async function getActiveQueue(locationId: number, services?: number[]): Promise<Ticket[]> {
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status = 'pending' 
+       AND location_id = $1
        AND created_at >= CURRENT_DATE
-       AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
+       AND ($2::integer[] IS NULL OR category_id = ANY($2::integer[]))
      ORDER BY (priority = 'Prioritário') DESC, created_at ASC`,
-    [servicesArray]
+    [locationId, servicesArray]
   );
   return rows.map(mapTicketRow);
 }
@@ -66,17 +69,18 @@ export async function getActiveQueue(services?: number[]): Promise<Ticket[]> {
 /**
  * Busca o histórico de senhas chamadas ou concluídas (limite de 10)
  */
-export async function getHistory(services?: number[]): Promise<Ticket[]> {
+export async function getHistory(locationId: number, services?: number[]): Promise<Ticket[]> {
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
     `SELECT * FROM tickets 
      WHERE status IN ('calling', 'started', 'completed', 'no_show', 'forwarded') 
+       AND location_id = $1
        AND created_at >= CURRENT_DATE
-       AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
+       AND ($2::integer[] IS NULL OR category_id = ANY($2::integer[]))
      ORDER BY COALESCE(called_at, created_at) DESC 
      LIMIT 50`,
-    [servicesArray]
+    [locationId, servicesArray]
   );
   return rows.map(mapTicketRow);
 }
@@ -87,7 +91,8 @@ export async function getHistory(services?: number[]): Promise<Ticket[]> {
 export async function insertTicket(
   categoryId: number,
   categoryName: string,
-  priority: "Normal" | "Prioritário"
+  priority: "Normal" | "Prioritário",
+  locationId: number
 ): Promise<Ticket> {
   const client = await pool.connect();
   try {
@@ -107,10 +112,12 @@ export async function insertTicket(
     }
 
     // Contar o número de senhas geradas hoje (sem contar encaminhamentos 'E')
+    // Contamos por local para reiniciar a sequência em cada local.
     const countRes = await client.query(
       `SELECT COALESCE(MAX(CAST(SUBSTRING(ticket_number FROM '\\d+') AS INTEGER)), 0) + 1 AS next_num
        FROM tickets 
-       WHERE created_at >= CURRENT_DATE AND ticket_number NOT LIKE '%E'`
+       WHERE created_at >= CURRENT_DATE AND ticket_number NOT LIKE '%E' AND location_id = $1`,
+      [locationId]
     );
     
     const nextNum = countRes.rows[0].next_num;
@@ -124,10 +131,10 @@ export async function insertTicket(
     }
 
     const insertRes = await client.query(
-      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, security_code)
-       VALUES ($1, $2, $3, $4, 'pending', $5)
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, security_code, location_id)
+       VALUES ($1, $2, $3, $4, 'pending', $5, $6)
        RETURNING *`,
-      [ticketNumber, categoryId, categoryName, priority, securityCode]
+      [ticketNumber, categoryId, categoryName, priority, securityCode, locationId]
     );
 
     await client.query("COMMIT");
@@ -144,6 +151,7 @@ export async function insertTicket(
  * Chama o próximo ticket disponível da fila de forma segura (concorrência travada via FOR UPDATE SKIP LOCKED)
  */
 export async function callNextTicket(
+  locationId: number,
   attendant: string,
   guiche: string,
   allowedServices: number[],
@@ -158,16 +166,17 @@ export async function callNextTicket(
     WHERE id = (
       SELECT id FROM tickets 
       WHERE status = 'pending' 
+        AND location_id = $4
         AND created_at >= CURRENT_DATE
   `;
-  const queryParams: any[] = [servicesArray, attendant, guiche];
+  const queryParams: any[] = [servicesArray, attendant, guiche, locationId];
 
   if (isForwardedCall) {
     queryStr += ` AND forwarded_to = $3`;
   } else {
     queryStr += ` AND forwarded_to IS NULL`;
     if (priorityParam) {
-      queryStr += ` AND priority = $4`;
+      queryStr += ` AND priority = $5`;
       queryParams.push(priorityParam);
     }
   }
@@ -287,10 +296,10 @@ export async function forwardTicket(
 
     // Inserir o novo ticket como pendente, associado ao guichê de destino
     const newRes = await client.query(
-      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code)
-       VALUES ($1, $2, $3, $4, 'pending', $5, $6)
+      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code, location_id)
+       VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
        RETURNING *`,
-      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code]
+      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code, original.location_id]
     );
 
     await client.query("COMMIT");
@@ -308,8 +317,11 @@ export async function getCategories(): Promise<DbCategory[]> {
   return rows;
 }
 
-export async function getTicketWindows(): Promise<{ id: number; name: string }[]> {
-  const { rows } = await pool.query("SELECT id, name FROM ticket_windows ORDER BY name ASC");
+export async function getTicketWindows(locationId: number): Promise<{ id: number; name: string; locationId: number }[]> {
+  const { rows } = await pool.query(
+    'SELECT id, name, location_id as "locationId" FROM ticket_windows WHERE location_id = $1 ORDER BY name ASC',
+    [locationId]
+  );
   return rows;
 }
 
@@ -353,20 +365,22 @@ export async function deleteCategory(id: number): Promise<boolean> {
   }
 }
 
-export async function createNextTicketWindow(): Promise<{ id: number; name: string }> {
+export async function createNextTicketWindow(locationId: number): Promise<{ id: number; name: string; locationId: number }> {
   const { rows } = await pool.query(
-    `INSERT INTO ticket_windows (name)
+    `INSERT INTO ticket_windows (name, location_id)
      VALUES (
        'Guichê ' || LPAD(
          COALESCE(
-           (SELECT MAX(CAST(SUBSTRING(name FROM '\\d+') AS INTEGER)) FROM ticket_windows) + 1, 
+           (SELECT MAX(CAST(SUBSTRING(name FROM '\\d+') AS INTEGER)) FROM ticket_windows WHERE location_id = $1) + 1, 
            1
          )::text, 
          2, 
          '0'
-       )
+       ),
+       $1
      )
-     RETURNING id, name`
+     RETURNING id, name, location_id as "locationId"`,
+     [locationId]
   );
   return rows[0];
 }
@@ -374,4 +388,38 @@ export async function createNextTicketWindow(): Promise<{ id: number; name: stri
 export async function deleteTicketWindow(id: number): Promise<boolean> {
   const { rowCount } = await pool.query("DELETE FROM ticket_windows WHERE id = $1", [id]);
   return (rowCount ?? 0) > 0;
+}
+
+export async function getLocations() {
+  const { rows } = await pool.query('SELECT id, name, is_active as "isActive", created_at as "createdAt" FROM locations ORDER BY id ASC');
+  return rows;
+}
+
+export async function createLocation(name: string) {
+  const { rows } = await pool.query(
+    'INSERT INTO locations (name) VALUES ($1) RETURNING id, name, is_active as "isActive", created_at as "createdAt"',
+    [name]
+  );
+  return rows[0];
+}
+
+export async function updateLocation(id: number, name: string, isActive: boolean) {
+  const { rows } = await pool.query(
+    'UPDATE locations SET name = $1, is_active = $2 WHERE id = $3 RETURNING id, name, is_active as "isActive", created_at as "createdAt"',
+    [name, isActive, id]
+  );
+  return rows[0];
+}
+
+export async function deleteLocation(id: number) {
+  if (id === 0) throw new Error("Não é possível excluir o local principal.");
+  try {
+    const { rowCount } = await pool.query("DELETE FROM locations WHERE id = $1", [id]);
+    return (rowCount ?? 0) > 0;
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23503') {
+      throw new Error("Não é possível excluir o local pois existem guichês, tickets ou TVs vinculados a ele.");
+    }
+    throw error;
+  }
 }

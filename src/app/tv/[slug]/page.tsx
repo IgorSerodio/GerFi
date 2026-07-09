@@ -15,10 +15,11 @@ export default async function CustomTvPage({ params }: { params: Promise<{ slug:
     videoUrl: [],
     uploadedFiles: [],
     services: [],
+    locationId: 0,
   };
 
   // Puxa o estado inicial da fila já filtrado para essa TV
-  const queueRes = await getQueueStateAction(initialSettings.services);
+  const queueRes = await getQueueStateAction(initialSettings.locationId, initialSettings.services);
   const initialHistory = queueRes.success && queueRes.data ? queueRes.data.history : [];
 
   return <TvDashboard initialHistory={initialHistory} initialSettings={initialSettings} />;
