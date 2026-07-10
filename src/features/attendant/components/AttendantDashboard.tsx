@@ -78,8 +78,8 @@ export default function AttendantDashboard({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocationId(Number(stored));
     } else {
-      setLocationId(0);
-      localStorage.setItem("attendant_locationId", "0");
+      setLocationId(1);
+      localStorage.setItem("attendant_locationId", "1");
     }
   }, []);
 

@@ -50,10 +50,11 @@ export default function TriageDashboard({
   useEffect(() => {
     const stored = localStorage.getItem("triage_locationId");
     if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocationId(Number(stored));
     } else {
-      setLocationId(0);
-      localStorage.setItem("triage_locationId", "0");
+      setLocationId(1);
+      localStorage.setItem("triage_locationId", "1");
     }
   }, []);
 

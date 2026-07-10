@@ -15,7 +15,7 @@ export default async function CustomTvPage({ params }: { params: Promise<{ slug:
     videoUrl: [],
     uploadedFiles: [],
     services: [],
-    locationId: 0,
+    locationId: 1,
   };
 
   // Puxa o estado inicial da fila já filtrado para essa TV

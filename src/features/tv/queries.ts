@@ -44,7 +44,7 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
     videoUrl,
     uploadedFiles,
     services: row.services || [],
-    locationId: row.location_id || 0,
+    locationId: row.location_id || 1,
   };
 }
 
@@ -55,7 +55,7 @@ export async function getTvSettings(slug: string = "global"): Promise<TvSettings
   const { rows } = await pool.query("SELECT * FROM tv_settings WHERE slug = $1", [slug]);
   if (rows.length === 0) {
     if (slug === "global") {
-      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [], locationId: 0 };
+      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [], locationId: 1 };
     }
     throw new Error("TV não encontrada.");
   }

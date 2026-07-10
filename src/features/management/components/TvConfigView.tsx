@@ -22,7 +22,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
   const [tvs, setTvs] = useState<TvSettings[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [filterLocationId, setFilterLocationId] = useState<number>(0);
+  const [filterLocationId, setFilterLocationId] = useState<number>(1);
   
   const [editingTv, setEditingTv] = useState<TvSettings | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -44,7 +44,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
     if (locRes.success && locRes.data) {
       const locs = locRes.data as Location[];
       setLocations(locs);
-      setFilterLocationId(prev => locs.some(l => l.id === prev) ? prev : (locs[0]?.id ?? 0));
+      setFilterLocationId(prev => locs.some(l => l.id === prev) ? prev : (locs[0]?.id ?? 1));
     }
   };
 
@@ -108,7 +108,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
         services: editingTv.services,
-        locationId: editingTv.locationId || 0
+        locationId: editingTv.locationId || 1
       });
       if (res.success) {
         triggerSuccess("TV criada com sucesso!");
@@ -126,7 +126,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
         services: editingTv.services,
-        locationId: editingTv.locationId || 0
+        locationId: editingTv.locationId || 1
       });
       if (res.success) {
         triggerSuccess("Configurações da TV salvas!");

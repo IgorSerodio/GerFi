@@ -72,7 +72,7 @@ async function main() {
     ];
     for (const tw of ticketWindows) {
       await client.query(`
-        INSERT INTO ticket_windows (location_id, name) VALUES (0, $1)
+        INSERT INTO ticket_windows (location_id, name) VALUES (1, $1)
         ON CONFLICT (location_id, name) DO NOTHING;
       `, [tw]);
     }
