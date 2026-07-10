@@ -1,14 +1,14 @@
-import React from "react";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import { requirePermission } from "@/features/auth/actions";
 import { getCategoriesAction, getLocationsAction } from "@/features/queue/actions";
 import TriageDashboard from "@/features/triage/components/TriageDashboard";
 import { DbCategory, Location } from "@/features/queue/types";
 
 export default async function TriagePage() {
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  let session;
+  try {
+    session = await requirePermission("ACCESS_TRIAGE");
+  } catch (error) {
     redirect("/");
   }
 
