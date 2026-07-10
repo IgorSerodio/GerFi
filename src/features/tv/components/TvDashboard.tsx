@@ -87,7 +87,7 @@ export default function TvDashboard({
 
   const refreshState = async () => {
     const [queueRes, tvRes] = await Promise.all([
-      getQueueStateAction(tvSettings.services),
+      getQueueStateAction(tvSettings.locationId, tvSettings.services),
       getTvSettingsAction(tvSettings.slug),
     ]);
 
@@ -158,11 +158,16 @@ export default function TvDashboard({
     }, 0);
   }, [soundEnabled]);
 
+  const refreshStateRef = useRef(refreshState);
+  useEffect(() => {
+    refreshStateRef.current = refreshState;
+  }, [refreshState]);
+
   useEffect(() => {
     const eventSource = new EventSource("/api/queue/stream");
     eventSource.addEventListener("update", () => {
       setTimeout(() => {
-        refreshState();
+        refreshStateRef.current();
       }, 0);
     });
     return () => {

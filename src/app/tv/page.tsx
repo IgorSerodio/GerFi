@@ -14,9 +14,10 @@ export default async function TvPage() {
     videoUrl: [],
     uploadedFiles: [],
     services: [],
+    locationId: 1,
   };
 
-  const queueRes = await getQueueStateAction(initialSettings.services);
+  const queueRes = await getQueueStateAction(initialSettings.locationId, initialSettings.services);
   const initialHistory = queueRes.success && queueRes.data ? queueRes.data.history : [];
 
   return <TvDashboard initialHistory={initialHistory} initialSettings={initialSettings} />;

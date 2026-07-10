@@ -169,7 +169,7 @@ export async function callNextTicket(
         AND location_id = $4
         AND created_at >= CURRENT_DATE
   `;
-  const queryParams: any[] = [servicesArray, attendant, guiche, locationId];
+  const queryParams: unknown[] = [servicesArray, attendant, guiche, locationId];
 
   if (isForwardedCall) {
     queryStr += ` AND forwarded_to = $3`;
@@ -269,14 +269,12 @@ export async function startTicket(ticketId: string, code: string): Promise<{ suc
  */
 export async function forwardTicket(
   ticketId: string,
-  targetGuiche: string,
-  attendant: string
+  targetGuiche: string
 ): Promise<Ticket | null> {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    // Buscar o ticket original
     const origRes = await client.query("SELECT * FROM tickets WHERE id = $1", [ticketId]);
     if (origRes.rows.length === 0) {
       await client.query("COMMIT");
@@ -284,7 +282,6 @@ export async function forwardTicket(
     }
     const original = origRes.rows[0];
 
-    // Finalizar o ticket original como encaminhado
     await client.query(
       `UPDATE tickets 
        SET status = 'forwarded', 
@@ -294,7 +291,6 @@ export async function forwardTicket(
       [ticketId, `Encaminhado para ${targetGuiche}`]
     );
 
-    // Inserir o novo ticket como pendente, associado ao guichê de destino
     const newRes = await client.query(
       `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code, location_id)
        VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
@@ -317,7 +313,11 @@ export async function getCategories(): Promise<DbCategory[]> {
   return rows;
 }
 
-export async function getTicketWindows(locationId: number): Promise<{ id: number; name: string; locationId: number }[]> {
+export async function getTicketWindows(locationId?: number): Promise<{ id: number; name: string; locationId: number }[]> {
+  if (locationId === undefined) {
+    const { rows } = await pool.query('SELECT id, name, location_id as "locationId" FROM ticket_windows ORDER BY name ASC');
+    return rows;
+  }
   const { rows } = await pool.query(
     'SELECT id, name, location_id as "locationId" FROM ticket_windows WHERE location_id = $1 ORDER BY name ASC',
     [locationId]

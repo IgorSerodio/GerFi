@@ -1,13 +1,20 @@
 import { EventEmitter } from "node:events";
 import { Client } from "pg";
 
-export const queueEmitter = new EventEmitter();
+const globalForEvents = globalThis as unknown as { 
+  queueEmitter: EventEmitter | undefined;
+  listenerClient: Client | undefined;
+};
+export const queueEmitter = globalForEvents.queueEmitter ?? new EventEmitter();
 
-let listenerClient: Client | null = null;
+if (process.env.NODE_ENV !== "production") {
+  globalForEvents.queueEmitter = queueEmitter;
+}
+
 let reconnectTimeout: NodeJS.Timeout | null = null;
 
 export async function startPostgresListener() {
-  if (listenerClient) return;
+  if (globalForEvents.listenerClient) return;
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -16,19 +23,19 @@ export async function startPostgresListener() {
   }
 
   try {
-    listenerClient = new Client({ connectionString: databaseUrl });
-    await listenerClient.connect();
-    await listenerClient.query("LISTEN queue_change");
+    globalForEvents.listenerClient = new Client({ connectionString: databaseUrl });
+    await globalForEvents.listenerClient.connect();
+    await globalForEvents.listenerClient.query("LISTEN queue_change");
 
     console.log("PostgreSQL LISTEN active on channel: queue_change");
 
-    listenerClient.on("notification", (msg) => {
+    globalForEvents.listenerClient.on("notification", (msg) => {
       if (msg.channel === "queue_change") {
         queueEmitter.emit("update");
       }
     });
 
-    listenerClient.on("error", async (err) => {
+    globalForEvents.listenerClient.on("error", async (err) => {
       console.error("Postgres listener client error:", err);
       cleanupListener();
       triggerReconnect();
@@ -41,9 +48,9 @@ export async function startPostgresListener() {
 }
 
 function cleanupListener() {
-  if (listenerClient) {
-    listenerClient.end().catch(() => {});
-    listenerClient = null;
+  if (globalForEvents.listenerClient) {
+    globalForEvents.listenerClient.end().catch(() => {});
+    globalForEvents.listenerClient = undefined;
   }
 }
 
@@ -52,9 +59,4 @@ function triggerReconnect() {
   reconnectTimeout = setTimeout(() => {
     startPostgresListener().catch(console.error);
   }, 5000);
-}
-
-// Start the listener automatically on server start
-if (typeof window === "undefined") {
-  startPostgresListener().catch(console.error);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Session } from "next-auth";
 import {
   getQueueStateAction,
@@ -75,6 +75,7 @@ export default function AttendantDashboard({
   useEffect(() => {
     const stored = localStorage.getItem("attendant_locationId");
     if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocationId(Number(stored));
     } else {
       setLocationId(0);
@@ -162,6 +163,11 @@ export default function AttendantDashboard({
     }
   };
 
+  const refreshStateRef = useRef(refreshState);
+  useEffect(() => {
+    refreshStateRef.current = refreshState;
+  }, [refreshState]);
+
   useEffect(() => {
     if (locationId !== null) {
       setTimeout(() => {
@@ -174,7 +180,7 @@ export default function AttendantDashboard({
     const eventSource = new EventSource("/api/queue/stream");
     eventSource.addEventListener("update", () => {
       setTimeout(() => {
-        refreshState();
+        refreshStateRef.current();
       }, 0);
     });
     return () => {
@@ -262,8 +268,7 @@ export default function AttendantDashboard({
   const handleForward = async (ticketId: string, targetGuiche: string) => {
     const res = await forwardTicketAction(
       ticketId,
-      targetGuiche,
-      currentAttendant.name
+      targetGuiche
     );
     if (res.success) {
       setShowForwardModal(false);

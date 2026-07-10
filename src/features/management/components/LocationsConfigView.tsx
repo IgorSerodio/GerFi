@@ -33,12 +33,13 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
       const locs = res.data as Location[];
       setLocations(locs);
       if (selectedLocationId === null && locs.length > 0) {
-        setSelectedLocationId(0);
+        setSelectedLocationId(locs[0].id);
       }
     }
   }, [selectedLocationId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadLocations();
   }, [loadLocations]);
 
@@ -52,6 +53,7 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
   }, [selectedLocationId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadWindows();
   }, [loadWindows]);
 
@@ -95,7 +97,7 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
       const res = await deleteLocationAction(id);
       if (res.success) {
         triggerSuccess("Local excluído!");
-        if (selectedLocationId === id) setSelectedLocationId(0);
+        if (selectedLocationId === id) setSelectedLocationId(null);
         loadLocations();
       } else {
         alert(res.error || "Erro ao excluir local");

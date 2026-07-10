@@ -3,16 +3,16 @@ import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, Ban } from "lucide-react";
 import { User, UserRole } from "@/features/users/types";
-import { DbTicketWindow, DbCategory } from "@/features/queue/types";
+import { Location, DbTicketWindow, DbCategory } from "@/features/queue/types";
 import {
   getUsersAction,
-  createUserAction,
   updateUserAction,
   deleteUserAction,
   toggleBlockUserAction,
 } from "@/features/users/actions";
 import { useSession } from "next-auth/react";
 import {
+  getLocationsAction,
   getTicketWindowsAction,
   getCategoriesAction,
 } from "@/features/queue/actions";
@@ -25,6 +25,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   const [users, setUsers] = useState<User[]>([]);
   const [ticketWindows, setTicketWindows] = useState<DbTicketWindow[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   
   const [showUserModal, setShowUserModal] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
@@ -35,7 +36,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   const [newUser, setNewUser] = useState({
     name: "",
     role: UserRole.Atendente,
-    guiche: "Guichê 01",
+    guiche: "",
     matricula: "",
     cpf: "",
     email: "",
@@ -59,6 +60,9 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
 
     const resCategories = await getCategoriesAction();
     if (resCategories.success && resCategories.data) setCategories(resCategories.data as DbCategory[]);
+
+    const resLocs = await getLocationsAction();
+    if (resLocs.success && resLocs.data) setLocations(resLocs.data as Location[]);
   }, []);
 
   useEffect(() => {
@@ -68,8 +72,13 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
 
   const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      ...newUser,
+      guiche: newUser.guiche === "" ? null : newUser.guiche,
+    };
+
     if (isEditingUser && editingUserId !== null) {
-      const res = await updateUserAction(editingUserId, newUser);
+      const res = await updateUserAction(editingUserId, payload);
       if (res.success) {
         triggerSuccess("Servidor atualizado com sucesso!");
         setShowUserModal(false);
@@ -84,7 +93,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     setNewUser({
       name: user.name,
       role: user.role,
-      guiche: user.guiche || "Guichê 01",
+      guiche: user.guiche || "",
       matricula: user.matricula,
       cpf: user.cpf,
       email: user.email,
@@ -349,11 +358,16 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
                       onChange={(e) => setNewUser({ ...newUser, guiche: e.target.value })}
                       className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
                     >
-                      {ticketWindows.map((tw) => (
-                        <option key={tw.id} value={tw.name}>
-                          {tw.name}
-                        </option>
-                      ))}
+                      <option value="">Sem guichê</option>
+                      {ticketWindows.map((tw) => {
+                        const loc = locations.find((l) => l.id === tw.locationId);
+                        const label = loc ? `${loc.name} - ${tw.name}` : tw.name;
+                        return (
+                          <option key={tw.id} value={label}>
+                            {label}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>

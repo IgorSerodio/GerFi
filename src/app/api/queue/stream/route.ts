@@ -16,6 +16,7 @@ export async function GET() {
       controller.enqueue(encoder.encode("event: connected\ndata: {}\n\n"));
 
       const onUpdate = () => {
+        console.log("SSE route received update from queueEmitter!");
         try {
           controller.enqueue(encoder.encode("event: update\ndata: {}\n\n"));
         } catch {

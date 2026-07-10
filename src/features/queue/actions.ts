@@ -194,8 +194,7 @@ export async function noShowTicketAction(ticketId: string) {
  */
 export async function forwardTicketAction(
   ticketId: string,
-  targetGuiche: string,
-  attendant: string
+  targetGuiche: string
 ) {
   const result = ForwardTicketSchema.safeParse({ ticketId, targetGuiche });
   if (!result.success) {
@@ -204,7 +203,7 @@ export async function forwardTicketAction(
 
   try {
     await requirePermission("OPERATE_QUEUE");
-    const ticket = await forwardTicket(ticketId, targetGuiche, attendant);
+    const ticket = await forwardTicket(ticketId, targetGuiche);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
     }
@@ -228,9 +227,9 @@ export async function getCategoriesAction() {
 }
 
 /**
- * Busca todos os guichês (ticket windows) de um local
+ * Busca todos os guichês (ticket windows) de um local (ou de todos se não for passado)
  */
-export async function getTicketWindowsAction(locationId: number) {
+export async function getTicketWindowsAction(locationId?: number) {
   try {
     const ticketWindows = await getTicketWindows(locationId);
     return { success: true, data: ticketWindows };

@@ -23,7 +23,7 @@ async function main() {
     console.log(`Seeding main location (${MAIN_LOCATION_NAME})...`);
     await client.query(`
       INSERT INTO locations (id, name, is_active)
-      VALUES (0, $1, true)
+      VALUES (1, $1, true)
       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
     `, [MAIN_LOCATION_NAME]);
 
@@ -31,7 +31,7 @@ async function main() {
     console.log("Seeding TV settings...");
     await client.query(`
       INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files, location_id)
-      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 0)
+      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 1)
       ON CONFLICT (id) DO NOTHING;
     `);
 
