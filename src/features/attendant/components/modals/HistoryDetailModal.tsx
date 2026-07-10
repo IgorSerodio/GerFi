@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
@@ -13,6 +12,26 @@ export default function HistoryDetailModal({
   selectedHistoryTicket,
   onClose,
 }: HistoryDetailModalProps) {
+  
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "completed":
+        return { label: "Finalizado", classes: "bg-emerald-100 text-emerald-700" };
+      case "no_show":
+        return { label: "Não Compareceu", classes: "bg-red-100 text-red-700" };
+      case "forwarded":
+        return { label: "Encaminhado", classes: "bg-blue-100 text-blue-700" };
+      case "started":
+        return { label: "Em Atendimento", classes: "bg-amber-100 text-amber-700" };
+      case "calling":
+        return { label: "Chamando", classes: "bg-yellow-100 text-yellow-700" };
+      default:
+        return { label: status, classes: "bg-gray-100 text-gray-700" };
+    }
+  };
+
+  const statusInfo = selectedHistoryTicket ? getStatusDisplay(selectedHistoryTicket.status) : null;
+
   return (
     <Modal 
       isOpen={!!selectedHistoryTicket} 
@@ -43,6 +62,25 @@ export default function HistoryDetailModal({
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
+                    Status
+                  </p>
+                  <span className={`inline-block px-3 py-1 rounded-lg text-[10px] font-black uppercase ${statusInfo?.classes}`}>
+                    {statusInfo?.label}
+                  </span>
+                </div>
+                
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
+                    Atendente / Guichê
+                  </p>
+                  <p className="text-lg font-black text-sefaz-dark leading-tight">
+                    {selectedHistoryTicket.attendant}<br/>
+                    <span className="text-sm font-bold text-sefaz-accent/70">{selectedHistoryTicket.guiche}</span>
+                  </p>
+                </div>
+                
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
                     Chamado às
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
@@ -51,30 +89,62 @@ export default function HistoryDetailModal({
                       : "-"}
                   </p>
                 </div>
+                
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
-                    Atendente
+                    Iniciado às
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
-                    {selectedHistoryTicket.attendant}
+                    {selectedHistoryTicket.startedAt
+                      ? new Date(selectedHistoryTicket.startedAt).toLocaleTimeString()
+                      : "-"}
                   </p>
                 </div>
+                
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
-                    Guichê
+                    Finalizado às
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
-                    {selectedHistoryTicket.guiche}
+                    {selectedHistoryTicket.completedAt
+                      ? new Date(selectedHistoryTicket.completedAt).toLocaleTimeString()
+                      : "-"}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
-                    Status
+              </div>
+
+              <div className="space-y-2 p-6 bg-emerald-50/30 rounded-3xl border border-emerald-100">
+                <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
+                  Histórico de Rechamadas
+                </p>
+                {selectedHistoryTicket.recallHistory && selectedHistoryTicket.recallHistory.length > 0 ? (
+                  <ul className="list-disc list-inside text-sm font-medium text-sefaz-dark">
+                    {selectedHistoryTicket.recallHistory.map((recallTime, idx) => (
+                      <li key={idx}>Rechamado às {new Date(recallTime).toLocaleTimeString()}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm font-medium text-sefaz-dark/60 italic">
+                    Sem rechamadas
                   </p>
-                  <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase">
-                    Finalizado
-                  </span>
-                </div>
+                )}
+              </div>
+
+              <div className="space-y-2 p-6 bg-emerald-50/30 rounded-3xl border border-emerald-100">
+                <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest">
+                  Motivos do Atendimento
+                </p>
+                {selectedHistoryTicket.resolutions && selectedHistoryTicket.resolutions.length > 0 ? (
+                  <ul className="list-disc list-inside text-sm font-medium text-sefaz-dark">
+                    {selectedHistoryTicket.resolutions.map((res, idx) => (
+                      <li key={idx}>{res}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm font-medium text-sefaz-dark/60 italic">
+                    Nenhum motivo selecionado
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2 p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100">
@@ -99,3 +169,4 @@ export default function HistoryDetailModal({
     </Modal>
   );
 }
+
