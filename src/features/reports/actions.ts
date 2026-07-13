@@ -39,7 +39,9 @@ export async function getReportFiltersDataAction() {
 
 export async function getLogisticsDashboardDataAction(
   range: "today" | "week" | "month" | "year",
-  metric: "tickets" | "wait_time" | "atendimentos"
+  metric: "tickets" | "wait_time" | "atendimentos",
+  locationId: number | "all" = "all",
+  attendants: string[] = []
 ) {
   try {
     const startDate = new Date();
@@ -65,17 +67,17 @@ export async function getLogisticsDashboardDataAction(
     }
 
     const [stats, categoryAggregation, attendantRanking] = await Promise.all([
-      getVolumeStats(startDate, endDate, "all", []),
-      getCategoryRanking(startDate, endDate, "all", []),
-      getAttendantRanking(startDate, endDate, "all", []),
+      getVolumeStats(startDate, endDate, locationId, attendants),
+      getCategoryRanking(startDate, endDate, locationId, attendants),
+      getAttendantRanking(startDate, endDate, locationId, attendants),
     ]);
 
     let chartData: ChartPoint[] = [];
 
     if (range === "today") {
-      chartData = await getHourlyEvolutionToday(metric);
+      chartData = await getHourlyEvolutionToday(metric, locationId, attendants);
     } else if (range === "week") {
-      chartData = await getWeeklyEvolution(metric);
+      chartData = await getWeeklyEvolution(metric, locationId, attendants);
     } else {
       // Mock para Month/Year caso não haja histórico longo suficiente, ou fallback para agrupamento por dia
       const points = range === "month" ? 15 : 12;

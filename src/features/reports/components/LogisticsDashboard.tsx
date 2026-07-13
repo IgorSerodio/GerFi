@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   BarChart3,
   TrendingUp,
@@ -12,6 +12,8 @@ import {
   LineChart as LineIcon,
   BarChart as BarIcon,
   Filter,
+  Search,
+  X,
 } from "lucide-react";
 import {
   BarChart,
@@ -28,7 +30,10 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { getLogisticsDashboardDataAction } from "@/features/reports/actions";
+import { getLogisticsDashboardDataAction, getReportFiltersDataAction } from "@/features/reports/actions";
+import { Location } from "@/features/queue/types";
+import { User } from "@/features/users/types";
+import { useRef } from "react";
 
 type ChartType = "bar" | "line" | "area" | "pie";
 type MetricType = "tickets" | "wait_time" | "atendimentos";
@@ -49,17 +54,46 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [metric, setMetric] = useState<MetricType>("tickets");
   const [range, setRange] = useState<DateRange>("today");
+  const [locationId, setLocationId] = useState<number | "all">("all");
+  const [attendants, setAttendants] = useState<string[]>([]);
+  
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  
+  const [attendantSearch, setAttendantSearch] = useState("");
+  const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
+  const attendantDropdownRef = useRef<HTMLDivElement>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
-    const res = await getLogisticsDashboardDataAction(range, metric);
+    const res = await getLogisticsDashboardDataAction(range, metric, locationId, attendants);
     if (res.success && res.data) {
       setData(res.data as DashboardData);
     }
     setIsLoading(false);
-  }, [range, metric]);
+  }, [range, metric, locationId, attendants]);
+
+  useEffect(() => {
+    const loadFilters = async () => {
+      const res = await getReportFiltersDataAction();
+      if (res.success && res.data) {
+        setLocations(res.data.locations);
+        setUsers(res.data.users);
+      }
+    };
+    loadFilters();
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (attendantDropdownRef.current && !attendantDropdownRef.current.contains(event.target as Node)) {
+        setIsAttendantDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -293,6 +327,91 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           <option value="month">Período: Este Mês</option>
           <option value="year">Período: Anual</option>
         </select>
+
+        <select
+          value={locationId}
+          onChange={(e) => setLocationId(e.target.value === "all" ? "all" : Number(e.target.value))}
+          className="bg-white px-4 py-2 rounded-xl text-[10px] font-black text-sefaz-dark border-2 border-emerald-50 outline-none focus:border-sefaz-accent uppercase tracking-widest cursor-pointer"
+        >
+          <option value="all">Local: Todos</option>
+          {locations.map((loc) => (
+            <option key={loc.id} value={loc.id}>
+              Local: {loc.name}
+            </option>
+          ))}
+        </select>
+
+        <div className="relative" ref={attendantDropdownRef}>
+          <div className="bg-white px-2 py-1.5 rounded-xl border-2 border-emerald-50 focus-within:border-sefaz-accent flex items-center min-w-[200px] max-w-[300px]">
+            {attendants.length > 0 ? (
+              <div className="flex gap-1 overflow-x-auto custom-scrollbar items-center flex-1 mr-2">
+                {attendants.map((attName) => (
+                  <div key={attName} className="flex items-center gap-1 bg-emerald-100 text-sefaz-dark px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight whitespace-nowrap">
+                    {attName}
+                    <button 
+                      onClick={() => setAttendants(prev => prev.filter(a => a !== attName))}
+                      className="ml-1 hover:text-emerald-700 cursor-pointer"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            
+            <div className="flex items-center flex-1">
+              {attendants.length === 0 && <Search size={14} className="text-emerald-400 mr-2" />}
+              <input
+                type="text"
+                value={attendantSearch}
+                onChange={(e) => {
+                  setAttendantSearch(e.target.value);
+                  setIsAttendantDropdownOpen(true);
+                }}
+                onFocus={() => setIsAttendantDropdownOpen(true)}
+                placeholder={attendants.length === 0 ? "Servidor..." : "..."}
+                className="w-full bg-transparent outline-none font-black text-[10px] text-sefaz-dark placeholder:text-emerald-300 uppercase tracking-widest min-w-[60px]"
+              />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {isAttendantDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute z-10 w-[250px] mt-2 bg-white border border-emerald-100 rounded-xl shadow-xl max-h-[200px] overflow-y-auto custom-scrollbar left-0"
+              >
+                {users
+                  .filter(u => 
+                    !attendants.includes(u.name) && 
+                    (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) || 
+                     u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))
+                  )
+                  .map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => {
+                        setAttendants(prev => [...prev, user.name]);
+                        setAttendantSearch("");
+                        setIsAttendantDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-emerald-50/50 border-b border-emerald-50 last:border-0 transition-colors cursor-pointer"
+                    >
+                      <div className="text-[10px] font-bold text-sefaz-dark uppercase tracking-tight">{user.name}</div>
+                      <div className="text-[9px] font-medium text-sefaz-accent opacity-60">Matrícula: {user.matricula}</div>
+                    </button>
+                  ))}
+                {users.filter(u => !attendants.includes(u.name) && (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) || u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))).length === 0 && (
+                  <div className="px-3 py-2 text-[10px] text-center text-sefaz-accent opacity-60">
+                    Nenhum servidor encontrado
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="ml-auto flex gap-2">
           <ChartTypeBtn
