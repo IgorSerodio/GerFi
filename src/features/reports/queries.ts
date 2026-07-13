@@ -27,16 +27,25 @@ export interface AttendantRank {
 /**
  * Obtém estatísticas gerais para um intervalo de datas
  */
-export async function getVolumeStats(startDate: Date, endDate: Date): Promise<VolumeStats> {
-  const { rows } = await pool.query(
-    `SELECT 
+export async function getVolumeStats(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<VolumeStats> {
+  let queryStr = `SELECT 
       COUNT(*) as total,
       COALESCE(AVG(EXTRACT(EPOCH FROM (called_at - created_at)) / 60), 0) as avg_wait_min,
       COALESCE((COUNT(CASE WHEN status = 'completed' THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 0) as efficiency
      FROM tickets
-     WHERE created_at BETWEEN $1 AND $2`,
-    [startDate, endDate]
-  );
+     WHERE created_at BETWEEN $1 AND $2`;
+  const params: any[] = [startDate, endDate];
+
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  const { rows } = await pool.query(queryStr, params);
 
   const stats = rows[0];
   return {
@@ -133,22 +142,35 @@ export async function getWeeklyEvolution(metric: "tickets" | "wait_time" | "aten
 /**
  * Obtém o ranking de serviços mais procurados no período
  */
-export async function getCategoryRanking(startDate: Date, endDate: Date): Promise<CategoryRank[]> {
-  const { rows } = await pool.query(
-    `WITH total_tickets AS (
-       SELECT COUNT(*) as total FROM tickets WHERE created_at BETWEEN $1 AND $2
-     )
+export async function getCategoryRanking(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<CategoryRank[]> {
+  let innerQueryStr = `SELECT COUNT(*) as total FROM tickets WHERE created_at BETWEEN $1 AND $2`;
+  let queryStr = `
      SELECT 
        category_name as name,
        COUNT(*) as count,
        COALESCE((COUNT(*) * 100.0) / NULLIF((SELECT total FROM total_tickets), 0), 0) as percentage
      FROM tickets
-     WHERE created_at BETWEEN $1 AND $2
+     WHERE created_at BETWEEN $1 AND $2`;
+  const params: any[] = [startDate, endDate];
+
+  if (locationId !== "all") {
+    params.push(locationId);
+    innerQueryStr += ` AND location_id = $${params.length}`;
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    innerQueryStr += ` AND attendant = ANY($${params.length})`;
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
      GROUP BY category_name
      ORDER BY count DESC
-     LIMIT 4`,
-    [startDate, endDate]
-  );
+     LIMIT 4`;
+
+  const finalQuery = `WITH total_tickets AS (${innerQueryStr}) ${queryStr}`;
+  const { rows } = await pool.query(finalQuery, params);
 
   return rows.map((row) => ({
     name: row.name,
@@ -160,25 +182,196 @@ export async function getCategoryRanking(startDate: Date, endDate: Date): Promis
 /**
  * Obtém produtividade dos atendentes no período
  */
-export async function getAttendantRanking(startDate: Date, endDate: Date): Promise<AttendantRank[]> {
-  const { rows } = await pool.query(
-    `SELECT 
+export async function getAttendantRanking(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<AttendantRank[]> {
+  let queryStr = `SELECT 
        attendant as name,
        COUNT(*) as count,
        COALESCE(AVG(EXTRACT(EPOCH FROM (completed_at - called_at)) / 60), 0) as avg_duration
      FROM tickets
      WHERE status = 'completed' 
        AND attendant IS NOT NULL 
-       AND created_at BETWEEN $1 AND $2
+       AND created_at BETWEEN $1 AND $2`;
+  const params: any[] = [startDate, endDate];
+
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
      GROUP BY attendant
-     ORDER BY count DESC`,
-    [startDate, endDate]
-  );
+     ORDER BY count DESC`;
+
+  const { rows } = await pool.query(queryStr, params);
 
   return rows.map((row) => ({
     name: row.name,
     count: parseInt(row.count, 10),
     avgDuration: Math.round(parseFloat(row.avg_duration)),
     rating: parseFloat((4.5 + Math.random() * 0.5).toFixed(1)), // Simulação de nota com base em média realista
+  }));
+}
+
+export interface EvolutionPoint {
+  time: string;
+  total: number;
+  avg: number;
+  wait: number;
+}
+
+export async function getEvolutionSeries(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
+  const diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+  let groupBy = "date_trunc('hour', created_at)";
+  let dateFormat = "HH24:MI";
+  if (diffDays > 2) {
+    groupBy = "date_trunc('day', created_at)";
+    dateFormat = "DD/MM";
+  }
+
+  let queryStr = `
+    SELECT 
+      to_char(${groupBy}, '${dateFormat}') as time_label,
+      COUNT(id) as total_count,
+      COALESCE(AVG(EXTRACT(EPOCH FROM (completed_at - called_at)) / 60), 0) as avg_duration,
+      COALESCE(AVG(EXTRACT(EPOCH FROM (called_at - created_at)) / 60), 0) as avg_wait
+    FROM tickets
+    WHERE created_at BETWEEN $1 AND $2
+  `;
+  const params: any[] = [startDate, endDate];
+
+  if (serviceId !== "all") {
+    params.push(parseInt(serviceId, 10));
+    queryStr += ` AND category_id = $${params.length}`;
+  }
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
+    GROUP BY ${groupBy}
+    ORDER BY ${groupBy}
+  `;
+
+  const { rows } = await pool.query(queryStr, params);
+  return rows.map((row) => ({
+    time: row.time_label,
+    total: parseInt(row.total_count, 10),
+    avg: Math.round(parseFloat(row.avg_duration)),
+    wait: Math.round(parseFloat(row.avg_wait)),
+  }));
+}
+
+export async function getPeakHours(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
+  let queryStr = `
+    SELECT 
+      LPAD(EXTRACT(HOUR FROM created_at)::text, 2, '0') || ':00' as time_label,
+      COUNT(id) as total_count,
+      COALESCE(AVG(EXTRACT(EPOCH FROM (called_at - created_at)) / 60), 0) as avg_wait
+    FROM tickets
+    WHERE created_at BETWEEN $1 AND $2
+  `;
+  const params: any[] = [startDate, endDate];
+
+  if (serviceId !== "all") {
+    params.push(parseInt(serviceId, 10));
+    queryStr += ` AND category_id = $${params.length}`;
+  }
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
+    GROUP BY EXTRACT(HOUR FROM created_at)
+    ORDER BY EXTRACT(HOUR FROM created_at)
+  `;
+
+  const { rows } = await pool.query(queryStr, params);
+  return rows.map((row) => ({
+    time: row.time_label,
+    total: parseInt(row.total_count, 10),
+    avg: 0,
+    wait: Math.round(parseFloat(row.avg_wait)),
+  }));
+}
+
+export async function getBusyDays(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
+  let queryStr = `
+    SELECT 
+      EXTRACT(ISODOW FROM created_at) as dow,
+      COUNT(id) as total_count
+    FROM tickets
+    WHERE created_at BETWEEN $1 AND $2
+  `;
+  const params: any[] = [startDate, endDate];
+
+  if (serviceId !== "all") {
+    params.push(parseInt(serviceId, 10));
+    queryStr += ` AND category_id = $${params.length}`;
+  }
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
+    GROUP BY EXTRACT(ISODOW FROM created_at)
+    ORDER BY EXTRACT(ISODOW FROM created_at)
+  `;
+
+  const { rows } = await pool.query(queryStr, params);
+  
+  const map: Record<number, string> = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 7: 'Dom' };
+  return rows.map((row) => ({
+    name: map[parseInt(row.dow, 10)] || 'N/A',
+    value: parseInt(row.total_count, 10),
+  }));
+}
+
+export async function getCategoryAvgDuration(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
+  let queryStr = `SELECT 
+       category_name as name,
+       COALESCE(AVG(EXTRACT(EPOCH FROM (completed_at - started_at)) / 60), 0) as avg_duration
+     FROM tickets
+     WHERE status = 'completed' AND started_at IS NOT NULL
+       AND created_at BETWEEN $1 AND $2`;
+  const params: any[] = [startDate, endDate];
+
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += `
+     GROUP BY category_name
+     ORDER BY avg_duration DESC
+     LIMIT 5`;
+
+  const { rows } = await pool.query(queryStr, params);
+
+  return rows.map((row) => ({
+    name: row.name || 'Desconhecido',
+    value: Math.round(parseFloat(row.avg_duration)),
   }));
 }
