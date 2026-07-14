@@ -4,6 +4,8 @@ import {
   getVolumeStats,
   getHourlyEvolutionToday,
   getWeeklyEvolution,
+  getMonthlyEvolution,
+  getYearlyEvolution,
   getCategoryRanking,
   getAttendantRanking,
   getEvolutionSeries,
@@ -78,20 +80,10 @@ export async function getLogisticsDashboardDataAction(
       chartData = await getHourlyEvolutionToday(metric, locationId, attendants);
     } else if (range === "week") {
       chartData = await getWeeklyEvolution(metric, locationId, attendants);
+    } else if (range === "month") {
+      chartData = await getMonthlyEvolution(metric, locationId, attendants);
     } else {
-      // Mock para Month/Year caso não haja histórico longo suficiente, ou fallback para agrupamento por dia
-      const points = range === "month" ? 15 : 12;
-      const labels = range === "month"
-        ? Array.from({ length: 15 }, (_, i) => `D${i * 2 + 1}`)
-        : ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-
-      for (let i = 0; i < points; i++) {
-        const base = metric === "tickets" ? 45 : metric === "wait_time" ? 12 : 38;
-        chartData.push({
-          name: labels[i],
-          value: base + Math.floor(Math.random() * 25),
-        });
-      }
+      chartData = await getYearlyEvolution(metric, locationId, attendants);
     }
 
     return {

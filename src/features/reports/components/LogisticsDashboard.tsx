@@ -29,6 +29,7 @@ import {
   Cell,
   AreaChart,
   Area,
+  ResponsiveContainer,
 } from "recharts";
 import { getLogisticsDashboardDataAction, getReportFiltersDataAction } from "@/features/reports/actions";
 import { Location } from "@/features/queue/types";
@@ -140,75 +141,116 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         ? data.categoryAggregation
         : [{ name: "Sem dados", value: 100 }];
       return (
-        <PieChart>
-          <Pie
-            data={pieData}
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={100}
-            paddingAngle={5}
-            dataKey="value"
-          >
-            {pieData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            contentStyle={{
-              borderRadius: "16px",
-              border: "none",
-              boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-              fontWeight: 800,
-            }}
-          />
-        </PieChart>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={pieData}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              paddingAngle={5}
+              dataKey="value"
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                borderRadius: "16px",
+                border: "none",
+                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                fontWeight: 800,
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
       );
     }
 
     if (chartType === "line") {
       return (
-        <LineChart data={data.chartData}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: "16px",
-              border: "none",
-              boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-              fontWeight: 800,
-            }}
-          />
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke="#10b981"
-            strokeWidth={4}
-            dot={{ r: 4, fill: "#10b981" }}
-          />
-        </LineChart>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data.chartData}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "16px",
+                border: "none",
+                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                fontWeight: 800,
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#10b981"
+              strokeWidth={4}
+              dot={{ r: 4, fill: "#10b981" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       );
     }
 
     if (chartType === "area") {
       return (
-        <AreaChart data={data.chartData}>
-          <defs>
-            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data.chartData}>
+            <defs>
+              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "16px",
+                border: "none",
+                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                fontWeight: 800,
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#10b981"
+              fillOpacity={1}
+              fill="url(#colorValue)"
+              strokeWidth={3}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data.chartData}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
           <XAxis
             dataKey="name"
@@ -222,6 +264,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
             tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
           />
           <Tooltip
+            cursor={{ fill: "#f0fdf4" }}
             contentStyle={{
               borderRadius: "16px",
               border: "none",
@@ -229,43 +272,9 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
               fontWeight: 800,
             }}
           />
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke="#10b981"
-            fillOpacity={1}
-            fill="url(#colorValue)"
-            strokeWidth={3}
-          />
-        </AreaChart>
-      );
-    }
-
-    return (
-      <BarChart data={data.chartData}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-        <XAxis
-          dataKey="name"
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-        />
-        <YAxis
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-        />
-        <Tooltip
-          cursor={{ fill: "#f0fdf4" }}
-          contentStyle={{
-            borderRadius: "16px",
-            border: "none",
-            boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-            fontWeight: 800,
-          }}
-        />
-        <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
-      </BarChart>
+          <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     );
   };
 
