@@ -35,6 +35,7 @@ import { getLogisticsDashboardDataAction, getReportFiltersDataAction } from "@/f
 import { Location } from "@/features/queue/types";
 import { User } from "@/features/users/types";
 import { useRef } from "react";
+import TimelineView from "./timeline/TimelineView";
 
 type ChartType = "bar" | "line" | "area" | "pie";
 type MetricType = "tickets" | "wait_time" | "atendimentos";
@@ -65,8 +66,15 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
   const attendantDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [activeView, setActiveView] = useState<"charts" | "timeline">("charts");
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
+
+  useEffect(() => {
+    if (range !== "today" && activeView === "timeline") {
+      setActiveView("charts");
+    }
+  }, [range, activeView]);
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
@@ -450,7 +458,42 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         </div>
       </section>
 
-      {/* Main Stats Summary */}
+      {/* View Toggle */}
+      <div className="flex bg-emerald-50/50 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveView("charts")}
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
+            activeView === "charts"
+              ? "bg-sefaz-accent text-white shadow-md"
+              : "text-sefaz-accent opacity-60 hover:opacity-100"
+          }`}
+        >
+          Visão Geral
+        </button>
+        <button
+          onClick={() => setActiveView("timeline")}
+          disabled={range !== "today"}
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
+            activeView === "timeline"
+              ? "bg-sefaz-accent text-white shadow-md"
+              : "text-sefaz-accent opacity-60 hover:opacity-100 disabled:opacity-30"
+          } ${range !== "today" ? "cursor-not-allowed" : ""}`}
+          title={range !== "today" ? "Disponível apenas para 'Hoje'" : ""}
+        >
+          Linha do Tempo
+        </button>
+      </div>
+
+      {activeView === "timeline" ? (
+        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]">
+          <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
+            Linha do Tempo de Atendimentos
+          </h3>
+          <TimelineView locationId={locationId} attendants={attendants} users={users} />
+        </div>
+      ) : (
+        <>
+          {/* Main Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={<Activity />}
@@ -559,7 +602,9 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
             </p>
           </div>
         </div>
-      </div>
+        </div>
+        </>
+      )}
     </div>
   );
 }

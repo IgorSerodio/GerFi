@@ -12,6 +12,7 @@ import {
   getPeakHours,
   getBusyDays,
   getCategoryAvgDuration,
+  getTimelineDataToday,
   ChartPoint,
 } from "./queries";
 import { pool } from "@/infra/database";
@@ -174,5 +175,14 @@ export async function getReportsDataAction(payload: {
     };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao gerar relatório.") };
+  }
+}
+
+export async function getTimelineAction(locationId: number | "all", attendants: string[]) {
+  try {
+    const data = await getTimelineDataToday(locationId, attendants);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao carregar dados da linha do tempo.") };
   }
 }

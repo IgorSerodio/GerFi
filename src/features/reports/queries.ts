@@ -529,3 +529,59 @@ export async function getYearlyEvolution(
     };
   });
 }
+
+export interface TimelineTicket {
+  id: string;
+  attendant: string;
+  guiche: string;
+  priority: "Normal" | "Prioritário";
+  status: string;
+  ticketNumber: string;
+  createdAt: string;
+  calledAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  recallHistory: string[];
+  forwardedTo: string | null;
+}
+
+export async function getTimelineDataToday(locationId: number | "all", attendants: string[]): Promise<TimelineTicket[]> {
+  let queryStr = `
+    SELECT 
+      id, attendant, guiche, priority, status, ticket_number,
+      created_at, called_at, started_at, completed_at,
+      recall_history, forwarded_to
+    FROM tickets
+    WHERE called_at IS NOT NULL
+      AND created_at >= CURRENT_DATE
+  `;
+  const params: any[] = [];
+
+  if (locationId !== "all") {
+    params.push(locationId);
+    queryStr += ` AND location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    queryStr += ` AND attendant = ANY($${params.length})`;
+  }
+
+  queryStr += ` ORDER BY called_at ASC`;
+
+  const { rows } = await pool.query(queryStr, params);
+
+  return rows.map((row) => ({
+    id: row.id,
+    attendant: row.attendant || "Desconhecido",
+    guiche: row.guiche || "-",
+    priority: row.priority,
+    status: row.status,
+    ticketNumber: row.ticket_number,
+    createdAt: row.created_at.toISOString(),
+    calledAt: row.called_at.toISOString(),
+    startedAt: row.started_at ? row.started_at.toISOString() : null,
+    completedAt: row.completed_at ? row.completed_at.toISOString() : null,
+    recallHistory: row.recall_history ? row.recall_history.map((d: Date) => d.toISOString()) : [],
+    forwardedTo: row.forwarded_to || null,
+  }));
+}
