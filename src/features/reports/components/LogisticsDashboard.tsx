@@ -318,22 +318,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           </span>
         </div>
 
-        <div className="flex bg-emerald-50/50 p-1 rounded-xl">
-          {(["tickets", "wait_time", "atendimentos"] as MetricType[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMetric(m)}
-              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${
-                metric === m
-                  ? "bg-sefaz-accent text-white shadow-md"
-                  : "text-sefaz-accent opacity-60 hover:opacity-100"
-              }`}
-            >
-              {m === "tickets" ? "Senhas" : m === "wait_time" ? "T. Espera" : "Concluídos"}
-            </button>
-          ))}
-        </div>
-
         <select
           value={range}
           onChange={(e) => setRange(e.target.value as DateRange)}
@@ -429,33 +413,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
             )}
           </AnimatePresence>
         </div>
-
-        <div className="ml-auto flex gap-2">
-          <ChartTypeBtn
-            active={chartType === "bar"}
-            onClick={() => setChartType("bar")}
-            icon={<BarIcon size={16} />}
-            title="Barras"
-          />
-          <ChartTypeBtn
-            active={chartType === "line"}
-            onClick={() => setChartType("line")}
-            icon={<LineIcon size={16} />}
-            title="Linha"
-          />
-          <ChartTypeBtn
-            active={chartType === "area"}
-            onClick={() => setChartType("area")}
-            icon={<TrendingUp size={16} />}
-            title="Área"
-          />
-          <ChartTypeBtn
-            active={chartType === "pie"}
-            onClick={() => setChartType("pie")}
-            icon={<PieIcon size={16} />}
-            title="Pizza"
-          />
-        </div>
       </section>
 
       {/* View Toggle */}
@@ -522,7 +479,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           layout
           className="xl:col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]"
         >
-          <div className="flex justify-between items-center mb-10">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-4">
             <div>
               <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight">
                 Evolução do Atendimento
@@ -530,6 +487,49 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
               <p className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase tracking-widest">
                 Baseado nos filtros selecionados
               </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex bg-emerald-50/50 p-1 rounded-xl">
+                {(["tickets", "wait_time", "atendimentos"] as MetricType[]).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMetric(m)}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${
+                      metric === m
+                        ? "bg-sefaz-accent text-white shadow-md"
+                        : "text-sefaz-accent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    {m === "tickets" ? "Senhas" : m === "wait_time" ? "T. Espera" : "Concluídos"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <ChartTypeBtn
+                  active={chartType === "bar"}
+                  onClick={() => setChartType("bar")}
+                  icon={<BarIcon size={16} />}
+                  title="Barras"
+                />
+                <ChartTypeBtn
+                  active={chartType === "line"}
+                  onClick={() => setChartType("line")}
+                  icon={<LineIcon size={16} />}
+                  title="Linha"
+                />
+                <ChartTypeBtn
+                  active={chartType === "area"}
+                  onClick={() => setChartType("area")}
+                  icon={<TrendingUp size={16} />}
+                  title="Área"
+                />
+                <ChartTypeBtn
+                  active={chartType === "pie"}
+                  onClick={() => setChartType("pie")}
+                  icon={<PieIcon size={16} />}
+                  title="Pizza"
+                />
+              </div>
             </div>
           </div>
 
