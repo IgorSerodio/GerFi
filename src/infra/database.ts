@@ -1,7 +1,17 @@
 import { Pool, types } from "pg";
 
+const parseTimestamp = (stringValue: string) => new Date(stringValue + "Z");
+
 // Garante que o pg interprete as datas do Postgres (TIMESTAMP sem fuso horário) como UTC
-types.setTypeParser(1114, (stringValue) => new Date(stringValue + "Z"));
+types.setTypeParser(1114, parseTimestamp);
+
+// @ts-expect-error OID 1115 (TIMESTAMP_ARRAY) não está mapeado nativamente na tipagem do pg
+types.setTypeParser(1115, (stringValue) => {
+  // @ts-expect-error arrayParser.create existe em tempo de execução, mas não está tipado no @types/pg
+  return types.arrayParser.create(stringValue, (entry: string | null) => {
+    return entry !== null ? parseTimestamp(entry) : null;
+  }).parse();
+});
 
 const globalForPool = globalThis as unknown as {
   pool: Pool | undefined;

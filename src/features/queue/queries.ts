@@ -78,7 +78,7 @@ export async function getHistory(locationId: number, services?: number[]): Promi
        AND location_id = $1
        AND created_at >= CURRENT_DATE
        AND ($2::integer[] IS NULL OR category_id = ANY($2::integer[]))
-     ORDER BY COALESCE(called_at, created_at) DESC 
+     ORDER BY COALESCE((SELECT max(x) FROM unnest(recall_history) x), called_at, created_at) DESC 
      LIMIT 50`,
     [locationId, servicesArray]
   );
@@ -200,7 +200,7 @@ export async function callNextTicket(
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    "UPDATE tickets SET called_at = NOW(), recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
+    "UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
     [ticketId]
   );
   if (rows.length === 0) return null;

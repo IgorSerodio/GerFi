@@ -100,7 +100,7 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
             <React.Fragment key={ticket.id}>
               {/* Ponto de Chegada (Azul) */}
               <div 
-                className={`absolute top-1/2 w-2 h-2 bg-blue-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-2 ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
+                className={`absolute top-1/2 w-2 h-2 bg-blue-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
                 style={{ left: `${createdPct}%` }}
                 title={tooltip}
                 onMouseEnter={() => handleMouseEnter(ticket.id)}
@@ -110,7 +110,7 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
               
               {/* Ponto de Chamada (Cinza) */}
               <div 
-                className={`absolute top-1/2 w-2 h-2 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2 ring-2 ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
+                className={`absolute top-1/2 w-2 h-2 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
                 style={{ left: `${calledPct}%` }}
                 title={tooltip}
                 onMouseEnter={() => handleMouseEnter(ticket.id)}

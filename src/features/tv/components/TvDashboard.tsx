@@ -107,13 +107,15 @@ export default function TvDashboard({
           setIsIdle(false);
           resetIdleTimer();
 
-          const currentCalledAt = first.calledAt || "";
+          const latestCallTime = first.recallHistory && first.recallHistory.length > 0 
+            ? first.recallHistory[first.recallHistory.length - 1] 
+            : (first.calledAt || "");
 
-          if ((first.id !== prevCallIdRef.current || currentCalledAt !== prevCalledAtRef.current) && soundEnabled) {
+          if ((first.id !== prevCallIdRef.current || latestCallTime !== prevCalledAtRef.current) && soundEnabled) {
             playAlert();
           }
           prevCallIdRef.current = first.id;
-          prevCalledAtRef.current = currentCalledAt;
+          prevCalledAtRef.current = latestCallTime;
         } else {
           setCurrentCall(null);
           setIsIdle(true);

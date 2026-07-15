@@ -53,7 +53,10 @@ export default function TimelineMinimap({ minTime, maxTime, onChange }: Timeline
   };
 
   return (
-    <div className="flex items-center gap-4 mb-4 select-none ml-[200px]">
+    <div className="flex items-center mb-8 select-none ml-[200px] mr-[16px] mt-6 gap-4">
+      <span className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase shrink-0">
+        {formatTime(0)}
+      </span>
       <div 
         className="relative flex-1 h-2 bg-emerald-50 rounded-full cursor-crosshair border border-emerald-100"
         ref={containerRef}
@@ -66,29 +69,45 @@ export default function TimelineMinimap({ minTime, maxTime, onChange }: Timeline
         
         {/* Handle Inicial */}
         <div 
-          className="absolute top-1/2 w-4 h-4 bg-white border-2 border-sefaz-accent rounded-full -translate-y-1/2 -translate-x-1/2 cursor-ew-resize shadow hover:scale-125 transition-transform z-10 flex items-center justify-center"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 flex flex-col items-center cursor-ew-resize group"
           style={{ left: `${startPercent}%` }}
           onMouseDown={() => setIsDragging('start')}
-          title={formatTime(startPercent)}
         >
-          <div className="w-1 h-2 border-x border-emerald-200" />
+          {/* Label Flutuante */}
+          <div className="absolute bottom-full mb-1 flex flex-col items-center">
+            <div className="bg-sefaz-dark text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm whitespace-nowrap transition-transform group-hover:scale-110">
+              {formatTime(startPercent)}
+            </div>
+            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-l-transparent border-r-transparent border-t-sefaz-dark"></div>
+          </div>
+          
+          <div className="w-4 h-4 bg-white border-2 border-sefaz-accent rounded-full shadow transition-transform group-hover:scale-125 flex items-center justify-center">
+            <div className="w-1 h-2 border-x border-emerald-200" />
+          </div>
         </div>
 
         {/* Handle Final */}
         <div 
-          className="absolute top-1/2 w-4 h-4 bg-white border-2 border-sefaz-accent rounded-full -translate-y-1/2 -translate-x-1/2 cursor-ew-resize shadow hover:scale-125 transition-transform z-10 flex items-center justify-center"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 flex flex-col items-center cursor-ew-resize group"
           style={{ left: `${endPercent}%` }}
           onMouseDown={() => setIsDragging('end')}
-          title={formatTime(endPercent)}
         >
-          <div className="w-1 h-2 border-x border-emerald-200" />
+          {/* Label Flutuante */}
+          <div className="absolute bottom-full mb-1 flex flex-col items-center">
+            <div className="bg-sefaz-dark text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm whitespace-nowrap transition-transform group-hover:scale-110">
+              {formatTime(endPercent)}
+            </div>
+            <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-l-transparent border-r-transparent border-t-sefaz-dark"></div>
+          </div>
+          
+          <div className="w-4 h-4 bg-white border-2 border-sefaz-accent rounded-full shadow transition-transform group-hover:scale-125 flex items-center justify-center">
+            <div className="w-1 h-2 border-x border-emerald-200" />
+          </div>
         </div>
       </div>
-      <div className="flex gap-2 items-center w-[120px] justify-end shrink-0">
-        <span className="text-[10px] font-bold text-sefaz-dark bg-emerald-50 px-2 py-0.5 rounded">{formatTime(startPercent)}</span>
-        <span className="text-[10px] font-bold text-sefaz-accent opacity-50">-</span>
-        <span className="text-[10px] font-bold text-sefaz-dark bg-emerald-50 px-2 py-0.5 rounded">{formatTime(endPercent)}</span>
-      </div>
+      <span className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase shrink-0">
+        {formatTime(100)}
+      </span>
     </div>
   );
 }

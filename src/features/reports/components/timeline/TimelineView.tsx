@@ -133,11 +133,11 @@ export default function TimelineView({ locationId, attendants, users }: Timeline
           <span className="text-[10px] font-bold text-sefaz-dark">Chamada / Rechamada</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 bg-orange-500 rounded-full" />
+          <div className="w-2 h-2 bg-orange-500 rounded-full" />
           <span className="text-[10px] font-bold text-sefaz-dark">Encaminhado</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />
+          <div className="w-2 h-2 bg-red-500 rounded-full" />
           <span className="text-[10px] font-bold text-sefaz-dark">Ausente</span>
         </div>
 

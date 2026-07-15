@@ -16,7 +16,7 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
 
   const getPercent = (dateStr: string) => {
     const time = new Date(dateStr).getTime();
-    return Math.max(0, Math.min(100, ((time - minTime) / duration) * 100));
+    return ((time - minTime) / duration) * 100;
   };
 
   return (
@@ -82,7 +82,7 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
 
               {/* Ponto Roxo: Chamada Inicial */}
               <div 
-                className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-2 ring-white"
+                className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
                 style={{ left: `${calledPct}%` }}
                 title={tooltip}
               />
@@ -91,7 +91,7 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
               {ticket.recallHistory.map((recallTime, i) => (
                 <div 
                   key={i}
-                  className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-2 ring-white"
+                  className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
                   style={{ left: `${getPercent(recallTime)}%` }}
                   title={tooltip}
                 />
@@ -100,7 +100,7 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
               {/* Ponto Final: Encaminhado (Laranja) ou No Show (Vermelho) */}
               {ticket.completedAt && ticket.status === 'forwarded' && (
                 <div 
-                  className="absolute top-1/2 w-2.5 h-2.5 bg-orange-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-2 ring-white"
+                  className="absolute top-1/2 w-2 h-2 bg-orange-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
                   style={{ left: `${completedPct}%` }}
                   title={tooltip}
                 />
@@ -108,7 +108,7 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
 
               {ticket.completedAt && ticket.status === 'no_show' && (
                 <div 
-                  className="absolute top-1/2 w-2.5 h-2.5 bg-red-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-2 ring-white"
+                  className="absolute top-1/2 w-2 h-2 bg-red-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
                   style={{ left: `${completedPct}%` }}
                   title={tooltip}
                 />

@@ -2,26 +2,47 @@ import React from 'react';
 
 export default function TimelineAxis({ minTime, maxTime }: { minTime: number, maxTime: number }) {
   const duration = maxTime - minTime;
-  const hours = [];
   
-  // Create an array of hour marks
-  const startHour = new Date(minTime).getHours();
-  const endHour = new Date(maxTime).getHours() + 1; // plus 1 to cover the end
+  const min1 = 60 * 1000;
+  const min5 = 5 * min1;
+  const min10 = 10 * min1;
+  const min15 = 15 * min1;
+  const min30 = 30 * min1;
   
-  for (let h = startHour; h <= endHour; h++) {
-    const markTime = new Date(minTime);
-    markTime.setHours(h, 0, 0, 0);
-    const timeMs = markTime.getTime();
-    if (timeMs >= minTime && timeMs <= maxTime) {
-      hours.push(timeMs);
+  // target roughly 12 marks
+  const targetStep = duration / 12;
+  
+  let stepMinutes = 60;
+  if (targetStep <= min1) stepMinutes = 1;
+  else if (targetStep <= min5) stepMinutes = 5;
+  else if (targetStep <= min10) stepMinutes = 10;
+  else if (targetStep <= min15) stepMinutes = 15;
+  else if (targetStep <= min30) stepMinutes = 30;
+  else stepMinutes = 60;
+
+  const marks = [];
+  
+  const d = new Date(minTime);
+  // Arredonda para baixo para o múltiplo mais próximo do step (ex: se step é 15, e hora é 14:23, vira 14:15)
+  const currentMinutes = d.getMinutes();
+  const alignedMinutes = Math.floor(currentMinutes / stepMinutes) * stepMinutes;
+  d.setMinutes(alignedMinutes, 0, 0);
+  
+  let currentMark = d.getTime();
+  
+  while (currentMark <= maxTime) {
+    if (currentMark >= minTime) {
+      marks.push(currentMark);
     }
+    currentMark += stepMinutes * 60 * 1000;
   }
 
   return (
     <div className="relative h-8 border-b border-emerald-100 mb-4 ml-[200px]">
-      {hours.map(time => {
+      {marks.map(time => {
         const percent = ((time - minTime) / duration) * 100;
-        const d = new Date(time);
+        const dateObj = new Date(time);
+        const label = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         return (
           <div 
             key={time} 
@@ -29,7 +50,7 @@ export default function TimelineAxis({ minTime, maxTime }: { minTime: number, ma
             style={{ left: `${percent}%` }}
           >
             <span className="text-[9px] font-black text-sefaz-accent opacity-50 mt-1 uppercase">
-              {d.getHours().toString().padStart(2, '0')}:00
+              {label}
             </span>
           </div>
         );
