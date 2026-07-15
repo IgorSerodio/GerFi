@@ -72,6 +72,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
 
   useEffect(() => {
     if (range !== "today" && activeView === "timeline") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveView("charts");
     }
   }, [range, activeView]);
