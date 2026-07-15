@@ -6,6 +6,7 @@ export type QueryParam = string | number | Date | string[];
 export interface VolumeStats {
   total: number;
   avgWait: string;
+  avgService: string;
   efficiency: string;
 }
 
@@ -98,6 +99,7 @@ export async function getVolumeStats(startDate: Date, endDate: Date, locationId:
     SELECT 
       COUNT(*) as total,
       COALESCE(AVG(chain_wait_seconds) / 60, 0) as avg_wait_min,
+      COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_service_min,
       COALESCE((COUNT(CASE WHEN effective_status = 'completed' THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 0) as efficiency
     FROM filtered_tickets
   `;
@@ -108,6 +110,7 @@ export async function getVolumeStats(startDate: Date, endDate: Date, locationId:
   return {
     total: parseInt(stats.total, 10),
     avgWait: `${Math.round(parseFloat(stats.avg_wait_min))}min`,
+    avgService: `${Math.round(parseFloat(stats.avg_service_min))}min`,
     efficiency: `${Math.round(parseFloat(stats.efficiency))}%`,
   };
 }
@@ -663,13 +666,19 @@ export interface AnalyticalTicket {
   status: string;
   createdAt: Date;
   originalCreatedAt: Date;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  originalStartedAt: Date | null;
+  originalCompletedAt: Date | null;
 }
 
 export async function getAnalyticalData(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<AnalyticalTicket[]> {
   let queryStr = `
     SELECT 
       t.*,
-      (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at
+      (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
+      (SELECT MIN(started_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_started_at,
+      (SELECT MAX(completed_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_completed_at
     FROM tickets t
     WHERE t.created_at BETWEEN $1 AND $2
   `;
@@ -698,5 +707,9 @@ export async function getAnalyticalData(startDate: Date, endDate: Date, serviceI
     status: row.status,
     createdAt: row.created_at,
     originalCreatedAt: row.original_created_at,
+    startedAt: row.started_at,
+    completedAt: row.completed_at,
+    originalStartedAt: row.original_started_at,
+    originalCompletedAt: row.original_completed_at,
   }));
 }

@@ -21,6 +21,8 @@ import { getUsers } from "@/features/users/queries";
 
 interface DetailRow {
   time: string;
+  started: string;
+  completed: string;
   ref: string;
   desk: string;
   user: string;
@@ -132,6 +134,8 @@ export async function getReportsDataAction(payload: {
       detailRows = rows.map((row) => {
         const isForwarded = row.createdAt.getTime() > row.originalCreatedAt.getTime();
         const origTime = row.originalCreatedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const origStarted = row.originalStartedAt ? row.originalStartedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
+        const origCompleted = row.originalCompletedAt ? row.originalCompletedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
         
           let mappedStatus = "AGUARDANDO";
           switch (row.status) {
@@ -145,6 +149,12 @@ export async function getReportsDataAction(payload: {
 
           return {
             time: isForwarded ? `${row.createdAt.toLocaleString("pt-BR")} (Orig: ${origTime})` : row.createdAt.toLocaleString("pt-BR"),
+            started: row.startedAt 
+              ? (isForwarded && origStarted ? `${row.startedAt.toLocaleString("pt-BR")} (Orig: ${origStarted})` : row.startedAt.toLocaleString("pt-BR")) 
+              : "-",
+            completed: row.completedAt 
+              ? (isForwarded && origCompleted ? `${row.completedAt.toLocaleString("pt-BR")} (Orig: ${origCompleted})` : row.completedAt.toLocaleString("pt-BR")) 
+              : "-",
             ref: isForwarded ? `ENCAM. DE ${row.ticketNumber}` : row.ticketNumber,
             desk: row.guiche ? row.guiche.replace("Guichê ", "") : "-",
             user: row.attendant || "-",

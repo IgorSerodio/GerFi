@@ -24,12 +24,15 @@ interface ReportResultData {
   stats: {
     total: number;
     avgWait: string;
+    avgService: string;
     efficiency: string;
   };
   categoryAggregation: Array<{ name: string; count: number; value: number }>;
   attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
   detailRows: Array<{
     time: string;
+    started: string;
+    completed: string;
     ref: string;
     desk: string;
     user: string;
@@ -463,7 +466,7 @@ export default function ReportsView() {
             </div>
 
             {/* Stats Summary Panel */}
-            <div className="grid grid-cols-3 gap-6 bg-emerald-50/30 p-8 rounded-[32px] border border-emerald-100/50 text-center">
+            <div className="grid grid-cols-4 gap-6 bg-emerald-50/30 p-8 rounded-[32px] border border-emerald-100/50 text-center">
               <div>
                 <p className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest opacity-60">
                   Total Senhas
@@ -474,15 +477,23 @@ export default function ReportsView() {
               </div>
               <div className="border-x border-emerald-100/50">
                 <p className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest opacity-60">
-                  Tempo Médio
+                  Tempo Médio de Espera
                 </p>
                 <p className="text-3xl font-black text-sefaz-dark">
                   {reportResult.stats.avgWait}
                 </p>
               </div>
+              <div className="border-r border-emerald-100/50">
+                <p className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest opacity-60">
+                  Tempo Médio de Atend.
+                </p>
+                <p className="text-3xl font-black text-sefaz-dark">
+                  {reportResult.stats.avgService}
+                </p>
+              </div>
               <div>
                 <p className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest opacity-60">
-                  Volume Finalizado
+                  Volume Concluído
                 </p>
                 <p className="text-3xl font-black text-emerald-600">
                   {reportResult.stats.efficiency}
@@ -514,8 +525,10 @@ export default function ReportsView() {
                   <table className="w-full text-left whitespace-nowrap">
                     <thead className="bg-emerald-50/50">
                       <tr>
-                        <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Data/Hora</th>
                         <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Senha</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Criado</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Iniciado</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Finalizado</th>
                         <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Guichê</th>
                         <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Servidor</th>
                         <th className="px-6 py-4 text-[10px] font-black text-sefaz-accent uppercase">Status</th>
@@ -524,11 +537,17 @@ export default function ReportsView() {
                     <tbody className="divide-y divide-emerald-50">
                       {reportResult.detailRows.map((row, i: number) => (
                         <tr key={i} className="hover:bg-emerald-50/30">
+                          <td className="px-6 py-4 text-xs font-black text-sefaz-accent">
+                            {row.ref}
+                          </td>
                           <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
                             {row.time}
                           </td>
-                          <td className="px-6 py-4 text-xs font-black text-sefaz-accent">
-                            {row.ref}
+                          <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
+                            {row.started}
+                          </td>
+                          <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
+                            {row.completed}
                           </td>
                           <td className="px-6 py-4 text-xs font-medium text-sefaz-accent">
                             {row.desk}
