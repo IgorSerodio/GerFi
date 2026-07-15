@@ -13,9 +13,9 @@ import {
   getBusyDays,
   getCategoryAvgDuration,
   getTimelineDataToday,
+  getAnalyticalData,
   ChartPoint,
 } from "./queries";
-import { pool } from "@/infra/database";
 import { getLocations } from "@/features/queue/queries";
 import { getUsers } from "@/features/users/queries";
 
@@ -128,34 +128,29 @@ export async function getReportsDataAction(payload: {
     // Busca detalhada dos tickets caso seja relatório analítico
     let detailRows: DetailRow[] = [];
     if (reportType === "analytical") {
-      let queryStr = `
-        SELECT * FROM tickets 
-        WHERE created_at BETWEEN $1 AND $2
-      `;
-      const params: any[] = [start, end];
+      const rows = await getAnalyticalData(start, end, service, locationId, attendants);
+      detailRows = rows.map((row) => {
+        const isForwarded = row.createdAt.getTime() > row.originalCreatedAt.getTime();
+        const origTime = row.originalCreatedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+          let mappedStatus = "AGUARDANDO";
+          switch (row.status) {
+            case "completed": mappedStatus = "CONCLUÍDO"; break;
+            case "no_show": mappedStatus = "NÃO COMPARECEU"; break;
+            case "forwarded": mappedStatus = "ENCAMINHADO"; break;
+            case "started": mappedStatus = "EM ATENDIMENTO"; break;
+            case "calling": mappedStatus = "CHAMADO"; break;
+            case "pending": mappedStatus = "AGUARDANDO"; break;
+          }
 
-      if (service !== "all") {
-        params.push(parseInt(service, 10));
-        queryStr += ` AND category_id = $${params.length}`;
-      }
-      if (locationId !== "all") {
-        params.push(locationId);
-        queryStr += ` AND location_id = $${params.length}`;
-      }
-      if (attendants && attendants.length > 0) {
-        params.push(attendants);
-        queryStr += ` AND attendant = ANY($${params.length})`;
-      }
-
-      queryStr += ` ORDER BY created_at DESC LIMIT 100`;
-      const res = await pool.query(queryStr, params);
-      detailRows = res.rows.map((row) => ({
-        time: row.created_at.toLocaleString("pt-BR"),
-        ref: row.ticket_number,
-        desk: row.guiche ? row.guiche.replace("Guichê ", "") : "-",
-        user: row.attendant || "-",
-        status: row.status === "completed" ? "CONCLUÍDO" : row.status === "started" ? "EM ATENDIMENTO" : row.status === "calling" ? "CHAMADO" : "AGUARDANDO",
-      }));
+          return {
+            time: isForwarded ? `${row.createdAt.toLocaleString("pt-BR")} (Orig: ${origTime})` : row.createdAt.toLocaleString("pt-BR"),
+            ref: isForwarded ? `ENCAM. DE ${row.ticketNumber}` : row.ticketNumber,
+            desk: row.guiche ? row.guiche.replace("Guichê ", "") : "-",
+            user: row.attendant || "-",
+            status: mappedStatus,
+          };
+      });
     }
 
     return {

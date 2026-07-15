@@ -15,15 +15,41 @@ export function getTicketTooltipText(ticket: TimelineTicket): string {
   const called = formatTime(ticket.calledAt);
   const waitTime = ticket.calledAt ? getDiffMinutes(ticket.createdAt, ticket.calledAt) : 0;
   
+  let durationVal = 0;
   let durationStr = 'Em andamento';
   if (ticket.completedAt && ticket.startedAt) {
-    durationStr = `${getDiffMinutes(ticket.startedAt, ticket.completedAt)} min`;
+    durationVal = getDiffMinutes(ticket.startedAt, ticket.completedAt);
+    durationStr = `${durationVal}`;
   } else if (ticket.completedAt && ticket.calledAt) {
-    durationStr = `${getDiffMinutes(ticket.calledAt, ticket.completedAt)} min`;
+    durationVal = getDiffMinutes(ticket.calledAt, ticket.completedAt);
+    durationStr = `${durationVal}`;
   }
 
-  return `Ticket: ${ticket.ticketNumber}
-Prioridade: ${ticket.priority}
-Criado: ${arrived} | Esperou: ${waitTime} min
-Chamado: ${called} | Duração: ${durationStr}`;
+  const isForwarded = ticket.originalCreatedAt && new Date(ticket.createdAt).getTime() > new Date(ticket.originalCreatedAt).getTime();
+  
+  let header = `Ticket: ${ticket.ticketNumber}`;
+  let arrivedText = `Criado: ${arrived}`;
+  let calledText = `Chamado: ${called}`;
+  let waitText = `Esperou: ${waitTime} min`;
+  let durationFinalText = durationStr === 'Em andamento' ? `Duração: ${durationStr}` : `Duração: ${durationStr} min`;
+
+  if (isForwarded) {
+    header = `Ticket: Encaminhamento de ${ticket.ticketNumber}`;
+    const origArrived = formatTime(ticket.originalCreatedAt);
+    const origCalled = formatTime(ticket.originalCalledAt);
+    const globalWait = Math.round((ticket.globalWaitSeconds || 0) / 60);
+    const globalService = Math.round((ticket.globalServiceSeconds || 0) / 60);
+    
+    arrivedText = `Criado: ${arrived} (original - ${origArrived})`;
+    calledText = `Chamado: ${called} (original - ${origCalled})`;
+    waitText = `Esperou: ${waitTime} min (total - ${globalWait} min)`;
+    
+    if (durationStr !== 'Em andamento') {
+      durationFinalText = `Duração: ${durationStr} min (total - ${globalService} min)`;
+    } else {
+      durationFinalText = `Duração: ${durationStr} (total até agora - ${globalService} min)`;
+    }
+  }
+
+  return `${header}\nPrioridade: ${ticket.priority}\n${arrivedText}\n${calledText}\n${waitText}\n${durationFinalText}`;
 }
