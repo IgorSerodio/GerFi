@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "migrate": "tsx --env-file=.env scripts/migrate.ts",
-    "seed": "tsx --env-file=.env scripts/seed.ts"
+    "seed": "tsx --env-file=.env scripts/seed.ts",
+    "mock": "tsx --env-file=.env scripts/mock.ts",
+    "unmock": "tsx --env-file=.env scripts/unmock.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
