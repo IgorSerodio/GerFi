@@ -43,16 +43,20 @@ export async function getReportFiltersDataAction() {
 }
 
 export async function getLogisticsDashboardDataAction(
-  range: "today" | "week" | "month" | "year",
+  range: "today" | "week" | "month" | "year" | "custom",
   metric: "tickets" | "wait_time" | "atendimentos",
   locationId: number | "all" = "all",
-  attendants: string[] = []
+  attendants: string[] = [],
+  dateStr?: string
 ) {
   try {
     const startDate = new Date();
     const endDate = new Date();
 
-    if (range === "today") {
+    if (range === "custom" && dateStr) {
+      startDate.setTime(new Date(`${dateStr}T00:00:00`).getTime());
+      endDate.setTime(new Date(`${dateStr}T23:59:59.999`).getTime());
+    } else if (range === "today") {
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
     } else if (range === "week") {

@@ -59,10 +59,10 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [range, setRange] = useState<DateRange>("today");
   const [locationId, setLocationId] = useState<number | "all">("all");
   const [attendants, setAttendants] = useState<string[]>([]);
-  
+
   const [locations, setLocations] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  
+
   const [attendantSearch, setAttendantSearch] = useState("");
   const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
   const attendantDropdownRef = useRef<HTMLDivElement>(null);
@@ -74,12 +74,22 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
-    const res = await getLogisticsDashboardDataAction(range, metric, locationId, attendants);
+    const effectiveRange = activeView === "timeline" ? "custom" : range;
+    const effectiveDateStr = activeView === "timeline" ? timelineDate : undefined;
+
+    const res = await getLogisticsDashboardDataAction(
+      effectiveRange as any, 
+      metric, 
+      locationId, 
+      attendants, 
+      effectiveDateStr
+    );
+    
     if (res.success && res.data) {
       setData(res.data as DashboardData);
     }
     setIsLoading(false);
-  }, [range, metric, locationId, attendants]);
+  }, [range, metric, locationId, attendants, activeView, timelineDate]);
 
   useEffect(() => {
     const loadFilters = async () => {
@@ -109,7 +119,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   // Sincronização em tempo real via Server-Sent Events (SSE)
   useEffect(() => {
     const eventSource = new EventSource("/api/queue/stream");
-    
+
     eventSource.onmessage = () => {
       // heartbeats
     };
@@ -352,7 +362,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
                 {attendants.map((attName) => (
                   <div key={attName} className="flex items-center gap-1 bg-emerald-100 text-sefaz-dark px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight whitespace-nowrap">
                     {attName}
-                    <button 
+                    <button
                       onClick={() => setAttendants(prev => prev.filter(a => a !== attName))}
                       className="ml-1 hover:text-emerald-700 cursor-pointer"
                     >
@@ -362,7 +372,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
                 ))}
               </div>
             ) : null}
-            
+
             <div className="flex items-center flex-1">
               {attendants.length === 0 && <Search size={14} className="text-emerald-400 mr-2" />}
               <input
@@ -388,10 +398,10 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
                 className="absolute z-10 w-[250px] mt-2 bg-white border border-emerald-100 rounded-xl shadow-xl max-h-[200px] overflow-y-auto custom-scrollbar left-0"
               >
                 {users
-                  .filter(u => 
-                    !attendants.includes(u.name) && 
-                    (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) || 
-                     u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))
+                  .filter(u =>
+                    !attendants.includes(u.name) &&
+                    (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) ||
+                      u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))
                   )
                   .map((user) => (
                     <button
@@ -418,40 +428,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         </div>
       </section>
 
-      {/* View Toggle */}
-      <div className="flex bg-emerald-50/50 p-1 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveView("timeline")}
-          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
-            activeView === "timeline"
-              ? "bg-sefaz-accent text-white shadow-md"
-              : "text-sefaz-accent opacity-60 hover:opacity-100"
-          }`}
-        >
-          Linha do Tempo
-        </button>
-        <button
-          onClick={() => setActiveView("charts")}
-          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
-            activeView === "charts"
-              ? "bg-sefaz-accent text-white shadow-md"
-              : "text-sefaz-accent opacity-60 hover:opacity-100"
-          }`}
-        >
-          Visão Geral
-        </button>
-      </div>
-
-      {activeView === "timeline" ? (
-        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]">
-          <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
-            Linha do Tempo de Atendimentos
-          </h3>
-          <TimelineView locationId={locationId} attendants={attendants} users={users} dateStr={timelineDate} />
-        </div>
-      ) : (
-        <>
-          {/* Main Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={<Activity />}
@@ -462,8 +438,14 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         <StatCard
           icon={<Clock />}
           value={data?.stats.avgWait ?? "0min"}
-          label="Tempo Médio"
+          label="Tempo Médio de Espera"
           color="bg-blue-500"
+        />
+        <StatCard
+          icon={<Clock />}
+          value={data?.stats.avgService ?? "0min"}
+          label="Tempo Médio de Atend."
+          color="bg-purple-500"
         />
         <StatCard
           icon={<BarChart3 />}
@@ -471,139 +453,169 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           label="Eficiência"
           color="bg-indigo-500"
         />
-        <StatCard icon={<Users />} value="Online" label="Sincronismo" color="bg-amber-500" />
       </div>
 
-      {/* Main Visualization Area */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <motion.div
-          layout
-          className="xl:col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]"
-        >
-          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-4">
-            <div>
-              <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight">
-                Evolução do Atendimento
-              </h3>
-              <p className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase tracking-widest">
-                Baseado nos filtros selecionados
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex bg-emerald-50/50 p-1 rounded-xl">
-                {(["tickets", "wait_time", "atendimentos"] as MetricType[]).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMetric(m)}
-                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${
-                      metric === m
-                        ? "bg-sefaz-accent text-white shadow-md"
-                        : "text-sefaz-accent opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    {m === "tickets" ? "Senhas" : m === "wait_time" ? "T. Espera" : "Concluídos"}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <ChartTypeBtn
-                  active={chartType === "bar"}
-                  onClick={() => setChartType("bar")}
-                  icon={<BarIcon size={16} />}
-                  title="Barras"
-                />
-                <ChartTypeBtn
-                  active={chartType === "line"}
-                  onClick={() => setChartType("line")}
-                  icon={<LineIcon size={16} />}
-                  title="Linha"
-                />
-                <ChartTypeBtn
-                  active={chartType === "area"}
-                  onClick={() => setChartType("area")}
-                  icon={<TrendingUp size={16} />}
-                  title="Área"
-                />
-                <ChartTypeBtn
-                  active={chartType === "pie"}
-                  onClick={() => setChartType("pie")}
-                  icon={<PieIcon size={16} />}
-                  title="Pizza"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`h-[350px] w-full transition-opacity duration-300 ${
-              isLoading ? "opacity-20" : "opacity-100"
+      {/* View Toggle */}
+      <div className="flex bg-emerald-50/50 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveView("timeline")}
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${activeView === "timeline"
+              ? "bg-sefaz-accent text-white shadow-md"
+              : "text-sefaz-accent opacity-60 hover:opacity-100"
             }`}
-          >
-            {renderChart()}
-          </div>
+        >
+          Linha do Tempo
+        </button>
+        <button
+          onClick={() => setActiveView("charts")}
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${activeView === "charts"
+              ? "bg-sefaz-accent text-white shadow-md"
+              : "text-sefaz-accent opacity-60 hover:opacity-100"
+            }`}
+        >
+          Visão Geral
+        </button>
+      </div>
 
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-10 h-10 border-4 border-emerald-100 border-t-sefaz-accent rounded-full animate-spin" />
-            </div>
-          )}
-        </motion.div>
 
-        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 h-full">
-          <h3 className="text-xl font-black text-sefaz-dark mb-6 uppercase tracking-tight">
-            Ranking de Serviços
+
+      {activeView === "timeline" ? (
+        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]">
+          <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
+            Linha do Tempo de Atendimentos
           </h3>
-          <div className="space-y-4">
-            {data?.categoryAggregation.map((item, i) => (
-              <div key={item.name} className="flex flex-col gap-1.5">
-                <div className="flex justify-between text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
-                  <span>{item.name}</span>
-                  <span>{item.value}%</span>
+          <TimelineView locationId={locationId} attendants={attendants} users={users} dateStr={timelineDate} />
+        </div>
+      ) : (
+        <>
+          {/* Main Visualization Area */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <motion.div
+              layout
+              className="xl:col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 relative min-h-[450px]"
+            >
+              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-4">
+                <div>
+                  <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight">
+                    Evolução do Atendimento
+                  </h3>
+                  <p className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase tracking-widest">
+                    Baseado nos filtros selecionados
+                  </p>
                 </div>
-                <div className="h-3 bg-emerald-50 rounded-full overflow-hidden border border-emerald-100/50">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${item.value}%` }}
-                    className={`h-full ${COLORS[i % COLORS.length]} rounded-full`}
-                  />
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex bg-emerald-50/50 p-1 rounded-xl">
+                    {(["tickets", "wait_time", "atendimentos"] as MetricType[]).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setMetric(m)}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${metric === m
+                            ? "bg-sefaz-accent text-white shadow-md"
+                            : "text-sefaz-accent opacity-60 hover:opacity-100"
+                          }`}
+                      >
+                        {m === "tickets" ? "Senhas" : m === "wait_time" ? "T. Espera" : "Concluídos"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <ChartTypeBtn
+                      active={chartType === "bar"}
+                      onClick={() => setChartType("bar")}
+                      icon={<BarIcon size={16} />}
+                      title="Barras"
+                    />
+                    <ChartTypeBtn
+                      active={chartType === "line"}
+                      onClick={() => setChartType("line")}
+                      icon={<LineIcon size={16} />}
+                      title="Linha"
+                    />
+                    <ChartTypeBtn
+                      active={chartType === "area"}
+                      onClick={() => setChartType("area")}
+                      icon={<TrendingUp size={16} />}
+                      title="Área"
+                    />
+                    <ChartTypeBtn
+                      active={chartType === "pie"}
+                      onClick={() => setChartType("pie")}
+                      icon={<PieIcon size={16} />}
+                      title="Pizza"
+                    />
+                  </div>
                 </div>
               </div>
-            ))}
-            {(!data || data.categoryAggregation.length === 0) && (
-              <div className="py-12 text-center text-[10px] font-black text-sefaz-accent opacity-20 uppercase tracking-widest">
-                Aguardando Dados...
-              </div>
-            )}
-          </div>
 
-          <div className="mt-8 p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100/50">
-            <h4 className="text-[10px] font-black text-sefaz-dark uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Activity size={12} className="text-sefaz-accent" /> Insights do Dia
-            </h4>
-            <p className="text-[11px] text-sefaz-accent font-medium leading-relaxed">
-              {data && data.categoryAggregation.length > 0 ? (
-                <>
-                  O serviço de{" "}
-                  <strong className="text-sefaz-dark">
-                    {data.categoryAggregation[0].name}
-                  </strong>{" "}
-                  representa a maior demanda atual ({data.categoryAggregation[0].value}%).
-                  {parseInt(data.stats.avgWait.replace("min", "")) > 15 ? (
-                    <span className="text-amber-700">
-                      {" "}
-                      Recomendamos reforçar os guichês devido ao alto tempo de espera.
-                    </span>
-                  ) : (
-                    <span> O fluxo está sendo processado com eficiência satisfatória.</span>
-                  )}
-                </>
-              ) : (
-                "O sistema está aguardando os primeiros atendimentos do dia para gerar insights automáticos."
+              <div
+                className={`h-[350px] w-full transition-opacity duration-300 ${isLoading ? "opacity-20" : "opacity-100"
+                  }`}
+              >
+                {renderChart()}
+              </div>
+
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-emerald-100 border-t-sefaz-accent rounded-full animate-spin" />
+                </div>
               )}
-            </p>
+            </motion.div>
+
+            <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-100 h-full">
+              <h3 className="text-xl font-black text-sefaz-dark mb-6 uppercase tracking-tight">
+                Ranking de Serviços
+              </h3>
+              <div className="space-y-4">
+                {data?.categoryAggregation.map((item, i) => (
+                  <div key={item.name} className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
+                      <span>{item.name}</span>
+                      <span>{item.value}%</span>
+                    </div>
+                    <div className="h-3 bg-emerald-50 rounded-full overflow-hidden border border-emerald-100/50">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${item.value}%` }}
+                        className={`h-full ${COLORS[i % COLORS.length]} rounded-full`}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {(!data || data.categoryAggregation.length === 0) && (
+                  <div className="py-12 text-center text-[10px] font-black text-sefaz-accent opacity-20 uppercase tracking-widest">
+                    Aguardando Dados...
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100/50">
+                <h4 className="text-[10px] font-black text-sefaz-dark uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <Activity size={12} className="text-sefaz-accent" /> Insights do Dia
+                </h4>
+                <p className="text-[11px] text-sefaz-accent font-medium leading-relaxed">
+                  {data && data.categoryAggregation.length > 0 ? (
+                    <>
+                      O serviço de{" "}
+                      <strong className="text-sefaz-dark">
+                        {data.categoryAggregation[0].name}
+                      </strong>{" "}
+                      representa a maior demanda atual ({data.categoryAggregation[0].value}%).
+                      {parseInt(data.stats.avgWait.replace("min", "")) > 15 ? (
+                        <span className="text-amber-700">
+                          {" "}
+                          Recomendamos reforçar os guichês devido ao alto tempo de espera.
+                        </span>
+                      ) : (
+                        <span> O fluxo está sendo processado com eficiência satisfatória.</span>
+                      )}
+                    </>
+                  ) : (
+                    "O sistema está aguardando os primeiros atendimentos do dia para gerar insights automáticos."
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-        </div>
         </>
       )}
     </div>
@@ -622,15 +634,15 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-white p-6 rounded-[32px] border border-emerald-100 shadow-sm flex items-center gap-6 group hover:shadow-xl hover:shadow-emerald-950/5 transition-all">
+    <div className="bg-white p-6 rounded-[32px] border border-emerald-100 shadow-sm flex items-center gap-4 group hover:shadow-xl hover:shadow-emerald-950/5 transition-all">
       <div
-        className={`w-14 h-14 ${color} text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}
+        className={`w-12 h-12 shrink-0 ${color} text-white shadow-lg rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}
       >
         {icon}
       </div>
       <div>
         <p className="text-3xl font-black text-sefaz-dark leading-none mb-1">{value}</p>
-        <p className="text-[10px] text-sefaz-accent font-black uppercase tracking-widest opacity-60 leading-none">
+        <p className="text-[10px] text-sefaz-accent font-black uppercase tracking-widest opacity-60 leading-tight">
           {label}
         </p>
       </div>
@@ -653,11 +665,10 @@ function ChartTypeBtn({
     <button
       onClick={onClick}
       title={title}
-      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-        active
+      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${active
           ? "bg-sefaz-accent text-white shadow-md scale-110"
           : "bg-white text-sefaz-accent border border-emerald-100 hover:bg-emerald-50"
-      }`}
+        }`}
     >
       {icon}
     </button>

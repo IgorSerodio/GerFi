@@ -100,7 +100,7 @@ export async function getVolumeStats(startDate: Date, endDate: Date, locationId:
       COUNT(*) as total,
       COALESCE(AVG(chain_wait_seconds) / 60, 0) as avg_wait_min,
       COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_service_min,
-      COALESCE((COUNT(CASE WHEN effective_status = 'completed' THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 0) as efficiency
+      COALESCE((COUNT(CASE WHEN effective_status = 'completed' THEN 1 END) * 100.0) / NULLIF(COUNT(CASE WHEN effective_status != 'no_show' THEN 1 END), 0), 0) as efficiency
     FROM filtered_tickets
   `;
 
