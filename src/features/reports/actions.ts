@@ -12,7 +12,7 @@ import {
   getPeakHours,
   getBusyDays,
   getCategoryAvgDuration,
-  getTimelineDataToday,
+  getTimelineData,
   getAnalyticalData,
   ChartPoint,
 } from "./queries";
@@ -183,9 +183,9 @@ export async function getReportsDataAction(payload: {
   }
 }
 
-export async function getTimelineAction(locationId: number | "all", attendants: string[]) {
+export async function getTimelineAction(locationId: number | "all", attendants: string[], dateStr?: string) {
   try {
-    const data = await getTimelineDataToday(locationId, attendants);
+    const data = await getTimelineData(locationId, attendants, dateStr);
     return { success: true, data };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao carregar dados da linha do tempo.") };

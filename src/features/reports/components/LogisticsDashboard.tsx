@@ -32,6 +32,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { getLogisticsDashboardDataAction, getReportFiltersDataAction } from "@/features/reports/actions";
+import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { Location } from "@/features/queue/types";
 import { User } from "@/features/users/types";
 import { useRef } from "react";
@@ -66,16 +67,10 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
   const attendantDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [activeView, setActiveView] = useState<"charts" | "timeline">("charts");
+  const [activeView, setActiveView] = useState<"charts" | "timeline">("timeline");
+  const [timelineDate, setTimelineDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
-
-  useEffect(() => {
-    if (range !== "today" && activeView === "timeline") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveView("charts");
-    }
-  }, [range, activeView]);
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
@@ -319,16 +314,23 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           </span>
         </div>
 
-        <select
-          value={range}
-          onChange={(e) => setRange(e.target.value as DateRange)}
-          className="bg-white px-4 py-2 rounded-xl text-[10px] font-black text-sefaz-dark border-2 border-emerald-50 outline-none focus:border-sefaz-accent uppercase tracking-widest cursor-pointer"
-        >
-          <option value="today">Período: Hoje</option>
-          <option value="week">Período: Esta Semana</option>
-          <option value="month">Período: Este Mês</option>
-          <option value="year">Período: Anual</option>
-        </select>
+        {activeView === "charts" ? (
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value as DateRange)}
+            className="bg-white px-4 py-2 rounded-xl text-[10px] font-black text-sefaz-dark border-2 border-emerald-50 outline-none focus:border-sefaz-accent uppercase tracking-widest cursor-pointer"
+          >
+            <option value="today">Período: Hoje</option>
+            <option value="week">Período: Esta Semana</option>
+            <option value="month">Período: Este Mês</option>
+            <option value="year">Período: Anual</option>
+          </select>
+        ) : (
+          <CustomDatePicker
+            value={timelineDate}
+            onChange={setTimelineDate}
+          />
+        )}
 
         <select
           value={locationId}
@@ -419,6 +421,16 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
       {/* View Toggle */}
       <div className="flex bg-emerald-50/50 p-1 rounded-xl w-fit">
         <button
+          onClick={() => setActiveView("timeline")}
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
+            activeView === "timeline"
+              ? "bg-sefaz-accent text-white shadow-md"
+              : "text-sefaz-accent opacity-60 hover:opacity-100"
+          }`}
+        >
+          Linha do Tempo
+        </button>
+        <button
           onClick={() => setActiveView("charts")}
           className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
             activeView === "charts"
@@ -428,18 +440,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         >
           Visão Geral
         </button>
-        <button
-          onClick={() => setActiveView("timeline")}
-          disabled={range !== "today"}
-          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${
-            activeView === "timeline"
-              ? "bg-sefaz-accent text-white shadow-md"
-              : "text-sefaz-accent opacity-60 hover:opacity-100 disabled:opacity-30"
-          } ${range !== "today" ? "cursor-not-allowed" : ""}`}
-          title={range !== "today" ? "Disponível apenas para 'Hoje'" : ""}
-        >
-          Linha do Tempo
-        </button>
       </div>
 
       {activeView === "timeline" ? (
@@ -447,7 +447,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           <h3 className="text-xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
             Linha do Tempo de Atendimentos
           </h3>
-          <TimelineView locationId={locationId} attendants={attendants} users={users} />
+          <TimelineView locationId={locationId} attendants={attendants} users={users} dateStr={timelineDate} />
         </div>
       ) : (
         <>

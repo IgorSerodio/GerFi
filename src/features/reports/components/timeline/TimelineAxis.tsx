@@ -46,7 +46,9 @@ export default function TimelineAxis({ minTime, maxTime }: { minTime: number, ma
         return (
           <div 
             key={time} 
-            className="absolute top-0 bottom-0 border-l border-emerald-100 flex flex-col items-center -translate-x-1/2"
+            className={`absolute top-0 bottom-0 border-l border-emerald-100 flex flex-col items-center ${
+              percent >= 99 ? "-translate-x-full pr-1" : "-translate-x-1/2"
+            }`}
             style={{ left: `${percent}%` }}
           >
             <span className="text-[9px] font-black text-sefaz-accent opacity-50 mt-1 uppercase">

@@ -11,6 +11,7 @@ interface TimelineViewProps {
   locationId: number | "all";
   attendants: string[];
   users: User[];
+  dateStr?: string;
 }
 
 interface AttendantGroup {
@@ -20,21 +21,22 @@ interface AttendantGroup {
   tickets: TimelineTicket[];
 }
 
-export default function TimelineView({ locationId, attendants, users }: TimelineViewProps) {
+export default function TimelineView({ locationId, attendants, users, dateStr }: TimelineViewProps) {
   const [data, setData] = useState<TimelineTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewRange, setViewRange] = useState<[number, number]>([0, 100]);
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
-    const res = await getTimelineAction(locationId, attendants);
+    const res = await getTimelineAction(locationId, attendants, dateStr);
     if (res.success && res.data) {
       setData(res.data);
     }
     setIsLoading(false);
-  }, [locationId, attendants]);
+  }, [locationId, attendants, dateStr]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
 
     const eventSource = new EventSource("/api/queue/stream");
@@ -58,33 +60,36 @@ export default function TimelineView({ locationId, attendants, users }: Timeline
   if (data.length === 0) {
     return (
       <div className="flex h-[350px] w-full items-center justify-center text-xs font-bold text-emerald-800 uppercase tracking-widest">
-        Nenhum atendimento registrado hoje
+        Nenhum atendimento registrado nesta data
       </div>
     );
   }
 
-  // Agrupar tickets por atendente
   const grouped = data.reduce((acc, ticket) => {
     if (!acc[ticket.attendant]) {
       const user = users.find(u => u.name === ticket.attendant);
       acc[ticket.attendant] = {
         name: ticket.attendant,
         matricula: user?.matricula || '',
-        guiche: ticket.guiche, // guiche inicial
+        guiche: ticket.guiche,
         tickets: []
       };
     }
     acc[ticket.attendant].tickets.push(ticket);
-    // Atualizar o guiche para o mais recente se houver
     acc[ticket.attendant].guiche = ticket.guiche; 
     return acc;
   }, {} as Record<string, AttendantGroup>);
 
   const groups = Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name));
 
-  // Encontrar o tempo mínimo e máximo para o eixo X
   let minTime = Infinity;
-  let maxTime = new Date().getTime(); // maxTime é sempre agora
+  let maxTime = new Date().getTime();
+  
+  // Se for uma data no passado, maxTime não deve ser a hora atual de hoje, 
+  // mas sim o final do dia escolhido ou o último ticket
+  if (dateStr && dateStr !== new Date().toISOString().split('T')[0]) {
+    maxTime = new Date(`${dateStr}T23:59:59.999`).getTime();
+  }
 
   data.forEach(ticket => {
     if (ticket.calledAt) {
@@ -93,11 +98,29 @@ export default function TimelineView({ locationId, attendants, users }: Timeline
     }
   });
 
-  // Margem de 10 min no início
   if (minTime !== Infinity) {
     minTime -= 10 * 60 * 1000;
+    
+    // Ajustar maxTime caso haja tickets e seja passado (evita que o final do dia fique muito longe se o atendimento acabou cedo)
+    if (dateStr && dateStr !== new Date().toISOString().split('T')[0]) {
+       let realMax = -Infinity;
+       data.forEach(ticket => {
+         if (ticket.calledAt) {
+           const time = new Date(ticket.calledAt).getTime();
+           if (time > realMax) realMax = time;
+         }
+         if (ticket.completedAt) {
+           const time = new Date(ticket.completedAt).getTime();
+           if (time > realMax) realMax = time;
+         }
+       });
+       if (realMax !== -Infinity) {
+          maxTime = realMax + 10 * 60 * 1000; // +10 min após o último evento
+       }
+    }
   } else {
-    minTime = maxTime - 60 * 60 * 1000; // fallback: 1 hora atrás
+    maxTime = new Date().getTime();
+    minTime = maxTime - 60 * 60 * 1000;
   }
 
   const globalDuration = maxTime - minTime;

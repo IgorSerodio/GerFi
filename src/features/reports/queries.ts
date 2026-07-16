@@ -610,7 +610,9 @@ export interface TimelineTicket {
   globalServiceSeconds: number;
 }
 
-export async function getTimelineDataToday(locationId: number | "all", attendants: string[]): Promise<TimelineTicket[]> {
+export async function getTimelineData(locationId: number | "all", attendants: string[], dateStr?: string): Promise<TimelineTicket[]> {
+  const targetDate = dateStr || new Date().toISOString().split('T')[0];
+
   let queryStr = `
     SELECT 
       t.id, t.attendant, t.guiche, t.priority, t.status, t.ticket_number,
@@ -622,9 +624,10 @@ export async function getTimelineDataToday(locationId: number | "all", attendant
       (SELECT SUM(EXTRACT(EPOCH FROM (completed_at - started_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_service_seconds
     FROM tickets t
     WHERE t.called_at IS NOT NULL
-      AND t.created_at >= CURRENT_DATE
+      AND t.created_at >= $1::date 
+      AND t.created_at < ($1::date + interval '1 day')
   `;
-  const params: QueryParam[] = [];
+  const params: QueryParam[] = [targetDate];
 
   if (locationId !== "all") {
     params.push(locationId);
