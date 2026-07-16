@@ -40,12 +40,13 @@ import TimelineView from "./timeline/TimelineView";
 
 type ChartType = "bar" | "line" | "area" | "pie";
 type MetricType = "tickets" | "wait_time" | "atendimentos";
-type DateRange = "today" | "week" | "month" | "year";
+type DateRange = "today" | "week" | "month" | "year" | "custom";
 
 interface DashboardData {
   stats: {
     total: number;
     avgWait: string;
+    avgService: string;
     efficiency: string;
   };
   chartData: Array<{ name: string; value: number }>;
@@ -78,7 +79,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
     const effectiveDateStr = activeView === "timeline" ? timelineDate : undefined;
 
     const res = await getLogisticsDashboardDataAction(
-      effectiveRange as any, 
+      effectiveRange, 
       metric, 
       locationId, 
       attendants, 
