@@ -9,9 +9,14 @@ interface TimelineRowProps {
   tickets: TimelineTicket[];
   minTime: number;
   maxTime: number;
+  activeId: string | null;
+  onTicketHover: (id: string | null) => void;
+  onTicketClick: (e: React.MouseEvent, id: string) => void;
 }
 
-export default function TimelineRow({ attendant, matricula, guiche, tickets, minTime, maxTime }: TimelineRowProps) {
+export default function TimelineRow({ 
+  attendant, matricula, guiche, tickets, minTime, maxTime, activeId, onTicketHover, onTicketClick 
+}: TimelineRowProps) {
   const duration = maxTime - minTime;
 
   const getPercent = (dateStr: string) => {
@@ -55,62 +60,80 @@ export default function TimelineRow({ attendant, matricula, guiche, tickets, min
           const processingColor = isPriority ? 'bg-yellow-500' : 'bg-emerald-500';
           
           const tooltip = getTicketTooltipText(ticket);
+          
+          const isActive = ticket.id === activeId;
+          const isFaded = activeId !== null && !isActive;
+          const opacityClass = isFaded ? 'opacity-5' : 'opacity-100';
+          const zIndexClass = isActive ? 'z-20' : 'z-10';
+          const commonClasses = `transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`;
+          
+          const events = {
+            onMouseEnter: () => onTicketHover(ticket.id),
+            onMouseLeave: () => onTicketHover(null),
+            onClick: (e: React.MouseEvent) => onTicketClick(e, ticket.id)
+          };
 
           return (
             <React.Fragment key={ticket.id}>
               {/* Segmento: Called -> Started (ou Completed se não tiver Started) */}
               <div 
-                className={`absolute top-1/2 h-1.5 -translate-y-1/2 ${callingColor} rounded-l-full`}
+                className={`absolute top-1/2 h-1.5 -translate-y-1/2 ${callingColor} rounded-l-full ${commonClasses}`}
                 style={{ 
                   left: `${calledPct}%`, 
                   width: `${(startedPct ?? completedPct) - calledPct}%` 
                 }}
                 title={tooltip}
+                {...events}
               />
 
               {/* Segmento: Started -> Completed */}
               {startedPct !== null && (
                 <div 
-                  className={`absolute top-1/2 h-1.5 -translate-y-1/2 ${processingColor} rounded-r-full`}
+                  className={`absolute top-1/2 h-1.5 -translate-y-1/2 ${processingColor} rounded-r-full ${commonClasses}`}
                   style={{ 
                     left: `${startedPct}%`, 
                     width: `${completedPct - startedPct}%` 
                   }}
                   title={tooltip}
+                  {...events}
                 />
               )}
 
               {/* Ponto Roxo: Chamada Inicial */}
               <div 
-                className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
+                className={`absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white ${commonClasses}`}
                 style={{ left: `${calledPct}%` }}
                 title={tooltip}
+                {...events}
               />
 
               {/* Pontos Roxos: Rechamadas */}
               {ticket.recallHistory.map((recallTime, i) => (
                 <div 
                   key={i}
-                  className="absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
+                  className={`absolute top-1/2 w-2 h-2 bg-purple-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white ${commonClasses}`}
                   style={{ left: `${getPercent(recallTime)}%` }}
                   title={tooltip}
+                  {...events}
                 />
               ))}
 
               {/* Ponto Final: Encaminhado (Laranja) ou No Show (Vermelho) */}
               {ticket.completedAt && ticket.status === 'forwarded' && (
                 <div 
-                  className="absolute top-1/2 w-2 h-2 bg-orange-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
+                  className={`absolute top-1/2 w-2 h-2 bg-orange-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white ${commonClasses}`}
                   style={{ left: `${completedPct}%` }}
                   title={tooltip}
+                  {...events}
                 />
               )}
 
               {ticket.completedAt && ticket.status === 'no_show' && (
                 <div 
-                  className="absolute top-1/2 w-2 h-2 bg-red-500 rounded-full -translate-y-1/2 -translate-x-1/2 z-10 ring-[0.5px] ring-white"
+                  className={`absolute top-1/2 w-2 h-2 bg-red-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white ${commonClasses}`}
                   style={{ left: `${completedPct}%` }}
                   title={tooltip}
+                  {...events}
                 />
               )}
 

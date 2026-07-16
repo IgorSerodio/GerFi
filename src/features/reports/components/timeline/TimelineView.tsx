@@ -25,6 +25,19 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
   const [data, setData] = useState<TimelineTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewRange, setViewRange] = useState<[number, number]>([0, 100]);
+  const [hoveredTicketId, setHoveredTicketId] = useState<string | null>(null);
+  const [lockedTicketId, setLockedTicketId] = useState<string | null>(null);
+
+  const activeId = lockedTicketId || hoveredTicketId;
+
+  const handleTicketHover = (id: string | null) => {
+    setHoveredTicketId(id);
+  };
+
+  const handleTicketClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setLockedTicketId(prev => (prev === id ? null : id));
+  };
 
   const fetchData = React.useCallback(async () => {
     setIsLoading(true);
@@ -181,7 +194,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
       />
 
       <div className="w-full overflow-x-auto custom-scrollbar pb-4">
-        <div className="min-w-[800px]">
+        <div className="min-w-[800px]" onClick={() => setLockedTicketId(null)}>
           <TimelineAxis minTime={filteredMinTime} maxTime={filteredMaxTime} />
           
           <div className="flex flex-col">
@@ -189,6 +202,9 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
               tickets={data}
               minTime={filteredMinTime}
               maxTime={filteredMaxTime}
+              activeId={activeId}
+              onTicketHover={handleTicketHover}
+              onTicketClick={handleTicketClick}
             />
             {groups.map(group => (
               <TimelineRow
@@ -199,6 +215,9 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
                 tickets={group.tickets}
                 minTime={filteredMinTime}
                 maxTime={filteredMaxTime}
+                activeId={activeId}
+                onTicketHover={handleTicketHover}
+                onTicketClick={handleTicketClick}
               />
             ))}
           </div>

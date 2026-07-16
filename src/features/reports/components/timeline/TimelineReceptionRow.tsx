@@ -6,12 +6,14 @@ interface TimelineReceptionRowProps {
   tickets: TimelineTicket[];
   minTime: number;
   maxTime: number;
+  activeId: string | null;
+  onTicketHover: (id: string | null) => void;
+  onTicketClick: (e: React.MouseEvent, id: string) => void;
 }
 
-export default function TimelineReceptionRow({ tickets, minTime, maxTime }: TimelineReceptionRowProps) {
-  const [hoveredTicketId, setHoveredTicketId] = useState<string | null>(null);
-  const [lockedTicketId, setLockedTicketId] = useState<string | null>(null);
-
+export default function TimelineReceptionRow({ 
+  tickets, minTime, maxTime, activeId, onTicketHover, onTicketClick 
+}: TimelineReceptionRowProps) {
   const duration = maxTime - minTime;
 
   const getPercent = (dateStr: string) => {
@@ -19,39 +21,8 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
     return ((time - minTime) / duration) * 100;
   };
 
-  const activeId = lockedTicketId || hoveredTicketId;
-
-  const handleContainerClick = () => {
-    // Limpar o lock ao clicar no fundo
-    setLockedTicketId(null);
-  };
-
-  const handleDotClick = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (lockedTicketId === id) {
-      setLockedTicketId(null); // click again to toggle off
-    } else {
-      setLockedTicketId(id);
-    }
-  };
-
-  const handleMouseEnter = (id: string) => {
-    if (!lockedTicketId) {
-      setHoveredTicketId(id);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!lockedTicketId) {
-      setHoveredTicketId(null);
-    }
-  };
-
   return (
-    <div 
-      className="flex items-center min-h-[40px] border-b-2 border-emerald-100 hover:bg-emerald-50/20 transition-colors group cursor-pointer"
-      onClick={handleContainerClick}
-    >
+    <div className="flex items-center min-h-[40px] border-b-2 border-emerald-100 hover:bg-emerald-50/20 transition-colors group">
       {/* Coluna Esquerda: Label Fila de Espera */}
       <div className="w-[200px] shrink-0 pr-4 py-2 border-r border-emerald-100 flex flex-col justify-center">
         <div className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest truncate">
@@ -92,7 +63,7 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
           
           const isActive = ticket.id === activeId;
           const isFaded = activeId !== null && !isActive;
-          const opacityClass = isFaded ? 'opacity-20' : 'opacity-100';
+          const opacityClass = isFaded ? 'opacity-5' : 'opacity-100';
           const zIndexClass = isActive ? 'z-20' : 'z-10';
           const tooltip = getTicketTooltipText(ticket);
 
@@ -103,9 +74,9 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
                 className={`absolute top-1/2 w-2 h-2 bg-blue-500 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
                 style={{ left: `${createdPct}%` }}
                 title={tooltip}
-                onMouseEnter={() => handleMouseEnter(ticket.id)}
-                onMouseLeave={handleMouseLeave}
-                onClick={(e) => handleDotClick(e, ticket.id)}
+                onMouseEnter={() => onTicketHover(ticket.id)}
+                onMouseLeave={() => onTicketHover(null)}
+                onClick={(e) => onTicketClick(e, ticket.id)}
               />
               
               {/* Ponto de Chamada (Cinza) */}
@@ -113,9 +84,9 @@ export default function TimelineReceptionRow({ tickets, minTime, maxTime }: Time
                 className={`absolute top-1/2 w-2 h-2 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
                 style={{ left: `${calledPct}%` }}
                 title={tooltip}
-                onMouseEnter={() => handleMouseEnter(ticket.id)}
-                onMouseLeave={handleMouseLeave}
-                onClick={(e) => handleDotClick(e, ticket.id)}
+                onMouseEnter={() => onTicketHover(ticket.id)}
+                onMouseLeave={() => onTicketHover(null)}
+                onClick={(e) => onTicketClick(e, ticket.id)}
               />
             </React.Fragment>
           );
