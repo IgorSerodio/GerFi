@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TimelineTicket } from '@/features/reports/queries';
 import { getTicketTooltipText } from './utils';
 

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   BarChart3,
   TrendingUp,
-  Users,
   Clock,
   Activity,
   PieChart as PieIcon,
@@ -15,44 +14,18 @@ import {
   Search,
   X,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-} from "recharts";
-import { getLogisticsDashboardDataAction, getReportFiltersDataAction } from "@/features/reports/actions";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
-import { Location } from "@/features/queue/types";
-import { User } from "@/features/users/types";
 import { useRef } from "react";
 import TimelineView from "./timeline/TimelineView";
+import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
+import { useLogisticsData, DateRange, MetricType } from "@/features/reports/hooks/useLogisticsData";
+import { PieChartGeneric } from "@/components/ui/charts/PieChartGeneric";
+import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
+import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";
+import { BarChartGeneric } from "@/components/ui/charts/BarChartGeneric";
 
 type ChartType = "bar" | "line" | "area" | "pie";
-type MetricType = "tickets" | "wait_time" | "atendimentos";
-type DateRange = "today" | "week" | "month" | "year" | "custom";
-
-interface DashboardData {
-  stats: {
-    total: number;
-    avgWait: string;
-    avgService: string;
-    efficiency: string;
-  };
-  chartData: Array<{ name: string; value: number }>;
-  categoryAggregation: Array<{ name: string; count: number; value: number }>;
-  attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
-}
+const COLORS = ["bg-emerald-500", "bg-teal-500", "bg-cyan-500", "bg-blue-500"];
 
 export default function LogisticsDashboard({ showHeader = false }: { showHeader?: boolean }) {
   const [chartType, setChartType] = useState<ChartType>("bar");
@@ -60,48 +33,23 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [range, setRange] = useState<DateRange>("today");
   const [locationId, setLocationId] = useState<number | "all">("all");
   const [attendants, setAttendants] = useState<string[]>([]);
-
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-
+  const [activeView, setActiveView] = useState<"charts" | "timeline">("timeline");
+  const [timelineDate, setTimelineDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [attendantSearch, setAttendantSearch] = useState("");
   const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
   const attendantDropdownRef = useRef<HTMLDivElement>(null);
 
-  const [activeView, setActiveView] = useState<"charts" | "timeline">("timeline");
-  const [timelineDate, setTimelineDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<DashboardData | null>(null);
-
-  const fetchData = React.useCallback(async () => {
-    setIsLoading(true);
-    const effectiveRange = activeView === "timeline" ? "custom" : range;
-    const effectiveDateStr = activeView === "timeline" ? timelineDate : undefined;
-
-    const res = await getLogisticsDashboardDataAction(
-      effectiveRange, 
-      metric, 
-      locationId, 
-      attendants, 
-      effectiveDateStr
-    );
-    
-    if (res.success && res.data) {
-      setData(res.data as DashboardData);
-    }
-    setIsLoading(false);
-  }, [range, metric, locationId, attendants, activeView, timelineDate]);
+  const { locations, users } = useReportFilters();
+  const { data, isLoading, refetch } = useLogisticsData(
+    range,
+    metric,
+    locationId,
+    attendants,
+    activeView,
+    timelineDate
+  );
 
   useEffect(() => {
-    const loadFilters = async () => {
-      const res = await getReportFiltersDataAction();
-      if (res.success && res.data) {
-        setLocations(res.data.locations);
-        setUsers(res.data.users);
-      }
-    };
-    loadFilters();
-
     const handleClickOutside = (event: MouseEvent) => {
       if (attendantDropdownRef.current && !attendantDropdownRef.current.contains(event.target as Node)) {
         setIsAttendantDropdownOpen(false);
@@ -111,35 +59,8 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      fetchData();
-    }, 0);
-  }, [fetchData]);
-
-  // Sincronização em tempo real via Server-Sent Events (SSE)
-  useEffect(() => {
-    const eventSource = new EventSource("/api/queue/stream");
-
-    eventSource.onmessage = () => {
-      // heartbeats
-    };
-
-    eventSource.addEventListener("update", () => {
-      setTimeout(() => {
-        fetchData();
-      }, 0);
-    });
-
-    return () => {
-      eventSource.close();
-    };
-  }, [fetchData]);
-
-  const COLORS = ["#10b981", "#3b82f6", "#6366f1", "#94a3b8"];
-
   const handleRefresh = () => {
-    fetchData();
+    refetch();
   };
 
   const renderChart = () => {
@@ -152,144 +73,48 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
     }
 
     if (chartType === "pie") {
-      const pieData = data.categoryAggregation.length > 0
-        ? data.categoryAggregation
-        : [{ name: "Sem dados", value: 100 }];
       return (
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                borderRadius: "16px",
-                border: "none",
-                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-                fontWeight: 800,
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <PieChartGeneric 
+          data={data.categoryAggregation}
+          nameKey="name"
+          valueKey="value"
+        />
       );
     }
 
     if (chartType === "line") {
       return (
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data.chartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-            <XAxis
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-            />
-            <Tooltip
-              contentStyle={{
-                borderRadius: "16px",
-                border: "none",
-                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-                fontWeight: 800,
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#10b981"
-              strokeWidth={4}
-              dot={{ r: 4, fill: "#10b981" }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <LineChartGeneric 
+          data={data.chartData}
+          xKey="name"
+          yKey="value"
+          name="Valor"
+          color="#10b981"
+        />
       );
     }
 
     if (chartType === "area") {
       return (
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data.chartData}>
-            <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-            <XAxis
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-            />
-            <Tooltip
-              contentStyle={{
-                borderRadius: "16px",
-                border: "none",
-                boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-                fontWeight: 800,
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#10b981"
-              fillOpacity={1}
-              fill="url(#colorValue)"
-              strokeWidth={3}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <AreaChartGeneric 
+          data={data.chartData}
+          xKey="name"
+          yKey="value"
+          name="Valor"
+          color="#10b981"
+          id="logisticsArea"
+        />
       );
     }
 
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data.chartData}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#065f46", fontSize: 10, fontWeight: 700 }}
-          />
-          <Tooltip
-            cursor={{ fill: "#f0fdf4" }}
-            contentStyle={{
-              borderRadius: "16px",
-              border: "none",
-              boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
-              fontWeight: 800,
-            }}
-          />
-          <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <BarChartGeneric 
+        data={data.chartData}
+        xKey="name"
+        yKey="value"
+        name="Valor"
+        color="#10b981"
+      />
     );
   };
 

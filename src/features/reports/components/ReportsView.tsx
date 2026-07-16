@@ -3,48 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Printer, FileText, Clock, CalendarDays, Timer, TrendingUp, Activity, Trophy, X, Search } from "lucide-react";
-import {
-  BarChart as ReBarChart,
-  Bar,
-  XAxis,
-  CartesianGrid,
-  Tooltip,
-  AreaChart,
-  Area,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-} from "recharts";
-import { getReportsDataAction, getReportFiltersDataAction } from "@/features/reports/actions";
-import { getCategoriesAction } from "@/features/queue/actions";
-import { DbCategory, Location } from "@/features/queue/types";
-import { User } from "@/features/users/types";
 
-interface ReportResultData {
-  stats: {
-    total: number;
-    avgWait: string;
-    avgService: string;
-    efficiency: string;
-  };
-  categoryAggregation: Array<{ name: string; count: number; value: number }>;
-  attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
-  detailRows: Array<{
-    time: string;
-    started: string;
-    completed: string;
-    ref: string;
-    desk: string;
-    user: string;
-    status: string;
-  }>;
-  reportType: "analytical" | "synthetic";
-  selectedModels: string[];
-  evolutionSeries: Array<{ time: string; total: number; avg: number; wait: number }>;
-  peakHours: Array<{ time: string; total: number; avg: number; wait: number }>;
-  busyDays: Array<{ name: string; value: number }>;
-  categoryAvgDuration: Array<{ name: string; value: number }>;
-}
+import { getCategoriesAction } from "@/features/queue/actions";
+import { DbCategory } from "@/features/queue/types";
+import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
+import { useReportsData } from "@/features/reports/hooks/useReportsData";
+import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";
+import { BarChartGeneric } from "@/components/ui/charts/BarChartGeneric";
+import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
 
 const ADVANCED_REPORTS = [
   { id: "peak_hours", label: "Horário de Pico", icon: Clock, color: "text-blue-500", bg: "bg-blue-50" },
@@ -57,9 +23,10 @@ const ADVANCED_REPORTS = [
 ];
 
 export default function ReportsView() {
+  const { locations, users } = useReportFilters();
+  const { reportResult, isGenerating: isGeneratingReport, generateReport } = useReportsData();
+  
   const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [reportType, setReportType] = useState<"analytical" | "synthetic">("analytical");
   const [reportFilters, setReportFilters] = useState({
     startDate: "",
@@ -69,8 +36,6 @@ export default function ReportsView() {
     attendants: [] as string[],
   });
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [reportResult, setReportResult] = useState<ReportResultData | null>(null);
 
   const [attendantSearch, setAttendantSearch] = useState("");
   const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
@@ -78,17 +43,9 @@ export default function ReportsView() {
 
   useEffect(() => {
     const loadFiltersData = async () => {
-      const [catRes, filtersRes] = await Promise.all([
-        getCategoriesAction(),
-        getReportFiltersDataAction()
-      ]);
-      
-      if (catRes.success && catRes.data) {
-        setCategories(catRes.data as DbCategory[]);
-      }
-      if (filtersRes.success && filtersRes.data) {
-        setLocations(filtersRes.data.locations);
-        setUsers(filtersRes.data.users);
+      const res = await getCategoriesAction();
+      if (res.success && res.data) {
+        setCategories(res.data as DbCategory[]);
       }
     };
     loadFiltersData();
@@ -103,8 +60,7 @@ export default function ReportsView() {
   }, []);
 
   const handleGenerateReport = async () => {
-    setIsGeneratingReport(true);
-    const res = await getReportsDataAction({
+    await generateReport({
       reportType,
       startDate: reportFilters.startDate,
       endDate: reportFilters.endDate,
@@ -113,12 +69,6 @@ export default function ReportsView() {
       attendants: reportFilters.attendants,
       selectedModels,
     });
-    if (res.success && res.data) {
-      setReportResult(res.data);
-    } else {
-      alert("Erro ao gerar relatório: " + (res.error || ""));
-    }
-    setIsGeneratingReport(false);
   };
 
   const renderReportChart = (modelId: string) => {
@@ -127,92 +77,75 @@ export default function ReportsView() {
     switch (modelId) {
       case "evolution":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={reportResult.evolutionSeries}>
-              <defs>
-                <linearGradient id={`colorTotal-${modelId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [value, "Quantidade"]} />
-              <Area type="monotone" dataKey="total" name="Quantidade" stroke="#10b981" strokeWidth={3} fill={`url(#colorTotal-${modelId})`} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AreaChartGeneric 
+            data={reportResult.evolutionSeries}
+            xKey="time"
+            yKey="total"
+            name="Quantidade"
+            color="#10b981"
+            id={`chart-${modelId}`}
+          />
         );
       case "peak_hours":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={reportResult.peakHours}>
-              <defs>
-                <linearGradient id={`colorTotal-${modelId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [value, "Quantidade"]} />
-              <Area type="monotone" dataKey="total" name="Quantidade" stroke="#10b981" strokeWidth={3} fill={`url(#colorTotal-${modelId})`} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AreaChartGeneric 
+            data={reportResult.peakHours}
+            xKey="time"
+            yKey="total"
+            name="Quantidade"
+            color="#10b981"
+            id={`chart-${modelId}`}
+          />
         );
       case "busy_days":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <ReBarChart data={reportResult.busyDays}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [value, "Quantidade"]} />
-              <Bar dataKey="value" name="Quantidade" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-            </ReBarChart>
-          </ResponsiveContainer>
+          <BarChartGeneric 
+            data={reportResult.busyDays}
+            xKey="name"
+            yKey="value"
+            name="Quantidade"
+            color="#3b82f6"
+          />
         );
       case "wait_time":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={reportResult.evolutionSeries}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [`${value} min`, "Tempo Médio de Espera"]} />
-              <Line type="monotone" dataKey="wait" name="Tempo Médio de Espera" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <LineChartGeneric 
+            data={reportResult.evolutionSeries}
+            xKey="time"
+            yKey="wait"
+            name="Tempo Médio de Espera"
+            color="#f59e0b"
+          />
         );
       case "most_requested_services":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <ReBarChart data={reportResult.categoryAggregation}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [value, "Quantidade"]} />
-              <Bar dataKey="count" name="Quantidade" fill="#f43f5e" radius={[6, 6, 0, 0]} />
-            </ReBarChart>
-          </ResponsiveContainer>
+          <BarChartGeneric 
+            data={reportResult.categoryAggregation}
+            xKey="name"
+            yKey="count"
+            name="Quantidade"
+            color="#f43f5e"
+          />
         );
       case "avg_service_duration":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <ReBarChart data={reportResult.categoryAvgDuration}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [`${value} min`, "Tempo Médio"]} />
-              <Bar dataKey="value" name="Tempo Médio" fill="#6366f1" radius={[6, 6, 0, 0]} />
-            </ReBarChart>
-          </ResponsiveContainer>
+          <BarChartGeneric 
+            data={reportResult.categoryAvgDuration}
+            xKey="name"
+            yKey="value"
+            name="Tempo Médio"
+            color="#6366f1"
+          />
         );
       case "performance_ranking":
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <ReBarChart data={reportResult.attendantRanking}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecfdf5" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#065f46", fontSize: 9 }} />
-              <Tooltip formatter={(value) => [value, "Quantidade"]} />
-              <Bar dataKey="count" name="Quantidade" fill="#6366f1" radius={[6, 6, 0, 0]} />
-            </ReBarChart>
-          </ResponsiveContainer>
+          <BarChartGeneric 
+            data={reportResult.attendantRanking}
+            xKey="name"
+            yKey="count"
+            name="Quantidade"
+            color="#6366f1"
+          />
         );
       default:
         return null;
