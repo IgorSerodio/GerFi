@@ -6,13 +6,13 @@ interface TimelineReceptionRowProps {
   tickets: TimelineTicket[];
   minTime: number;
   maxTime: number;
-  activeId: string | null;
+  activeTicketNumber: string | null;
   onTicketHover: (id: string | null) => void;
   onTicketClick: (e: React.MouseEvent, id: string) => void;
 }
 
 export default function TimelineReceptionRow({ 
-  tickets, minTime, maxTime, activeId, onTicketHover, onTicketClick 
+  tickets, minTime, maxTime, activeTicketNumber, onTicketHover, onTicketClick 
 }: TimelineReceptionRowProps) {
   const duration = maxTime - minTime;
 
@@ -36,8 +36,8 @@ export default function TimelineReceptionRow({
       {/* Coluna Direita: Linha da Fila */}
       <div className="flex-1 relative h-[40px] mx-2 overflow-hidden">
         {/* Desenhando a linha vermelha ativa PRIMEIRO para ficar embaixo dos pontos */}
-        {activeId && tickets.map(ticket => {
-          if (ticket.id === activeId && ticket.calledAt) {
+        {activeTicketNumber && tickets.map(ticket => {
+          if (ticket.ticketNumber === activeTicketNumber && ticket.calledAt) {
             const createdPct = getPercent(ticket.createdAt);
             const calledPct = getPercent(ticket.calledAt);
             return (
@@ -61,8 +61,8 @@ export default function TimelineReceptionRow({
           const createdPct = getPercent(ticket.createdAt);
           const calledPct = getPercent(ticket.calledAt);
           
-          const isActive = ticket.id === activeId;
-          const isFaded = activeId !== null && !isActive;
+          const isActive = ticket.ticketNumber === activeTicketNumber;
+          const isFaded = activeTicketNumber !== null && !isActive;
           const opacityClass = isFaded ? 'opacity-5' : 'opacity-100';
           const zIndexClass = isActive ? 'z-20' : 'z-10';
           const tooltip = getTicketTooltipText(ticket);

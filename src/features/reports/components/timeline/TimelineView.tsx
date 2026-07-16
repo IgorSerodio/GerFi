@@ -29,6 +29,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
   const [lockedTicketId, setLockedTicketId] = useState<string | null>(null);
 
   const activeId = lockedTicketId || hoveredTicketId;
+  const activeTicketNumber = activeId ? data.find(t => t.id === activeId)?.ticketNumber || null : null;
 
   const handleTicketHover = (id: string | null) => {
     setHoveredTicketId(id);
@@ -202,7 +203,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
               tickets={data}
               minTime={filteredMinTime}
               maxTime={filteredMaxTime}
-              activeId={activeId}
+              activeTicketNumber={activeTicketNumber}
               onTicketHover={handleTicketHover}
               onTicketClick={handleTicketClick}
             />
@@ -215,7 +216,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
                 tickets={group.tickets}
                 minTime={filteredMinTime}
                 maxTime={filteredMaxTime}
-                activeId={activeId}
+                activeTicketNumber={activeTicketNumber}
                 onTicketHover={handleTicketHover}
                 onTicketClick={handleTicketClick}
               />

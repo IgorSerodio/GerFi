@@ -9,13 +9,13 @@ interface TimelineRowProps {
   tickets: TimelineTicket[];
   minTime: number;
   maxTime: number;
-  activeId: string | null;
+  activeTicketNumber: string | null;
   onTicketHover: (id: string | null) => void;
   onTicketClick: (e: React.MouseEvent, id: string) => void;
 }
 
 export default function TimelineRow({ 
-  attendant, matricula, guiche, tickets, minTime, maxTime, activeId, onTicketHover, onTicketClick 
+  attendant, matricula, guiche, tickets, minTime, maxTime, activeTicketNumber, onTicketHover, onTicketClick 
 }: TimelineRowProps) {
   const duration = maxTime - minTime;
 
@@ -61,8 +61,8 @@ export default function TimelineRow({
           
           const tooltip = getTicketTooltipText(ticket);
           
-          const isActive = ticket.id === activeId;
-          const isFaded = activeId !== null && !isActive;
+          const isActive = ticket.ticketNumber === activeTicketNumber;
+          const isFaded = activeTicketNumber !== null && !isActive;
           const opacityClass = isFaded ? 'opacity-5' : 'opacity-100';
           const zIndexClass = isActive ? 'z-20' : 'z-10';
           const commonClasses = `transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`;

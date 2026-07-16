@@ -49,6 +49,17 @@ export function getTicketTooltipText(ticket: TimelineTicket): string {
     } else {
       durationFinalText = `Duração: ${durationStr} (total até agora - ${globalService} min)`;
     }
+  } else if (ticket.status === 'forwarded') {
+    const globalWait = Math.round((ticket.globalWaitSeconds || 0) / 60);
+    const globalService = Math.round((ticket.globalServiceSeconds || 0) / 60);
+    
+    waitText = `Esperou: ${waitTime} min (total - ${globalWait} min)`;
+    
+    if (durationStr !== 'Em andamento') {
+      durationFinalText = `Duração: ${durationStr} min (total - ${globalService} min)`;
+    } else {
+      durationFinalText = `Duração: ${durationStr} (total até agora - ${globalService} min)`;
+    }
   }
 
   return `${header}\nPrioridade: ${ticket.priority}\n${arrivedText}\n${calledText}\n${waitText}\n${durationFinalText}`;
