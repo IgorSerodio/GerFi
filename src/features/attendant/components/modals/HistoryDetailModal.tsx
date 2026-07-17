@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketStatus";
 
 interface HistoryDetailModalProps {
   selectedHistoryTicket: Ticket | null;
@@ -12,25 +13,10 @@ export default function HistoryDetailModal({
   selectedHistoryTicket,
   onClose,
 }: HistoryDetailModalProps) {
-  
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case "completed":
-        return { label: "Finalizado", classes: "bg-emerald-100 text-emerald-700" };
-      case "no_show":
-        return { label: "Não Compareceu", classes: "bg-red-100 text-red-700" };
-      case "forwarded":
-        return { label: "Encaminhado", classes: "bg-blue-100 text-blue-700" };
-      case "started":
-        return { label: "Em Atendimento", classes: "bg-amber-100 text-amber-700" };
-      case "calling":
-        return { label: "Chamando", classes: "bg-yellow-100 text-yellow-700" };
-      default:
-        return { label: status, classes: "bg-gray-100 text-gray-700" };
-    }
-  };
-
-  const statusInfo = selectedHistoryTicket ? getStatusDisplay(selectedHistoryTicket.status) : null;
+  const statusInfo = selectedHistoryTicket ? {
+    label: getTicketStatusLabel(selectedHistoryTicket.status),
+    classes: getTicketStatusColorClass(selectedHistoryTicket.status)
+  } : null;
 
   return (
     <Modal 

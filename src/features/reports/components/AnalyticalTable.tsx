@@ -1,6 +1,6 @@
 import React from "react";
 import { DetailRow } from "@/features/reports/actions";
-import { getTicketStatusLabel } from "@/utils/ticketStatus";
+import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketStatus";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];
@@ -71,14 +71,7 @@ export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2.5 py-1 text-[9px] font-black uppercase rounded-md ${
-                        mappedStatus === "CONCLUÍDO" ? "bg-emerald-100 text-emerald-700"
-                        : mappedStatus === "NÃO COMPARECEU" ? "bg-red-100 text-red-700"
-                        : mappedStatus === "ENCAMINHADO" ? "bg-blue-100 text-blue-700"
-                        : mappedStatus === "EM ATENDIMENTO" ? "bg-amber-100 text-amber-700"
-                        : mappedStatus === "CHAMADO" ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`px-2.5 py-1 text-[9px] font-black uppercase rounded-md ${getTicketStatusColorClass(row.status)}`}
                     >
                       {mappedStatus}
                     </span>

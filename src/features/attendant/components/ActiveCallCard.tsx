@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { PhoneForwarded, Send, CheckCircle2, Users, UserX } from "lucide-react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+import { Category } from "@/features/triage/components/types";
+import { getTicketStatusLabel } from "@/utils/ticketStatus";
 import WaitTimer from "./WaitTimer";
 
 interface ActiveCallCardProps {
@@ -72,7 +74,7 @@ export default function ActiveCallCard({
         <div className="w-full text-center space-y-6 animate-fade-in">
           <div className="flex flex-col items-center gap-2 mb-4">
             <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
-              {currentCall.status === "started" ? "Em Atendimento" : "Em Chamada"}
+              {getTicketStatusLabel(currentCall.status)}
             </div>
             <WaitTimer
               createdAt={currentCall.createdAt}
