@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PhoneForwarded, Send, CheckCircle2, Users, UserX } from "lucide-react";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 import WaitTimer from "./WaitTimer";
 
 interface ActiveCallCardProps {

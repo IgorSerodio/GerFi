@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, Ban } from "lucide-react";
 import { User, UserRole } from "@/features/users/types";
-import { Location, DbTicketWindow, DbCategory } from "@/features/queue/types";
+import { Location, DbTicketWindow, DbCategory } from "@/features/management/types";;
 import {
   getUsersAction,
   updateUserAction,
@@ -11,11 +11,7 @@ import {
   toggleBlockUserAction,
 } from "@/features/users/actions";
 import { useSession } from "next-auth/react";
-import {
-  getLocationsAction,
-  getTicketWindowsAction,
-  getCategoriesAction,
-} from "@/features/queue/actions";
+import { getLocationsAction, getTicketWindowsAction, getCategoriesAction } from "@/features/management/actions";;
 import { UsersListTable } from "./UsersListTable";
 import { UserFormModal, NewUserFormData } from "./modals/UserFormModal";
 import { UserDeleteModal } from "./modals/UserDeleteModal";

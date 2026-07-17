@@ -1,6 +1,6 @@
 import React from "react";
 import { Pen, Trash2 } from "lucide-react";
-import { DbCategory } from "@/features/queue/types";
+import { DbCategory } from "@/features/management/types";;
 
 interface ServicesListTableProps {
   categories: DbCategory[];

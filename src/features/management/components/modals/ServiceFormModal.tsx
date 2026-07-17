@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FileText, Briefcase, Heart, Shield, Star, Zap, Car, Smartphone, Home, Gavel, Landmark, Building, GraduationCap, Banknote, Search, X, Plus } from "lucide-react";
-import { DbCategory } from "@/features/queue/types";
+import { DbCategory } from "@/features/management/types";;
 
 const AVAILABLE_ICONS = [
   { name: "FileText", icon: FileText },
@@ -195,7 +195,7 @@ export function ServiceFormModal({
             </button>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
-            {newCategory.resolutions?.map((res, idx) => (
+            {newCategory.resolutions?.map((res: string, idx: number) => (
               <div key={idx} className="flex items-center gap-2 bg-emerald-50 text-sefaz-dark px-3 py-1.5 rounded-lg border border-emerald-100 text-xs font-bold">
                 <span>{res}</span>
                 <button

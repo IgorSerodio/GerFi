@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { UserRole } from "@/features/users/types";
-import { DbCategory, DbTicketWindow, Location } from "@/features/queue/types";
+import { DbCategory, DbTicketWindow, Location } from "@/features/management/types";;
 
 export interface NewUserFormData {
   name: string;

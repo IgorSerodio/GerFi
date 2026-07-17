@@ -10,13 +10,14 @@ import {
   finishTicketAction,
   forwardTicketAction,
   noShowTicketAction,
-  getActiveGuichesAction,
 } from "@/features/queue/actions";
+import { getActiveGuichesAction } from "@/features/management/actions";
 import {
   getMyProfileAction,
   updateMyGuicheAction,
 } from "@/features/users/actions";
-import { Ticket, DbCategory, DbTicketWindow, Location } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";
+import { DbCategory, DbTicketWindow, Location } from "@/features/management/types";
 
 import AttendantSidebar from "./AttendantSidebar";
 import ServiceConfigOverlay from "./ServiceConfigOverlay";
@@ -141,8 +142,8 @@ export default function AttendantDashboard({
       setActiveGuiches(activeRes.data);
     }
     // Fetch windows for this location
-    import("@/features/queue/actions").then(m => {
-      m.getTicketWindowsAction(locationId).then(wRes => {
+    import("@/features/management/actions").then(m => {
+      m.getTicketWindowsAction(locationId).then((wRes: any) => {
         if (wRes.success && wRes.data) setTicketWindows(wRes.data as DbTicketWindow[]);
       });
     });

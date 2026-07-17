@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Trash2, Save, X, Plus, Tv, ExternalLink } from "lucide-react";
-import { DbCategory } from "@/features/queue/types";
+import { DbCategory } from "@/features/management/types";;
 import { TvSettings } from "@/features/tv/types";
 import { 
   getAllTvSettingsAction, 
@@ -9,10 +9,10 @@ import {
   createTvSettingsAction,
   deleteTvSettingsAction
 } from "@/features/tv/actions";
-import { getCategoriesAction, getLocationsAction } from "@/features/queue/actions";
+import { getCategoriesAction, getLocationsAction } from "@/features/management/actions";;
 import { Modal } from "@/components/ui/Modal";
 import LocationSelector from "@/components/ui/LocationSelector";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 import { TvConfigList } from "./TvConfigList";
 import { TvFormModal } from "./modals/TvFormModal";
 

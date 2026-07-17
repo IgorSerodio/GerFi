@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Printer } from "lucide-react";
-import { Ticket as TicketType } from "@/features/queue/types";
+import { Ticket as TicketType } from "@/features/queue/types";;;
 
 interface TicketReceiptModalProps {
   issuedTicket: TicketType | null;

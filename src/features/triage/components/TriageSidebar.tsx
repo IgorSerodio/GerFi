@@ -2,7 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Users, Clock, Info, History, Printer, X } from "lucide-react";
 import { SearchResult } from "./types";
-import { Ticket as TicketType } from "@/features/queue/types";
+import { Ticket as TicketType } from "@/features/queue/types";;;
 import { Session } from "next-auth";
 
 interface TriageSidebarProps {

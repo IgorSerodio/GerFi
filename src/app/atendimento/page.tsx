@@ -2,10 +2,10 @@ import React from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { getCategoriesAction, getLocationsAction } from "@/features/queue/actions";
+import { getCategoriesAction, getLocationsAction } from "@/features/management/actions";;
 import { getUserById } from "@/features/users/queries";
 import AttendantDashboard from "@/features/attendant/components/AttendantDashboard";
-import { DbCategory, Location } from "@/features/queue/types";
+import { DbCategory, Location } from "@/features/management/types";;
 
 export default async function AttendantPage() {
   const session = await getServerSession(authOptions);

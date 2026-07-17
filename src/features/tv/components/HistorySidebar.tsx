@@ -1,6 +1,6 @@
 import React from "react";
 import { Clock } from "lucide-react";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 
 interface HistorySidebarProps {
   recentTickets: Ticket[];

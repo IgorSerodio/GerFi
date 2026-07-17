@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 import { MapPin } from "lucide-react";
 
 interface LocationModalProps {

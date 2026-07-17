@@ -2,16 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Pen, Trash2, MapPin, Ban, CheckCircle } from "lucide-react";
-import { Location, DbTicketWindow } from "@/features/queue/types";
-import {
-  getLocationsAction,
-  createLocationAction,
-  updateLocationAction,
-  deleteLocationAction,
-  getTicketWindowsAction,
-  createNextTicketWindowAction,
-  deleteTicketWindowAction,
-} from "@/features/queue/actions";
+import { Location, DbTicketWindow } from "@/features/management/types";;
+import { getLocationsAction, createLocationAction, updateLocationAction, deleteLocationAction, getTicketWindowsAction, createNextTicketWindowAction, deleteTicketWindowAction } from "@/features/management/actions";;
 
 import { LocationsList } from "./LocationsList";
 import { TicketWindowsList } from "./TicketWindowsList";

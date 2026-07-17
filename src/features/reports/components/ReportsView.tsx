@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Printer, FileText } from "lucide-react";
 
-import { getCategoriesAction } from "@/features/queue/actions";
-import { DbCategory } from "@/features/queue/types";
+import { getCategoriesAction } from "@/features/management/actions";;
+import { DbCategory } from "@/features/management/types";;
 import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
 import { useReportsData } from "@/features/reports/hooks/useReportsData";
 import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";

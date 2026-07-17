@@ -24,38 +24,3 @@ export interface QueueState {
   history: Ticket[];
 }
 
-export interface DbCategory {
-  id: number;
-  ticketChar: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  expectedTimeNormal: number;
-  expectedTimePriority: number;
-  resolutions: string[];
-}
-
-export interface DbTicketWindow {
-  id: number;
-  name: string;
-  locationId: number;
-}
-
-export interface TvSetting {
-  id: number;
-  slug: string;
-  name: string;
-  mode: "live" | "files";
-  liveUrl: string;
-  uploadedFiles: string[];
-  services: number[];
-  locationId: number;
-}
-
-export interface Location {
-  id: number;
-  name: string;
-  isActive: boolean;
-  createdAt: string;
-}

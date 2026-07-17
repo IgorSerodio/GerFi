@@ -1,7 +1,7 @@
 import React from "react";
 import { Monitor, Hash, MapPin } from "lucide-react";
 
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 
 interface AttendantState {
   name: string;

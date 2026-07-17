@@ -1,5 +1,5 @@
 import React from "react";
-import { Ticket as TicketType } from "@/features/queue/types";
+import { Ticket as TicketType } from "@/features/queue/types";;;
 
 export interface Category {
   id: number;

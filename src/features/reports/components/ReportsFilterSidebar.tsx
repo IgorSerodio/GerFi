@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { DbCategory, Location } from "@/features/queue/types";
+import { DbCategory, Location } from "@/features/management/types";;
 import { User } from "@/features/users/types";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, X, Printer, Activity, Clock, CalendarDays, Timer, TrendingUp, Trophy } from "lucide-react";

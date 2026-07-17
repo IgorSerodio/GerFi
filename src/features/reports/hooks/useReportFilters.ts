@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getReportFiltersDataAction } from "@/features/reports/actions";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 import { User } from "@/features/users/types";
 
 export function useReportFilters() {

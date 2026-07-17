@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Play } from "lucide-react";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 
 interface StartModalProps {
   show: boolean;

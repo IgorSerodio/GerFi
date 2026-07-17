@@ -16,7 +16,7 @@ import {
   getAnalyticalData,
   ChartPoint,
 } from "./queries";
-import { getLocations } from "@/features/queue/queries";
+import { getLocations } from "@/features/management/queries";;
 import { getUsers } from "@/features/users/queries";
 
 export interface DetailRow {

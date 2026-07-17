@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { ArrowLeft, Menu, Printer, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
-import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";
-import { Ticket as TicketType, DbCategory } from "@/features/queue/types";
+import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";;;
+import { Ticket as TicketType } from "@/features/queue/types";;
+import { DbCategory } from "@/features/management/types";;
 import { Session } from "next-auth";
 
 import { Category, SearchResult } from "./types";
@@ -14,7 +15,7 @@ import PriorityModal from "./modals/PriorityModal";
 import PrinterTestModal from "./modals/PrinterTestModal";
 import TicketReceiptModal from "./modals/TicketReceiptModal";
 
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 import LocationSelector from "@/components/ui/LocationSelector";
 
 interface TriageDashboardProps {

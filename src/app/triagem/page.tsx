@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { requirePermission } from "@/features/auth/actions";
-import { getCategoriesAction, getLocationsAction } from "@/features/queue/actions";
+import { getCategoriesAction, getLocationsAction } from "@/features/management/actions";;
 import TriageDashboard from "@/features/triage/components/TriageDashboard";
-import { DbCategory, Location } from "@/features/queue/types";
+import { DbCategory, Location } from "@/features/management/types";;
 
 export default async function TriagePage() {
   let session;

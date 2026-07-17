@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Filter, Search, X } from "lucide-react";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { DateRange } from "@/features/reports/hooks/useLogisticsData";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 import { User } from "@/features/users/types";
 
 interface LogisticsFilterBarProps {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Trash2 } from "lucide-react";
-import { DbTicketWindow } from "@/features/queue/types";
+import { DbTicketWindow } from "@/features/management/types";;
 
 interface TicketWindowsListProps {
   ticketWindows: DbTicketWindow[];

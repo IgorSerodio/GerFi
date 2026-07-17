@@ -2,7 +2,7 @@ import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Trash2, X, Save } from "lucide-react";
 import { TvSettings } from "@/features/tv/types";
-import { DbCategory } from "@/features/queue/types";
+import { DbCategory } from "@/features/management/types";;
 
 interface TvFormModalProps {
   isOpen: boolean;

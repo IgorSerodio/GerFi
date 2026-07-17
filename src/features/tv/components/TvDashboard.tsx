@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { getQueueStateAction } from "@/features/queue/actions";
+import { getQueueStateAction } from "@/features/queue/actions";;;
 import { getTvSettingsAction } from "@/features/tv/actions";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 import { TvSettings } from "@/features/tv/types";
 
 import TvHeader from "./TvHeader";

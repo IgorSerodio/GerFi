@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 
 interface FinishModalProps {
   show: boolean;

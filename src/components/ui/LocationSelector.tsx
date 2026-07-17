@@ -1,5 +1,5 @@
 import React from "react";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 
 interface LocationSelectorProps {
   locations: Location[];

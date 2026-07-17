@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { DbCategory } from "@/features/queue/types";
-import {
-  getCategoriesAction,
-  createCategoryAction,
-  updateCategoryAction,
-  deleteCategoryAction,
-} from "@/features/queue/actions";
+import { DbCategory } from "@/features/management/types";;
+import { getCategoriesAction, createCategoryAction, updateCategoryAction, deleteCategoryAction } from "@/features/management/actions";;
 import { ServicesListTable } from "./ServicesListTable";
 import { ServiceFormModal } from "./modals/ServiceFormModal";
 

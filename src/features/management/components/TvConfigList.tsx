@@ -1,7 +1,7 @@
 import React from "react";
 import { Trash2, Tv, ExternalLink } from "lucide-react";
 import { TvSettings } from "@/features/tv/types";
-import { Location } from "@/features/queue/types";
+import { Location } from "@/features/management/types";;
 
 interface TvConfigListProps {
   tvs: TvSettings[];

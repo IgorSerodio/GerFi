@@ -1,5 +1,5 @@
 import React from "react";
-import { Ticket } from "@/features/queue/types";
+import { Ticket } from "@/features/queue/types";;;
 import WaitTimer from "./WaitTimer";
 
 interface QueuePreviewProps {
