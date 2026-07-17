@@ -19,13 +19,17 @@ import {
 import { getLocations } from "@/features/queue/queries";
 import { getUsers } from "@/features/users/queries";
 
-interface DetailRow {
-  time: string;
-  started: string;
-  completed: string;
-  ref: string;
-  desk: string;
-  user: string;
+export interface DetailRow {
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  originalCreatedAt: string;
+  originalStartedAt: string | null;
+  originalCompletedAt: string | null;
+  isForwarded: boolean;
+  ticketNumber: string;
+  desk: string | null;
+  user: string | null;
   status: string;
 }
 
@@ -137,33 +141,19 @@ export async function getReportsDataAction(payload: {
       const rows = await getAnalyticalData(start, end, service, locationId, attendants);
       detailRows = rows.map((row) => {
         const isForwarded = row.createdAt.getTime() > row.originalCreatedAt.getTime();
-        const origTime = row.originalCreatedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const origStarted = row.originalStartedAt ? row.originalStartedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
-        const origCompleted = row.originalCompletedAt ? row.originalCompletedAt.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
-        
-          let mappedStatus = "AGUARDANDO";
-          switch (row.status) {
-            case "completed": mappedStatus = "CONCLUÍDO"; break;
-            case "no_show": mappedStatus = "NÃO COMPARECEU"; break;
-            case "forwarded": mappedStatus = "ENCAMINHADO"; break;
-            case "started": mappedStatus = "EM ATENDIMENTO"; break;
-            case "calling": mappedStatus = "CHAMADO"; break;
-            case "pending": mappedStatus = "AGUARDANDO"; break;
-          }
-
-          return {
-            time: isForwarded ? `${row.createdAt.toLocaleString("pt-BR")} (Orig: ${origTime})` : row.createdAt.toLocaleString("pt-BR"),
-            started: row.startedAt 
-              ? (isForwarded && origStarted ? `${row.startedAt.toLocaleString("pt-BR")} (Orig: ${origStarted})` : row.startedAt.toLocaleString("pt-BR")) 
-              : "-",
-            completed: row.completedAt 
-              ? (isForwarded && origCompleted ? `${row.completedAt.toLocaleString("pt-BR")} (Orig: ${origCompleted})` : row.completedAt.toLocaleString("pt-BR")) 
-              : "-",
-            ref: isForwarded ? `ENCAM. DE ${row.ticketNumber}` : row.ticketNumber,
-            desk: row.guiche ? row.guiche.replace("Guichê ", "") : "-",
-            user: row.attendant || "-",
-            status: mappedStatus,
-          };
+        return {
+          createdAt: row.createdAt.toISOString(),
+          startedAt: row.startedAt ? row.startedAt.toISOString() : null,
+          completedAt: row.completedAt ? row.completedAt.toISOString() : null,
+          originalCreatedAt: row.originalCreatedAt.toISOString(),
+          originalStartedAt: row.originalStartedAt ? row.originalStartedAt.toISOString() : null,
+          originalCompletedAt: row.originalCompletedAt ? row.originalCompletedAt.toISOString() : null,
+          isForwarded,
+          ticketNumber: row.ticketNumber,
+          desk: row.guiche || null,
+          user: row.attendant || null,
+          status: row.status,
+        };
       });
     }
 

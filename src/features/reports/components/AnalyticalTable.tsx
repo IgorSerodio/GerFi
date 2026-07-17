@@ -1,18 +1,31 @@
 import React from "react";
-
-export interface DetailRow {
-  time: string;
-  started: string;
-  completed: string;
-  ref: string;
-  desk: string;
-  user: string;
-  status: string;
-}
+import { DetailRow } from "@/features/reports/actions";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];
 }
+
+const formatDate = (isoStr: string | null) => {
+  if (!isoStr) return "-";
+  return new Date(isoStr).toLocaleString("pt-BR");
+};
+
+const formatTime = (isoStr: string | null) => {
+  if (!isoStr) return "-";
+  return new Date(isoStr).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "completed": return "CONCLUÍDO";
+    case "no_show": return "NÃO COMPARECEU";
+    case "forwarded": return "ENCAMINHADO";
+    case "started": return "EM ATENDIMENTO";
+    case "calling": return "CHAMADO";
+    case "pending": return "AGUARDANDO";
+    default: return "AGUARDANDO";
+  }
+};
 
 export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
   return (
@@ -31,42 +44,57 @@ export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-emerald-50">
-            {rows.map((row, i: number) => (
-              <tr key={i} className="hover:bg-emerald-50/30">
-                <td className="px-6 py-4 text-xs font-black text-sefaz-accent">
-                  {row.ref}
-                </td>
-                <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
-                  {row.time}
-                </td>
-                <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
-                  {row.started}
-                </td>
-                <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
-                  {row.completed}
-                </td>
-                <td className="px-6 py-4 text-xs font-medium text-sefaz-accent">
-                  {row.desk}
-                </td>
-                <td className="px-6 py-4 text-xs font-medium text-sefaz-accent">
-                  {row.user}
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2.5 py-1 text-[9px] font-black uppercase rounded-md ${
-                      row.status === "CONCLUÍDO" ? "bg-emerald-100 text-emerald-700"
-                      : row.status === "NÃO COMPARECEU" ? "bg-red-100 text-red-700"
-                      : row.status === "ENCAMINHADO" ? "bg-blue-100 text-blue-700"
-                      : row.status === "EM ATENDIMENTO" ? "bg-amber-100 text-amber-700"
-                      : row.status === "CHAMADO" ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {row.status}
-                  </span>
+            {rows.map((row, i: number) => {
+              const mappedStatus = getStatusLabel(row.status);
+              const origTime = formatTime(row.originalCreatedAt);
+              const origStarted = row.originalStartedAt ? formatTime(row.originalStartedAt) : null;
+              const origCompleted = row.originalCompletedAt ? formatTime(row.originalCompletedAt) : null;
+
+              const timeStr = row.isForwarded ? `${formatDate(row.createdAt)} (Orig: ${origTime})` : formatDate(row.createdAt);
+              const startedStr = row.startedAt ? (row.isForwarded && origStarted ? `${formatDate(row.startedAt)} (Orig: ${origStarted})` : formatDate(row.startedAt)) : "-";
+              const completedStr = row.completedAt ? (row.isForwarded && origCompleted ? `${formatDate(row.completedAt)} (Orig: ${origCompleted})` : formatDate(row.completedAt)) : "-";
+              
+              const deskStr = row.desk ? row.desk.replace("Guichê ", "") : "-";
+              const refStr = row.isForwarded ? `ENCAM. DE ${row.ticketNumber}` : row.ticketNumber;
+              const userStr = row.user || "-";
+
+              return (
+                <tr key={i} className="hover:bg-emerald-50/30">
+                  <td className="px-6 py-4 text-xs font-black text-sefaz-accent">
+                    {refStr}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
+                    {timeStr}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
+                    {startedStr}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
+                    {completedStr}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-medium text-sefaz-accent">
+                    {deskStr}
+                  </td>
+                  <td className="px-6 py-4 text-xs font-medium text-sefaz-accent">
+                    {userStr}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2.5 py-1 text-[9px] font-black uppercase rounded-md ${
+                        mappedStatus === "CONCLUÍDO" ? "bg-emerald-100 text-emerald-700"
+                        : mappedStatus === "NÃO COMPARECEU" ? "bg-red-100 text-red-700"
+                        : mappedStatus === "ENCAMINHADO" ? "bg-blue-100 text-blue-700"
+                        : mappedStatus === "EM ATENDIMENTO" ? "bg-amber-100 text-amber-700"
+                        : mappedStatus === "CHAMADO" ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {mappedStatus}
+                    </span>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

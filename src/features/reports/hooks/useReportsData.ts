@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getReportsDataAction } from "@/features/reports/actions";
+import { getReportsDataAction, DetailRow } from "@/features/reports/actions";
 
 export interface ReportResultData {
   stats: {
@@ -10,15 +10,7 @@ export interface ReportResultData {
   };
   categoryAggregation: Array<{ name: string; count: number; value: number }>;
   attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
-  detailRows: Array<{
-    time: string;
-    started: string;
-    completed: string;
-    ref: string;
-    desk: string;
-    user: string;
-    status: string;
-  }>;
+  detailRows: DetailRow[];
   reportType: "analytical" | "synthetic";
   selectedModels: string[];
   evolutionSeries: Array<{ time: string; total: number; avg: number; wait: number }>;
