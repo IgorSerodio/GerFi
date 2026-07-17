@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { getQueueStateAction } from "@/features/queue/actions";;;
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { getQueueStateAction } from "@/features/queue/actions";
 import { getTvSettingsAction } from "@/features/tv/actions";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
 import { TvSettings } from "@/features/tv/types";
 
 import TvHeader from "./TvHeader";
@@ -87,10 +87,30 @@ export default function TvDashboard({
     },
   ];
 
-  const refreshState = async () => {
+  const stateRef = useRef({
+    locationId: tvSettings.locationId,
+    services: tvSettings.services,
+    slug: tvSettings.slug,
+    soundEnabled,
+    volume,
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      locationId: tvSettings.locationId,
+      services: tvSettings.services,
+      slug: tvSettings.slug,
+      soundEnabled,
+      volume,
+    };
+  }, [tvSettings.locationId, tvSettings.services, tvSettings.slug, soundEnabled, volume]);
+
+  const refreshState = useCallback(async () => {
+    const { locationId, services, slug, soundEnabled: sEnabled, volume: vol } = stateRef.current;
+
     const [queueRes, tvRes] = await Promise.all([
-      getQueueStateAction(tvSettings.locationId, tvSettings.services),
-      getTvSettingsAction(tvSettings.slug),
+      getQueueStateAction(locationId, services),
+      getTvSettingsAction(slug),
     ]);
 
     if (tvRes.success && tvRes.data) {
@@ -113,8 +133,8 @@ export default function TvDashboard({
             ? first.recallHistory[first.recallHistory.length - 1] 
             : (first.calledAt || "");
 
-          if ((first.id !== prevCallIdRef.current || latestCallTime !== prevCalledAtRef.current) && soundEnabled) {
-            playAlert();
+          if ((first.id !== prevCallIdRef.current || latestCallTime !== prevCalledAtRef.current) && sEnabled) {
+            playAlert(vol);
           }
           prevCallIdRef.current = first.id;
           prevCalledAtRef.current = latestCallTime;
@@ -127,7 +147,7 @@ export default function TvDashboard({
         setIsIdle(true);
       }
     }
-  };
+  }, []);
 
   function resetIdleTimer() {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -144,12 +164,12 @@ export default function TvDashboard({
     }, 5000); // 5 seconds
   }
 
-  function playAlert() {
+  function playAlert(currentVol?: number) {
     try {
       const audio = new Audio(
         "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
       );
-      audio.volume = volume;
+      audio.volume = currentVol ?? volume;
       audio.play().catch((e) => console.log("Audio play blocked", e));
     } catch (e) {
       console.log("Audio error", e);
@@ -160,14 +180,9 @@ export default function TvDashboard({
     setTimeout(() => {
       refreshState();
     }, 0);
-  }, [soundEnabled]);
+  }, [soundEnabled, refreshState]);
 
-  const refreshStateRef = useRef(refreshState);
-  useEffect(() => {
-    refreshStateRef.current = refreshState;
-  }, [refreshState]);
-
-  useQueueStream(() => refreshStateRef.current());
+  useQueueStream(() => refreshState());
 
   useEffect(() => {
     const slideTimer = setInterval(() => {
@@ -179,7 +194,7 @@ export default function TvDashboard({
     }, 8000);
 
     return () => clearInterval(slideTimer);
-  }, [tvSettings.uploadedFiles]);
+  }, [tvSettings.uploadedFiles, defaultSlides.length]);
 
   useEffect(() => {
     setTimeout(() => {
