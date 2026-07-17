@@ -1,6 +1,7 @@
 import React from "react";
 import { Clock } from "lucide-react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+import { formatTime } from "@/utils/dateFormatter";
 
 interface HistorySidebarProps {
   recentTickets: Ticket[];
@@ -58,13 +59,7 @@ export default function HistorySidebar({
                     </div>
                     <div className="text-right">
                       <div className="text-[20px] font-black text-emerald-600 tabular-nums tracking-tighter">
-                        {new Date(ticket.calledAt || "").toLocaleTimeString(
-                          "pt-BR",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {formatTime(ticket.calledAt)}
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import NextLink from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { formatTime, formatDate } from "@/utils/dateFormatter";
 
 interface TvHeaderProps {
   time: Date;
@@ -30,11 +31,8 @@ export default function TvHeader({ time }: TvHeaderProps) {
         <div className="text-right py-4">
           <div className="text-4xl font-black text-emerald-900 tracking-tighter tabular-nums leading-none">
             {time
-              ? time.toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "--:--"}
+              ? formatTime(time, { showSeconds: true })
+              : "--:--:--"}
           </div>
           <div className="text-emerald-500 font-black uppercase tracking-widest text-[8px] mt-0.5 pr-1">
             {time

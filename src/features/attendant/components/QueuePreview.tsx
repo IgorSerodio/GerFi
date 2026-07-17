@@ -1,5 +1,6 @@
 import React from "react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 import WaitTimer from "./WaitTimer";
 
 interface QueuePreviewProps {
@@ -24,11 +25,7 @@ export default function QueuePreview({ availableTickets, categories }: QueuePrev
             }`}
           >
             <p
-              className={`text-2xl font-black ${
-                t.priority === "Prioritário"
-                  ? "text-red-600"
-                  : "text-sefaz-accent"
-              }`}
+              className={`text-2xl font-black ${getPriorityTextColorClass(t.priority, "text-sefaz-accent")}`}
             >
               {t.ticketNumber}
             </p>

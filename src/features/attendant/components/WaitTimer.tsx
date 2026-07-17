@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
+import { getDiffInMs } from "@/utils/timeUtils";
 
 interface WaitTimerProps {
   createdAt: string;
@@ -20,9 +21,7 @@ export default function WaitTimer({
 }: WaitTimerProps) {
   const [now, setNow] = useState(() => Date.now());
 
-  const start = new Date(createdAt).getTime();
-  const end = calledAt ? new Date(calledAt).getTime() : now;
-  const elapsedMs = Math.max(0, end - start);
+  const elapsedMs = getDiffInMs(createdAt, calledAt || now);
 
   useEffect(() => {
     if (!calledAt) {

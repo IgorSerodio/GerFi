@@ -1,22 +1,11 @@
 import React from "react";
 import { DetailRow } from "@/features/reports/actions";
 import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketStatus";
+import { formatTime, formatDate, formatDateTime } from "@/utils/dateFormatter";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];
 }
-
-const formatDate = (isoStr: string | null) => {
-  if (!isoStr) return "-";
-  return new Date(isoStr).toLocaleString("pt-BR");
-};
-
-const formatTime = (isoStr: string | null) => {
-  if (!isoStr) return "-";
-  return new Date(isoStr).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-};
-
-
 
 export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
   return (
@@ -37,13 +26,13 @@ export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
           <tbody className="divide-y divide-emerald-50">
             {rows.map((row, i: number) => {
               const mappedStatus = getTicketStatusLabel(row.status).toUpperCase();
-              const origTime = formatTime(row.originalCreatedAt);
-              const origStarted = row.originalStartedAt ? formatTime(row.originalStartedAt) : null;
-              const origCompleted = row.originalCompletedAt ? formatTime(row.originalCompletedAt) : null;
+              const origTime = formatTime(row.originalCreatedAt, { showSeconds: true });
+              const origStarted = row.originalStartedAt ? formatTime(row.originalStartedAt, { showSeconds: true }) : null;
+              const origCompleted = row.originalCompletedAt ? formatTime(row.originalCompletedAt, { showSeconds: true }) : null;
 
-              const timeStr = row.isForwarded ? `${formatDate(row.createdAt)} (Orig: ${origTime})` : formatDate(row.createdAt);
-              const startedStr = row.startedAt ? (row.isForwarded && origStarted ? `${formatDate(row.startedAt)} (Orig: ${origStarted})` : formatDate(row.startedAt)) : "-";
-              const completedStr = row.completedAt ? (row.isForwarded && origCompleted ? `${formatDate(row.completedAt)} (Orig: ${origCompleted})` : formatDate(row.completedAt)) : "-";
+              const timeStr = row.isForwarded ? `${formatDateTime(row.createdAt, { showSeconds: true })} (Orig: ${origTime})` : formatDateTime(row.createdAt, { showSeconds: true });
+              const startedStr = row.startedAt ? (row.isForwarded && origStarted ? `${formatDateTime(row.startedAt, { showSeconds: true })} (Orig: ${origStarted})` : formatDateTime(row.startedAt, { showSeconds: true })) : "-";
+              const completedStr = row.completedAt ? (row.isForwarded && origCompleted ? `${formatDateTime(row.completedAt, { showSeconds: true })} (Orig: ${origCompleted})` : formatDateTime(row.completedAt, { showSeconds: true })) : "-";
               
               const deskStr = row.desk ? row.desk.replace("Guichê ", "") : "-";
               const refStr = row.isForwarded ? `ENCAM. DE ${row.ticketNumber}` : row.ticketNumber;

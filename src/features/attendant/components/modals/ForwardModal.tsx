@@ -2,7 +2,9 @@ import React from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+
+import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 
 interface ForwardModalProps {
   show: boolean;
@@ -37,7 +39,7 @@ export default function ForwardModal({
         <>
           <div className="p-8 border-b border-emerald-50 flex justify-between items-center">
               <div>
-                <h3 className={`text-2xl font-black uppercase tracking-tight ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-dark"}`}>
+                <h3 className={`text-2xl font-black uppercase tracking-tight ${getPriorityTextColorClass(currentCall.priority)}`}>
                   Encaminhar Senha: {currentCall.ticketNumber}
                 </h3>
                 <p className="text-sm font-medium text-sefaz-accent/60">

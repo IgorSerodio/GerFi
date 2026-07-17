@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { PhoneForwarded, Send, CheckCircle2, Users, UserX } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
-import { Category } from "@/features/triage/components/types";
 import { getTicketStatusLabel } from "@/utils/ticketStatus";
+import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 import WaitTimer from "./WaitTimer";
 
 interface ActiveCallCardProps {
@@ -85,7 +85,7 @@ export default function ActiveCallCard({
               className="mt-2 scale-110"
             />
           </div>
-          <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${currentCall.priority === "Prioritário" ? "text-red-600" : "text-sefaz-accent"}`}>
+          <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${getPriorityTextColorClass(currentCall.priority, "text-sefaz-accent")}`}>
             {currentCall.ticketNumber}
           </h3>
           <div className="flex flex-wrap justify-center gap-4 w-full max-w-3xl">

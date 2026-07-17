@@ -11,6 +11,7 @@ import { Session } from "next-auth";
 import { Category, SearchResult } from "./types";
 import TriageSidebar from "./TriageSidebar";
 import CategoryGrid from "./CategoryGrid";
+import { formatTime, formatDate } from "@/utils/dateFormatter";
 import PriorityModal from "./modals/PriorityModal";
 import PrinterTestModal from "./modals/PrinterTestModal";
 import TicketReceiptModal from "./modals/TicketReceiptModal";
@@ -245,13 +246,10 @@ export default function TriageDashboard({
                   className="hover:scale-105 active:scale-95 transition-transform"
                 >
                   <div className="text-lg font-black text-sefaz-dark leading-none">
-                    {new Date().toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatTime(new Date())}
                   </div>
                   <div className="text-[10px] font-bold text-sefaz-accent opacity-50 uppercase tracking-widest">
-                    {new Date().toLocaleDateString("pt-BR")}
+                    {formatDate(new Date())}
                   </div>
                 </button>
               </div>

@@ -2,7 +2,8 @@ import React from "react";
 import { motion } from "motion/react";
 import { Modal } from "@/components/ui/Modal";
 import { Printer } from "lucide-react";
-import { Ticket as TicketType } from "@/features/queue/types";;;
+import { formatTime } from "@/utils/dateFormatter";
+import { Ticket as TicketType } from "@/features/queue/types";
 
 interface TicketReceiptModalProps {
   issuedTicket: TicketType | null;
@@ -76,7 +77,7 @@ export default function TicketReceiptModal({
                 </div>
                 <div className="flex justify-between">
                   <span>HORA:</span>
-                  <span>{new Date(issuedTicket.createdAt).toLocaleTimeString()}</span>
+                  <span>{formatTime(issuedTicket.createdAt)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>POSTO:</span>

@@ -3,6 +3,8 @@ import { Modal } from "@/components/ui/Modal";
 import { X } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
 import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketStatus";
+import { formatTime } from "@/utils/dateFormatter";
+import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 
 interface HistoryDetailModalProps {
   selectedHistoryTicket: Ticket | null;
@@ -29,7 +31,7 @@ export default function HistoryDetailModal({
         <>
           <div className="p-8 border-b border-emerald-50 flex justify-between items-center bg-emerald-50/30">
               <div>
-                <h3 className={`text-2xl font-black uppercase tracking-tight ${selectedHistoryTicket.priority === "Prioritário" ? "text-red-600" : "text-sefaz-dark"}`}>
+                <h3 className={`text-2xl font-black uppercase tracking-tight ${getPriorityTextColorClass(selectedHistoryTicket.priority)}`}>
                   CUPOM: {selectedHistoryTicket.ticketNumber}
                 </h3>
                 <p className="text-xs font-bold text-sefaz-accent/60 uppercase tracking-widest">
@@ -71,7 +73,7 @@ export default function HistoryDetailModal({
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
                     {selectedHistoryTicket.calledAt
-                      ? new Date(selectedHistoryTicket.calledAt).toLocaleTimeString()
+                      ? formatTime(selectedHistoryTicket.calledAt, { showSeconds: true })
                       : "-"}
                   </p>
                 </div>
@@ -82,7 +84,7 @@ export default function HistoryDetailModal({
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
                     {selectedHistoryTicket.startedAt
-                      ? new Date(selectedHistoryTicket.startedAt).toLocaleTimeString()
+                      ? formatTime(selectedHistoryTicket.startedAt, { showSeconds: true })
                       : "-"}
                   </p>
                 </div>
@@ -93,7 +95,7 @@ export default function HistoryDetailModal({
                   </p>
                   <p className="text-lg font-black text-sefaz-dark">
                     {selectedHistoryTicket.completedAt
-                      ? new Date(selectedHistoryTicket.completedAt).toLocaleTimeString()
+                      ? formatTime(selectedHistoryTicket.completedAt, { showSeconds: true })
                       : "-"}
                   </p>
                 </div>
@@ -106,7 +108,7 @@ export default function HistoryDetailModal({
                 {selectedHistoryTicket.recallHistory && selectedHistoryTicket.recallHistory.length > 0 ? (
                   <ul className="list-disc list-inside text-sm font-medium text-sefaz-dark">
                     {selectedHistoryTicket.recallHistory.map((recallTime, idx) => (
-                      <li key={idx}>Rechamado às {new Date(recallTime).toLocaleTimeString()}</li>
+                      <li key={idx}>Rechamado às {formatTime(recallTime, { showSeconds: true })}</li>
                     ))}
                   </ul>
                 ) : (

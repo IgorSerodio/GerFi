@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Ticket } from "@/features/queue/types";;;
+import { Ticket } from "@/features/queue/types";
+import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 import { TvSettings } from "@/features/tv/types";
 
 interface MainCallDisplayProps {
@@ -57,11 +58,7 @@ export default function MainCallDisplay({
               </motion.div>
 
               <div
-                className={`relative leading-none font-black tracking-tighter ${
-                  currentCall.priority === "Prioritário"
-                    ? "text-red-600 drop-shadow-[0_20px_50px_rgba(220,38,38,0.3)]"
-                    : "text-emerald-950 drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]"
-                }`}
+                className={`relative leading-none font-black tracking-tighter ${getPriorityTextColorClass(currentCall.priority, "text-emerald-950")} ${currentCall.priority === "Prioritário" ? "drop-shadow-[0_20px_50px_rgba(220,38,38,0.3)]" : "drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]"}`}
                 style={{ fontSize: "28cqh" }}
               >
                 {currentCall.ticketNumber}

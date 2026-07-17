@@ -1,28 +1,22 @@
 import { TimelineTicket } from '@/features/reports/queries';
 import { getTicketStatusLabel } from '@/utils/ticketStatus';
+import { formatTime } from '@/utils/dateFormatter';
+import { getDiffInMinutes } from '@/utils/timeUtils';
 
 export function getTicketTooltipText(ticket: TimelineTicket): string {
-  const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return '--:--';
-    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
-  const getDiffMinutes = (startStr: string, endStr: string) => {
-    const diffMs = new Date(endStr).getTime() - new Date(startStr).getTime();
-    return Math.max(0, Math.round(diffMs / 60000));
-  };
 
   const arrived = formatTime(ticket.createdAt);
   const called = formatTime(ticket.calledAt);
-  const waitTime = ticket.calledAt ? getDiffMinutes(ticket.createdAt, ticket.calledAt) : 0;
+  const waitTime = ticket.calledAt ? getDiffInMinutes(ticket.createdAt, ticket.calledAt) : 0;
   
   let durationVal = 0;
   let durationStr = 'Em andamento';
   if (ticket.completedAt && ticket.startedAt) {
-    durationVal = getDiffMinutes(ticket.startedAt, ticket.completedAt);
+    durationVal = getDiffInMinutes(ticket.startedAt, ticket.completedAt);
     durationStr = `${durationVal}`;
   } else if (ticket.completedAt && ticket.calledAt) {
-    durationVal = getDiffMinutes(ticket.calledAt, ticket.completedAt);
+    durationVal = getDiffInMinutes(ticket.calledAt, ticket.completedAt);
     durationStr = `${durationVal}`;
   }
 
