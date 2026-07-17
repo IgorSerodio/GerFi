@@ -1,28 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useState } from "react";
+import { motion } from "motion/react";
 import {
-  BarChart3,
   TrendingUp,
-  Clock,
   Activity,
   PieChart as PieIcon,
   LineChart as LineIcon,
   BarChart as BarIcon,
-  Filter,
-  Search,
-  X,
 } from "lucide-react";
-import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
-import { useRef } from "react";
 import TimelineView from "./timeline/TimelineView";
 import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
 import { useLogisticsData, DateRange, MetricType } from "@/features/reports/hooks/useLogisticsData";
-import { PieChartGeneric } from "@/components/ui/charts/PieChartGeneric";
-import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
-import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";
-import { BarChartGeneric } from "@/components/ui/charts/BarChartGeneric";
+
+import { LogisticsFilterBar } from "./LogisticsFilterBar";
+import { LogisticsChartRenderer } from "./LogisticsChartRenderer";
+import { LogisticsKpiGrid } from "./LogisticsKpiGrid";
 
 type ChartType = "bar" | "line" | "area" | "pie";
 const COLORS = ["bg-emerald-500", "bg-teal-500", "bg-cyan-500", "bg-blue-500"];
@@ -35,9 +28,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   const [attendants, setAttendants] = useState<string[]>([]);
   const [activeView, setActiveView] = useState<"charts" | "timeline">("timeline");
   const [timelineDate, setTimelineDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [attendantSearch, setAttendantSearch] = useState("");
-  const [isAttendantDropdownOpen, setIsAttendantDropdownOpen] = useState(false);
-  const attendantDropdownRef = useRef<HTMLDivElement>(null);
 
   const { locations, users } = useReportFilters();
   const { data, isLoading, refetch } = useLogisticsData(
@@ -49,73 +39,8 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
     timelineDate
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (attendantDropdownRef.current && !attendantDropdownRef.current.contains(event.target as Node)) {
-        setIsAttendantDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleRefresh = () => {
     refetch();
-  };
-
-  const renderChart = () => {
-    if (!data || data.chartData.length === 0) {
-      return (
-        <div className="flex h-full w-full items-center justify-center text-xs font-bold text-emerald-800 uppercase tracking-widest">
-          Nenhum dado disponível
-        </div>
-      );
-    }
-
-    if (chartType === "pie") {
-      return (
-        <PieChartGeneric 
-          data={data.categoryAggregation}
-          nameKey="name"
-          valueKey="value"
-        />
-      );
-    }
-
-    if (chartType === "line") {
-      return (
-        <LineChartGeneric 
-          data={data.chartData}
-          xKey="name"
-          yKey="value"
-          name="Valor"
-          color="#10b981"
-        />
-      );
-    }
-
-    if (chartType === "area") {
-      return (
-        <AreaChartGeneric 
-          data={data.chartData}
-          xKey="name"
-          yKey="value"
-          name="Valor"
-          color="#10b981"
-          id="logisticsArea"
-        />
-      );
-    }
-
-    return (
-      <BarChartGeneric 
-        data={data.chartData}
-        xKey="name"
-        yKey="value"
-        name="Valor"
-        color="#10b981"
-      />
-    );
   };
 
   return (
@@ -133,7 +58,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleRefresh}
-              className="px-5 py-2.5 bg-sefaz-accent text-white rounded-xl font-bold text-xs shadow-lg shadow-emerald-900/20 flex items-center gap-2 hover:bg-sefaz-dark transition-all active:scale-95"
+              className="px-5 py-2.5 bg-sefaz-accent text-white rounded-xl font-bold text-xs shadow-lg shadow-emerald-900/20 flex items-center gap-2 hover:bg-sefaz-dark transition-all active:scale-95 cursor-pointer"
             >
               <Activity size={16} className={isLoading ? "animate-spin" : ""} /> Atualizar
             </button>
@@ -141,151 +66,27 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         </header>
       )}
 
-      {/* Dynamic Filters Bar */}
-      <section className="bg-white p-4 rounded-[32px] border border-emerald-100 shadow-sm flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2 px-4 border-r border-emerald-50">
-          <Filter size={14} className="text-sefaz-accent opacity-40" />
-          <span className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
-            Filtros:
-          </span>
-        </div>
+      <LogisticsFilterBar
+        activeView={activeView}
+        range={range}
+        setRange={setRange}
+        timelineDate={timelineDate}
+        setTimelineDate={setTimelineDate}
+        locationId={locationId}
+        setLocationId={setLocationId}
+        locations={locations}
+        attendants={attendants}
+        setAttendants={setAttendants}
+        users={users}
+      />
 
-        {activeView === "charts" ? (
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value as DateRange)}
-            className="bg-white px-4 py-2 rounded-xl text-[10px] font-black text-sefaz-dark border-2 border-emerald-50 outline-none focus:border-sefaz-accent uppercase tracking-widest cursor-pointer"
-          >
-            <option value="today">Período: Hoje</option>
-            <option value="week">Período: Esta Semana</option>
-            <option value="month">Período: Este Mês</option>
-            <option value="year">Período: Anual</option>
-          </select>
-        ) : (
-          <CustomDatePicker
-            value={timelineDate}
-            onChange={setTimelineDate}
-          />
-        )}
-
-        <select
-          value={locationId}
-          onChange={(e) => setLocationId(e.target.value === "all" ? "all" : Number(e.target.value))}
-          className="bg-white px-4 py-2 rounded-xl text-[10px] font-black text-sefaz-dark border-2 border-emerald-50 outline-none focus:border-sefaz-accent uppercase tracking-widest cursor-pointer"
-        >
-          <option value="all">Local: Todos</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>
-              Local: {loc.name}
-            </option>
-          ))}
-        </select>
-
-        <div className="relative" ref={attendantDropdownRef}>
-          <div className="bg-white px-2 py-1.5 rounded-xl border-2 border-emerald-50 focus-within:border-sefaz-accent flex items-center min-w-[200px] max-w-[300px]">
-            {attendants.length > 0 ? (
-              <div className="flex gap-1 overflow-x-auto custom-scrollbar items-center flex-1 mr-2">
-                {attendants.map((attName) => (
-                  <div key={attName} className="flex items-center gap-1 bg-emerald-100 text-sefaz-dark px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tight whitespace-nowrap">
-                    {attName}
-                    <button
-                      onClick={() => setAttendants(prev => prev.filter(a => a !== attName))}
-                      className="ml-1 hover:text-emerald-700 cursor-pointer"
-                    >
-                      <X size={10} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            <div className="flex items-center flex-1">
-              {attendants.length === 0 && <Search size={14} className="text-emerald-400 mr-2" />}
-              <input
-                type="text"
-                value={attendantSearch}
-                onChange={(e) => {
-                  setAttendantSearch(e.target.value);
-                  setIsAttendantDropdownOpen(true);
-                }}
-                onFocus={() => setIsAttendantDropdownOpen(true)}
-                placeholder={attendants.length === 0 ? "Servidor..." : "..."}
-                className="w-full bg-transparent outline-none font-black text-[10px] text-sefaz-dark placeholder:text-emerald-300 uppercase tracking-widest min-w-[60px]"
-              />
-            </div>
-          </div>
-
-          <AnimatePresence>
-            {isAttendantDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="absolute z-10 w-[250px] mt-2 bg-white border border-emerald-100 rounded-xl shadow-xl max-h-[200px] overflow-y-auto custom-scrollbar left-0"
-              >
-                {users
-                  .filter(u =>
-                    !attendants.includes(u.name) &&
-                    (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) ||
-                      u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))
-                  )
-                  .map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => {
-                        setAttendants(prev => [...prev, user.name]);
-                        setAttendantSearch("");
-                        setIsAttendantDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-emerald-50/50 border-b border-emerald-50 last:border-0 transition-colors cursor-pointer"
-                    >
-                      <div className="text-[10px] font-bold text-sefaz-dark uppercase tracking-tight">{user.name}</div>
-                      <div className="text-[9px] font-medium text-sefaz-accent opacity-60">Matrícula: {user.matricula}</div>
-                    </button>
-                  ))}
-                {users.filter(u => !attendants.includes(u.name) && (u.name.toLowerCase().includes(attendantSearch.toLowerCase()) || u.matricula?.toLowerCase().includes(attendantSearch.toLowerCase()))).length === 0 && (
-                  <div className="px-3 py-2 text-[10px] text-center text-sefaz-accent opacity-60">
-                    Nenhum servidor encontrado
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          icon={<Activity />}
-          value={data?.stats.total ?? 0}
-          label="Volume Total"
-          color="bg-emerald-500"
-        />
-        <StatCard
-          icon={<Clock />}
-          value={data?.stats.avgWait ?? "0min"}
-          label="Tempo Médio de Espera"
-          color="bg-blue-500"
-        />
-        <StatCard
-          icon={<Clock />}
-          value={data?.stats.avgService ?? "0min"}
-          label="Tempo Médio de Atend."
-          color="bg-purple-500"
-        />
-        <StatCard
-          icon={<BarChart3 />}
-          value={data?.stats.efficiency ?? "0%"}
-          label="Eficiência"
-          color="bg-indigo-500"
-        />
-      </div>
+      <LogisticsKpiGrid data={data} />
 
       {/* View Toggle */}
       <div className="flex bg-emerald-50/50 p-1 rounded-xl w-fit">
         <button
           onClick={() => setActiveView("timeline")}
-          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${activeView === "timeline"
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all cursor-pointer ${activeView === "timeline"
               ? "bg-sefaz-accent text-white shadow-md"
               : "text-sefaz-accent opacity-60 hover:opacity-100"
             }`}
@@ -294,7 +95,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
         </button>
         <button
           onClick={() => setActiveView("charts")}
-          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all ${activeView === "charts"
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-tight transition-all cursor-pointer ${activeView === "charts"
               ? "bg-sefaz-accent text-white shadow-md"
               : "text-sefaz-accent opacity-60 hover:opacity-100"
             }`}
@@ -335,7 +136,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
                       <button
                         key={m}
                         onClick={() => setMetric(m)}
-                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${metric === m
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all cursor-pointer ${metric === m
                             ? "bg-sefaz-accent text-white shadow-md"
                             : "text-sefaz-accent opacity-60 hover:opacity-100"
                           }`}
@@ -377,7 +178,7 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
                 className={`h-[350px] w-full transition-opacity duration-300 ${isLoading ? "opacity-20" : "opacity-100"
                   }`}
               >
-                {renderChart()}
+                <LogisticsChartRenderer data={data} chartType={chartType} />
               </div>
 
               {isLoading && (
@@ -448,34 +249,6 @@ export default function LogisticsDashboard({ showHeader = false }: { showHeader?
   );
 }
 
-function StatCard({
-  icon,
-  value,
-  label,
-  color,
-}: {
-  icon: React.ReactNode;
-  value: string | number;
-  label: string;
-  color: string;
-}) {
-  return (
-    <div className="bg-white p-6 rounded-[32px] border border-emerald-100 shadow-sm flex items-center gap-4 group hover:shadow-xl hover:shadow-emerald-950/5 transition-all">
-      <div
-        className={`w-12 h-12 shrink-0 ${color} text-white shadow-lg rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}
-      >
-        {icon}
-      </div>
-      <div>
-        <p className="text-3xl font-black text-sefaz-dark leading-none mb-1">{value}</p>
-        <p className="text-[10px] text-sefaz-accent font-black uppercase tracking-widest opacity-60 leading-tight">
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function ChartTypeBtn({
   active,
   onClick,
@@ -491,7 +264,7 @@ function ChartTypeBtn({
     <button
       onClick={onClick}
       title={title}
-      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${active
+      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${active
           ? "bg-sefaz-accent text-white shadow-md scale-110"
           : "bg-white text-sefaz-accent border border-emerald-100 hover:bg-emerald-50"
         }`}
