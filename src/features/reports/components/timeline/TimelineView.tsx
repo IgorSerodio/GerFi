@@ -6,6 +6,8 @@ import TimelineAxis from './TimelineAxis';
 import TimelineRow from './TimelineRow';
 import TimelineMinimap from './TimelineMinimap';
 import TimelineReceptionRow from './TimelineReceptionRow';
+import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
+
 
 interface TimelineViewProps {
   locationId: number | "all";
@@ -52,16 +54,9 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-
-    const eventSource = new EventSource("/api/queue/stream");
-    eventSource.addEventListener("update", () => {
-      setTimeout(fetchData, 0);
-    });
-
-    return () => {
-      eventSource.close();
-    };
   }, [fetchData]);
+
+  useQueueStream(fetchData);
 
   if (isLoading && data.length === 0) {
     return (

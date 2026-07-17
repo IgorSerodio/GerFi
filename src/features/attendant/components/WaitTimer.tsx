@@ -18,24 +18,20 @@ export default function WaitTimer({
   priority,
   className = "",
 }: WaitTimerProps) {
-  const [elapsedMs, setElapsedMs] = useState<number>(0);
+  const [now, setNow] = useState(() => Date.now());
+
+  const start = new Date(createdAt).getTime();
+  const end = calledAt ? new Date(calledAt).getTime() : now;
+  const elapsedMs = Math.max(0, end - start);
 
   useEffect(() => {
-    const calculateElapsed = () => {
-      const start = new Date(createdAt).getTime();
-      const end = calledAt ? new Date(calledAt).getTime() : Date.now();
-      return Math.max(0, end - start);
-    };
-
-    setElapsedMs(calculateElapsed());
-
     if (!calledAt) {
       const interval = setInterval(() => {
-        setElapsedMs(calculateElapsed());
+        setNow(Date.now());
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [createdAt, calledAt]);
+  }, [calledAt]);
 
   const expectedTimeMinutes = priority === "Prioritário" ? expectedTimePriority : expectedTimeNormal;
   const expectedMs = expectedTimeMinutes * 60 * 1000;

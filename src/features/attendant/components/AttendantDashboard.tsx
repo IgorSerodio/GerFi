@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Session } from "next-auth";
 import {
   getQueueStateAction,
@@ -31,6 +31,8 @@ import FinishModal from "./modals/FinishModal";
 import StartModal from "./modals/StartModal";
 import GuicheModal from "./modals/GuicheModal";
 import HistoryDetailModal from "./modals/HistoryDetailModal";
+import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
+
 
 
 interface AttendantDashboardProps {
@@ -130,7 +132,7 @@ export default function AttendantDashboard({
     }
   };
 
-  const refreshState = async () => {
+  const refreshState = useCallback(async () => {
     if (locationId === null) return;
     const res = await getQueueStateAction(locationId);
     if (res.success && res.data) {
@@ -141,9 +143,9 @@ export default function AttendantDashboard({
     if (activeRes.success && activeRes.data) {
       setActiveGuiches(activeRes.data);
     }
-    // Fetch windows for this location
+
     import("@/features/management/actions").then(m => {
-      m.getTicketWindowsAction(locationId).then((wRes: any) => {
+      m.getTicketWindowsAction(locationId).then((wRes) => {
         if (wRes.success && wRes.data) setTicketWindows(wRes.data as DbTicketWindow[]);
       });
     });
@@ -154,7 +156,6 @@ export default function AttendantDashboard({
       setCanCallNormal(profileRes.data.canCallNormal ?? true);
       setCanCallPriority(profileRes.data.canCallPriority ?? true);
       
-      // Update guiche locally just in case it was changed/cleared remotely
       if (currentAttendant.guiche !== profileRes.data.guiche) {
         setCurrentAttendant(prev => ({
           ...prev,
@@ -162,7 +163,7 @@ export default function AttendantDashboard({
         }));
       }
     }
-  };
+  }, [locationId, currentAttendant.guiche]);
 
   const refreshStateRef = useRef(refreshState);
   useEffect(() => {
@@ -172,22 +173,12 @@ export default function AttendantDashboard({
   useEffect(() => {
     if (locationId !== null) {
       setTimeout(() => {
-        refreshState();
+        refreshStateRef.current();
       }, 0);
     }
   }, [locationId]);
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/queue/stream");
-    eventSource.addEventListener("update", () => {
-      setTimeout(() => {
-        refreshStateRef.current();
-      }, 0);
-    });
-    return () => {
-      eventSource.close();
-    };
-  }, []);
+  useQueueStream(() => refreshStateRef.current());
 
   const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
     if (locationId === null) return;

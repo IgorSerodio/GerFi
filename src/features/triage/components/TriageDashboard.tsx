@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import NextLink from "next/link";
 import { ArrowLeft, Menu, Printer, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
 import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";;;
@@ -17,6 +17,8 @@ import TicketReceiptModal from "./modals/TicketReceiptModal";
 
 import { Location } from "@/features/management/types";;
 import LocationSelector from "@/components/ui/LocationSelector";
+import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
+
 
 interface TriageDashboardProps {
   session: Session | null;
@@ -71,34 +73,29 @@ export default function TriageDashboard({
     color: c.color,
   }));
 
-  const refreshState = async () => {
+  const refreshState = useCallback(async () => {
     if (locationId === null) return;
     const res = await getQueueStateAction(locationId);
     if (res.success && res.data) {
       setQueue(res.data.tickets);
       setHistory(res.data.history);
     }
-  };
+  }, [locationId]);
+
+  const refreshStateRef = useRef(refreshState);
+  useEffect(() => {
+    refreshStateRef.current = refreshState;
+  }, [refreshState]);
 
   useEffect(() => {
     if (locationId !== null) {
       setTimeout(() => {
-        refreshState();
+        refreshStateRef.current();
       }, 0);
     }
   }, [locationId]);
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/queue/stream");
-    eventSource.addEventListener("update", () => {
-      setTimeout(() => {
-        refreshState();
-      }, 0);
-    });
-    return () => {
-      eventSource.close();
-    };
-  }, []);
+  useQueueStream(() => refreshStateRef.current());
 
   const selectService = (cat: Category) => {
     setSelectedCategory(cat);

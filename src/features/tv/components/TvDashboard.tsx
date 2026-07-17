@@ -11,6 +11,8 @@ import MainCallDisplay from "./MainCallDisplay";
 import MiddleBar from "./MiddleBar";
 import HistorySidebar from "./HistorySidebar";
 import TvFooter from "./TvFooter";
+import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
+
 
 interface TvDashboardProps {
   initialHistory: Ticket[];
@@ -165,17 +167,7 @@ export default function TvDashboard({
     refreshStateRef.current = refreshState;
   }, [refreshState]);
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/queue/stream");
-    eventSource.addEventListener("update", () => {
-      setTimeout(() => {
-        refreshStateRef.current();
-      }, 0);
-    });
-    return () => {
-      eventSource.close();
-    };
-  }, [soundEnabled]);
+  useQueueStream(() => refreshStateRef.current());
 
   useEffect(() => {
     const slideTimer = setInterval(() => {
