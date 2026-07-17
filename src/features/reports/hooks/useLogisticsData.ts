@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { getLogisticsDashboardDataAction } from "@/features/reports/actions";
-import { useQueueStream } from "@/hooks/useQueueStream";
+import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
 
 export type MetricType = "tickets" | "wait_time" | "atendimentos";
 export type DateRange = "today" | "week" | "month" | "year" | "custom";
