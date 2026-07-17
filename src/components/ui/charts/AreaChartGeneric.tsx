@@ -2,7 +2,7 @@ import React from "react";
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export interface AreaChartGenericProps {
-  data: any[];
+  data: Record<string, unknown>[];
   xKey: string;
   yKey: string;
   name: string;

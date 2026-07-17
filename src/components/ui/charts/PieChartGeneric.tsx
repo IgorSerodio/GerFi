@@ -2,7 +2,7 @@ import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 export interface PieChartGenericProps {
-  data: any[];
+  data: Record<string, unknown>[];
   nameKey: string;
   valueKey: string;
   colors?: string[];
