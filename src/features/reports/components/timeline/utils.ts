@@ -1,4 +1,5 @@
 import { TimelineTicket } from '@/features/reports/queries';
+import { getTicketStatusLabel } from '@/utils/ticketStatus';
 
 export function getTicketTooltipText(ticket: TimelineTicket): string {
   const formatTime = (dateStr: string | null) => {
@@ -62,5 +63,7 @@ export function getTicketTooltipText(ticket: TimelineTicket): string {
     }
   }
 
-  return `${header}\nPrioridade: ${ticket.priority}\n${arrivedText}\n${calledText}\n${waitText}\n${durationFinalText}`;
+  const statusDisplay = getTicketStatusLabel(ticket.status);
+
+  return `${header}\nStatus: ${statusDisplay}\nPrioridade: ${ticket.priority}\n${arrivedText}\n${calledText}\n${waitText}\n${durationFinalText}`;
 }

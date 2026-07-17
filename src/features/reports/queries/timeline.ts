@@ -9,7 +9,7 @@ export interface TimelineTicket {
   status: string;
   ticketNumber: string;
   createdAt: string;
-  calledAt: string;
+  calledAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
   recallHistory: string[];
@@ -33,8 +33,7 @@ export async function getTimelineData(locationId: number | "all", attendants: st
       (SELECT SUM(EXTRACT(EPOCH FROM (called_at - created_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_wait_seconds,
       (SELECT SUM(EXTRACT(EPOCH FROM (completed_at - started_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_service_seconds
     FROM tickets t
-    WHERE t.called_at IS NOT NULL
-      AND t.created_at >= $1::date 
+    WHERE t.created_at >= $1::date 
       AND t.created_at < ($1::date + interval '1 day')
   `;
   const params: QueryParam[] = [targetDate];
@@ -60,7 +59,7 @@ export async function getTimelineData(locationId: number | "all", attendants: st
     status: row.status,
     ticketNumber: row.ticket_number,
     createdAt: row.created_at.toISOString(),
-    calledAt: row.called_at.toISOString(),
+    calledAt: row.called_at ? row.called_at.toISOString() : null,
     startedAt: row.started_at ? row.started_at.toISOString() : null,
     completedAt: row.completed_at ? row.completed_at.toISOString() : null,
     recallHistory: row.recall_history ? row.recall_history.map((d: Date) => d.toISOString()) : [],

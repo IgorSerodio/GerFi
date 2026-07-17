@@ -75,6 +75,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
   }
 
   const grouped = data.reduce((acc, ticket) => {
+    if (!ticket.calledAt) return acc;
     if (!acc[ticket.attendant]) {
       const user = users.find(u => u.name === ticket.attendant);
       acc[ticket.attendant] = {

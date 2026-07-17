@@ -37,16 +37,19 @@ export default function TimelineReceptionRow({
       <div className="flex-1 relative h-[40px] mx-2 overflow-hidden">
         {/* Desenhando a linha vermelha ativa PRIMEIRO para ficar embaixo dos pontos */}
         {activeTicketNumber && tickets.map(ticket => {
-          if (ticket.ticketNumber === activeTicketNumber && ticket.calledAt) {
+          if (ticket.ticketNumber === activeTicketNumber) {
             const createdPct = getPercent(ticket.createdAt);
-            const calledPct = getPercent(ticket.calledAt);
+            const endPct = ticket.calledAt 
+              ? getPercent(ticket.calledAt) 
+              : getPercent(new Date().toISOString());
+              
             return (
               <div
                 key={`line-${ticket.id}`}
                 className="absolute top-1/2 h-0.5 bg-red-500 -translate-y-1/2"
                 style={{ 
                   left: `${createdPct}%`, 
-                  width: `${calledPct - createdPct}%` 
+                  width: `${endPct - createdPct}%` 
                 }}
               />
             );
@@ -56,10 +59,7 @@ export default function TimelineReceptionRow({
 
         {/* Desenhando os pontos */}
         {tickets.map(ticket => {
-          if (!ticket.calledAt) return null; // Filtramos por calledAt no backend, mas por segurança
-          
           const createdPct = getPercent(ticket.createdAt);
-          const calledPct = getPercent(ticket.calledAt);
           
           const isActive = ticket.ticketNumber === activeTicketNumber;
           const isFaded = activeTicketNumber !== null && !isActive;
@@ -80,14 +80,16 @@ export default function TimelineReceptionRow({
               />
               
               {/* Ponto de Chamada (Cinza) */}
-              <div 
-                className={`absolute top-1/2 w-2 h-2 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
-                style={{ left: `${calledPct}%` }}
-                title={tooltip}
-                onMouseEnter={() => onTicketHover(ticket.id)}
-                onMouseLeave={() => onTicketHover(null)}
-                onClick={(e) => onTicketClick(e, ticket.id)}
-              />
+              {ticket.calledAt && (
+                <div 
+                  className={`absolute top-1/2 w-2 h-2 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2 ring-[0.5px] ring-white transition-opacity duration-200 cursor-pointer ${opacityClass} ${zIndexClass}`}
+                  style={{ left: `${getPercent(ticket.calledAt)}%` }}
+                  title={tooltip}
+                  onMouseEnter={() => onTicketHover(ticket.id)}
+                  onMouseLeave={() => onTicketHover(null)}
+                  onClick={(e) => onTicketClick(e, ticket.id)}
+                />
+              )}
             </React.Fragment>
           );
         })}

@@ -1,5 +1,6 @@
 import React from "react";
 import { DetailRow } from "@/features/reports/actions";
+import { getTicketStatusLabel } from "@/utils/ticketStatus";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];
@@ -15,17 +16,7 @@ const formatTime = (isoStr: string | null) => {
   return new Date(isoStr).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "completed": return "CONCLUÍDO";
-    case "no_show": return "NÃO COMPARECEU";
-    case "forwarded": return "ENCAMINHADO";
-    case "started": return "EM ATENDIMENTO";
-    case "calling": return "CHAMADO";
-    case "pending": return "AGUARDANDO";
-    default: return "AGUARDANDO";
-  }
-};
+
 
 export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
   return (
@@ -45,7 +36,7 @@ export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
           </thead>
           <tbody className="divide-y divide-emerald-50">
             {rows.map((row, i: number) => {
-              const mappedStatus = getStatusLabel(row.status);
+              const mappedStatus = getTicketStatusLabel(row.status).toUpperCase();
               const origTime = formatTime(row.originalCreatedAt);
               const origStarted = row.originalStartedAt ? formatTime(row.originalStartedAt) : null;
               const origCompleted = row.originalCompletedAt ? formatTime(row.originalCompletedAt) : null;
