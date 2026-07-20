@@ -1,8 +1,9 @@
 import React from "react";
+import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { Trash2, X, Save } from "lucide-react";
 import { TvSettings } from "@/features/tv/types";
-import { DbCategory } from "@/features/management/types";;
+import { DbCategory } from "@/features/management/types";
 
 interface TvFormModalProps {
   isOpen: boolean;
@@ -201,7 +202,7 @@ export function TvFormModal({
                       {editingTv.videoUrl.map((video, idx) => (
                         <div key={idx} className="bg-white rounded-2xl border border-emerald-100 p-3 flex gap-4 items-center">
                           <div className="w-20 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-100 relative">
-                            <img src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
+                            <Image src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`} fill={true} style={{ objectFit: 'cover' }} alt={video.title} className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-sefaz-dark truncate">{video.title}</p>
@@ -241,7 +242,7 @@ export function TvFormModal({
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     {editingTv.uploadedFiles.map((file, i) => (
                       <div key={i} className="relative rounded-lg overflow-hidden border border-emerald-100 aspect-video bg-slate-50">
-                        <img src={file} className="w-full h-full object-cover" alt="Slide" />
+                        <Image src={file} fill={true} style={{ objectFit: 'cover' }} className="w-full h-full object-cover" alt="Slide" />
                         <button
                           onClick={() => {
                             const list = editingTv.uploadedFiles.filter((_, idx) => idx !== i);

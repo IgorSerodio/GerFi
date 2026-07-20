@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { Ticket } from "@/features/queue/types";
 import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
@@ -166,9 +167,11 @@ export default function MainCallDisplay({
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center relative">
                   <div className="absolute inset-0">
-                    <img
+                    <Image
                       src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2000"
-                      className="w-full h-full object-cover opacity-10"
+                      fill={true}
+                      style={{ objectFit: 'cover' }}
+                      className="opacity-10"
                       alt="Default Background"
                     />
                   </div>

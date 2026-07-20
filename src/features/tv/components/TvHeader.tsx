@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import NextLink from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { formatTime } from "@/utils/dateFormatter";
@@ -49,9 +50,11 @@ export default function TvHeader({ time }: TvHeaderProps) {
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16" />
           <div className="relative z-10 flex items-center gap-3">
             <div className="bg-white p-1 rounded-lg shadow-glow-sm transform group-hover:scale-105 transition-transform shrink-0">
-              <img
+              <Image
                 src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://sefaz.caruaru.pe.gov.br"
                 alt="QR Code"
+                width={48}
+                height={48}
                 className="w-12 h-12"
               />
             </div>

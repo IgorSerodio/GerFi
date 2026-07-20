@@ -6,6 +6,9 @@ import {
   Users,
   LayoutDashboard,
 } from "lucide-react";
+import React from "react";
+import Image from "next/image";
+
 import { useRouter } from "next/navigation";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
@@ -23,9 +26,11 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
     <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.05),transparent)]">
       <div className="text-center mb-16 flex flex-col items-center">
         <div className="mb-8 p-4 bg-white rounded-[40px] shadow-sm border border-emerald-100/50">
-          <img
+          <Image
             src="https://upload.wikimedia.org/wikipedia/commons/0/09/Caruaru_brasao.svg"
             alt="Brasão de Caruaru"
+            width={112}
+            height={112}
             className="w-28 h-28 object-contain"
           />
         </div>
