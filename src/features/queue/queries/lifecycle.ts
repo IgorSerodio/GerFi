@@ -3,6 +3,18 @@ import { Ticket } from "../types";
 import { mapTicketRow } from "./base";
 
 /**
+ * Registra a rechamada de um ticket no histórico
+ */
+export async function registerTicketRecall(ticketId: string): Promise<Ticket | null> {
+  const { rows } = await pool.query(
+    "UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
+    [ticketId]
+  );
+  if (rows.length === 0) return null;
+  return mapTicketRow(rows[0]);
+}
+
+/**
  * Chama o próximo ticket disponível da fila de forma segura (concorrência travada via FOR UPDATE SKIP LOCKED)
  */
 export async function callNextTicket(

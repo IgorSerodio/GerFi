@@ -4,6 +4,7 @@ import {
   insertTicket,
   callNextTicket,
   getTicketById,
+  registerTicketRecall,
   startTicket,
   finishTicket,
   forwardTicket,
@@ -11,6 +12,7 @@ import {
   getHistory,
   markAsNoShow,
 } from "./queries";
+import { RECALL_COOLDOWN_MS } from "./constants";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
 import { requirePermission } from "@/features/auth/actions";
 import { getUserById } from "@/features/users/queries";
@@ -110,9 +112,24 @@ export async function recallTicketAction(ticketId: string) {
       return { success: false, error: "Senha não encontrada." };
     }
     
+    const now = Date.now();
+    const history = ticket.recallHistory || [];
+    const lastRecall = history.length > 0 ? history[history.length - 1] : undefined;
+    const effectiveCallTimeStr = lastRecall || ticket.calledAt;
+    const effectiveCallTime = effectiveCallTimeStr ? new Date(effectiveCallTimeStr).getTime() : 0;
+    
+    if (now - effectiveCallTime < RECALL_COOLDOWN_MS) {
+      return { success: false, error: "Aguarde o tempo de cooldown para rechamar." };
+    }
+
+    const updatedTicket = await registerTicketRecall(ticketId);
+    if (!updatedTicket) {
+      return { success: false, error: "Erro ao registrar rechamada." };
+    }
+
     // Forçar a TV a re-exibir e re-tocar o áudio emitindo um sinal específico
     queueEmitter.emit("update"); // Atualiza o histórico e re-sincroniza a chamada
-    return { success: true, data: ticket };
+    return { success: true, data: updatedTicket };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao rechamar senha.") };
   }

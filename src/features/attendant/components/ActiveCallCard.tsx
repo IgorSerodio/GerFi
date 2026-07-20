@@ -3,6 +3,7 @@ import { PhoneForwarded, Send, CheckCircle2, Users, UserX } from "lucide-react";
 import { Ticket } from "@/features/queue/types";
 import { getTicketStatusLabel } from "@/utils/ticketStatus";
 import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
+import { RECALL_COOLDOWN_MS } from "@/features/queue/constants";
 import WaitTimer from "./WaitTimer";
 
 interface ActiveCallCardProps {
@@ -43,15 +44,18 @@ export default function ActiveCallCard({
   const currentCategory = categories?.find((c) => c.id === String(currentCall?.categoryId));
   
   const [cooldownLeft, setCooldownLeft] = useState(0);
-  const RECALL_COOLDOWN_MS = 15000;
 
   useEffect(() => {
     if (!currentCall || currentCall.status === "started") return;
 
     const checkCooldown = () => {
       const now = Date.now();
-      const lastCallTime = currentCall.calledAt ? new Date(currentCall.calledAt).getTime() : 0;
-      const timeSinceLastCall = now - lastCallTime;
+      const history = currentCall.recallHistory || [];
+      const lastRecall = history.length > 0 ? history[history.length - 1] : undefined;
+      const effectiveCallTimeStr = lastRecall || currentCall.calledAt;
+      const effectiveCallTime = effectiveCallTimeStr ? new Date(effectiveCallTimeStr).getTime() : 0;
+      
+      const timeSinceLastCall = now - effectiveCallTime;
       if (timeSinceLastCall < RECALL_COOLDOWN_MS) {
         setCooldownLeft(Math.ceil((RECALL_COOLDOWN_MS - timeSinceLastCall) / 1000));
       } else {

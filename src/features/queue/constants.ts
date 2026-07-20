@@ -1,0 +1,1 @@
+export const RECALL_COOLDOWN_MS = 15000;

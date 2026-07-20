@@ -40,11 +40,11 @@ export async function getHistory(locationId: number, services?: number[]): Promi
 }
 
 /**
- * Re-chama uma senha que já está em atendimento (atualiza called_at para emitir sinal sonoro e guarda no histórico)
+ * Obtém os dados de um ticket pelo seu ID
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    "UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
+    "SELECT * FROM tickets WHERE id = $1",
     [ticketId]
   );
   if (rows.length === 0) return null;
