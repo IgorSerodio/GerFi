@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Trash2, Save, X, Plus, Tv, ExternalLink } from "lucide-react";
+import { motion } from "motion/react";
+import { Plus } from "lucide-react";
 import { DbCategory } from "@/features/management/types";;
 import { TvSettings } from "@/features/tv/types";
 import { 
@@ -10,7 +10,7 @@ import {
   deleteTvSettingsAction
 } from "@/features/tv/actions";
 import { getCategoriesAction, getLocationsAction } from "@/features/management/actions";;
-import { Modal } from "@/components/ui/Modal";
+
 import LocationSelector from "@/components/ui/LocationSelector";
 import { Location } from "@/features/management/types";;
 import { TvConfigList } from "./TvConfigList";
@@ -253,7 +253,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         isOpen={!!editingTv}
         onClose={() => setEditingTv(null)}
         editingTv={editingTv}
-        setEditingTv={setEditingTv as any}
+        setEditingTv={setEditingTv as unknown as React.Dispatch<React.SetStateAction<TvSettings | null>>}
         isCreating={isCreating}
         categories={categories}
         newVideoUrl={newVideoUrl}

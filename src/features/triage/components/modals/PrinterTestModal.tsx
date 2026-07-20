@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "motion/react";
+
 import { Modal } from "@/components/ui/Modal";
 import { Printer } from "lucide-react";
 

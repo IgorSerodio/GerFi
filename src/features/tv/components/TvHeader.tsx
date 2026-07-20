@@ -1,7 +1,7 @@
 import React from "react";
 import NextLink from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { formatTime, formatDate } from "@/utils/dateFormatter";
+import { formatTime } from "@/utils/dateFormatter";
 
 interface TvHeaderProps {
   time: Date;

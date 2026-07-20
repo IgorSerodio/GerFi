@@ -105,6 +105,33 @@ export default function TvDashboard({
     };
   }, [tvSettings.locationId, tvSettings.services, tvSettings.slug, soundEnabled, volume]);
 
+  const playAlert = useCallback((currentVol?: number) => {
+    try {
+      const audio = new Audio(
+        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+      );
+      audio.volume = currentVol ?? stateRef.current.volume;
+      audio.play().catch((e) => console.log("Audio play blocked", e));
+    } catch (e) {
+      console.log("Audio error", e);
+    }
+  }, []);
+
+  function resetIdleTimer() {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, 30000); // 30 seconds
+  }
+
+  function resetControlsTimer() {
+    setShowControls(true);
+    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+    controlsTimerRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 5000); // 5 seconds
+  }
+
   const refreshState = useCallback(async () => {
     const { locationId, services, slug, soundEnabled: sEnabled, volume: vol } = stateRef.current;
 
@@ -147,34 +174,9 @@ export default function TvDashboard({
         setIsIdle(true);
       }
     }
-  }, []);
+  }, [playAlert]);
 
-  function resetIdleTimer() {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      setIsIdle(true);
-    }, 30000); // 30 seconds
-  }
 
-  function resetControlsTimer() {
-    setShowControls(true);
-    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
-    controlsTimerRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 5000); // 5 seconds
-  }
-
-  function playAlert(currentVol?: number) {
-    try {
-      const audio = new Audio(
-        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
-      );
-      audio.volume = currentVol ?? volume;
-      audio.play().catch((e) => console.log("Audio play blocked", e));
-    } catch (e) {
-      console.log("Audio error", e);
-    }
-  }
 
   useEffect(() => {
     setTimeout(() => {

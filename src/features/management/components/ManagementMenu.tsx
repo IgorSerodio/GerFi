@@ -11,7 +11,7 @@ interface ManagementMenuProps {
   setView: (view: ViewType) => void;
 }
 
-export default function ManagementMenu({ session, setView }: ManagementMenuProps) {
+export default function ManagementMenu({ setView }: ManagementMenuProps) {
   const { hasPermission } = usePermissions();
 
   return (

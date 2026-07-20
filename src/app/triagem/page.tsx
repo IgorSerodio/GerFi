@@ -8,7 +8,7 @@ export default async function TriagePage() {
   let session;
   try {
     session = await requirePermission("ACCESS_TRIAGE");
-  } catch (error) {
+  } catch (_error) {
     redirect("/");
   }
 

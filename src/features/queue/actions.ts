@@ -13,7 +13,7 @@ import {
 } from "./queries";
 import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./schema";
 import { requirePermission } from "@/features/auth/actions";
-import { getUserById, getActiveGuiches } from "@/features/users/queries";
+import { getUserById } from "@/features/users/queries";
 import { queueEmitter } from "@/infra/events";
 
 function getErrorMessage(error: unknown, fallback: string): string {

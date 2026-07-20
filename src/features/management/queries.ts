@@ -1,5 +1,5 @@
 import { pool } from "@/infra/database";
-import { DbCategory, DbTicketWindow } from "./types";
+import { DbCategory } from "./types";
 
 export async function getCategories(): Promise<DbCategory[]> {
   const { rows } = await pool.query("SELECT id, ticket_char as \"ticketChar\", name, description, icon, color, expected_time_normal as \"expectedTimeNormal\", expected_time_priority as \"expectedTimePriority\", resolutions FROM categories ORDER BY id ASC");

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Modal } from "@/components/ui/Modal";
-import { Pen, Trash2, Ban } from "lucide-react";
+
 import { User, UserRole } from "@/features/users/types";
 import { Location, DbTicketWindow, DbCategory } from "@/features/management/types";;
 import {
@@ -141,6 +140,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const visibleUsers = users.filter((u) => {
     if (isGerente && u.role === UserRole.Admin) return false;
     return true;

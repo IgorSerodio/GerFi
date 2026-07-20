@@ -1,7 +1,7 @@
 import React from "react";
 import { DetailRow } from "@/features/reports/actions";
 import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketStatus";
-import { formatTime, formatDate, formatDateTime } from "@/utils/dateFormatter";
+import { formatTime, formatDateTime } from "@/utils/dateFormatter";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];

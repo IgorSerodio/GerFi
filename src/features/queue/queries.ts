@@ -1,6 +1,5 @@
 import { pool } from "@/infra/database";
 import { Ticket } from "./types";;
-import { DbCategory } from "@/features/management/types";;
 
 interface DbTicketRow {
   id: string;
