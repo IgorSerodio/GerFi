@@ -12,6 +12,9 @@ export const PERMISSIONS = {
   // Ações Operacionais (Fila)
   OPERATE_QUEUE:     [UserRole.Admin, UserRole.Atendente, UserRole.Gerente], // Chamar, encaminhar, concluir senhas
   ISSUE_TICKETS:     [UserRole.Admin, UserRole.Triador, UserRole.Gerente], // Emitir novas senhas
+  
+  // Ações de Leitura Genérica
+  VIEW_SYSTEM_DATA:  [UserRole.Admin, UserRole.Gerente, UserRole.Atendente, UserRole.Triador], // Leitura de dados transversais (categorias, guichês)
 } as const;
 
 export type ActionName = keyof typeof PERMISSIONS;

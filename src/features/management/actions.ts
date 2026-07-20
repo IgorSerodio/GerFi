@@ -28,6 +28,7 @@ function triggerRealTimeUpdate() {
 
 export async function getCategoriesAction() {
   try {
+    await requirePermission("VIEW_SYSTEM_DATA");
     const categories = await getCategories();
     return { success: true, data: categories };
   } catch (error) {
@@ -37,6 +38,7 @@ export async function getCategoriesAction() {
 
 export async function getTicketWindowsAction(locationId?: number) {
   try {
+    await requirePermission("VIEW_SYSTEM_DATA");
     const ticketWindows = await getTicketWindows(locationId);
     return { success: true, data: ticketWindows };
   } catch (error) {
@@ -111,6 +113,7 @@ export async function deleteTicketWindowAction(id: number) {
 
 export async function getLocationsAction() {
   try {
+    await requirePermission("VIEW_SYSTEM_DATA");
     const locations = await getLocations();
     return { success: true, data: locations };
   } catch (error) {

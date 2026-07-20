@@ -16,8 +16,9 @@ import {
   getAnalyticalData,
   ChartPoint,
 } from "./queries";
-import { getLocations } from "@/features/management/queries";;
+import { getLocations } from "@/features/management/queries";
 import { getUsers } from "@/features/users/queries";
+import { requirePermission } from "@/features/auth/actions";
 
 export interface DetailRow {
   createdAt: string;
@@ -39,6 +40,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export async function getReportFiltersDataAction() {
   try {
+    await requirePermission("ACCESS_MANAGEMENT");
     const [locations, users] = await Promise.all([getLocations(), getUsers()]);
     return { success: true, data: { locations, users } };
   } catch (error) {
@@ -54,6 +56,7 @@ export async function getLogisticsDashboardDataAction(
   dateStr?: string
 ) {
   try {
+    await requirePermission("ACCESS_MANAGEMENT");
     const startDate = new Date();
     const endDate = new Date();
 
@@ -121,6 +124,7 @@ export async function getReportsDataAction(payload: {
   selectedModels: string[];
 }) {
   try {
+    await requirePermission("ACCESS_MANAGEMENT");
     const { reportType, startDate, endDate, service, locationId, attendants, selectedModels } = payload;
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -179,6 +183,7 @@ export async function getReportsDataAction(payload: {
 
 export async function getTimelineAction(locationId: number | "all", attendants: string[], dateStr?: string) {
   try {
+    await requirePermission("ACCESS_MANAGEMENT");
     const data = await getTimelineData(locationId, attendants, dateStr);
     return { success: true, data };
   } catch (error) {

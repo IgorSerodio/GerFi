@@ -36,6 +36,7 @@ export async function getTvSettingsAction(slug: string = "global") {
  */
 export async function getAllTvSettingsAction() {
   try {
+    await requirePermission("MANAGE_CONFIGS");
     const settings = await getAllTvSettings();
     return { success: true, data: settings };
   } catch (error) {
