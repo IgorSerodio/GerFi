@@ -55,3 +55,11 @@ export function getFilteredTicketsCTE(baseFilter: string): string {
       )
     )`;
 }
+
+export interface EvolutionPoint {
+  time: string;
+  total: number;
+  avg: number;
+  wait: number;
+}
+

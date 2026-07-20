@@ -1,25 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React from "react";
 import NextLink from "next/link";
 import { ArrowLeft, Menu, Printer, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
-import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";;;
-import { Ticket as TicketType } from "@/features/queue/types";;
-import { DbCategory } from "@/features/management/types";;
+import { DbCategory } from "@/features/management/types";
 import { Session } from "next-auth";
 
-import { Category, SearchResult } from "./types";
+import { Category } from "./types";
 import TriageSidebar from "./TriageSidebar";
 import CategoryGrid from "./CategoryGrid";
 import { formatTime, formatDate } from "@/utils/dateFormatter";
-import PriorityModal from "./modals/PriorityModal";
-import PrinterTestModal from "./modals/PrinterTestModal";
-import TicketReceiptModal from "./modals/TicketReceiptModal";
+import TriageModals from "./TriageModals";
 
-import { Location } from "@/features/management/types";;
+import { Location } from "@/features/management/types";
 import LocationSelector from "@/components/ui/LocationSelector";
-import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
-
+import { useTriageDashboard } from "../hooks/useTriageDashboard";
 
 interface TriageDashboardProps {
   session: Session | null;
@@ -32,35 +27,7 @@ export default function TriageDashboard({
   initialLocations,
   initialCategories,
 }: TriageDashboardProps) {
-  const [issuedTicket, setIssuedTicket] = useState<TicketType | null>(null);
-  const [printing, setPrinting] = useState(false);
-  const [recentIssues, setRecentIssues] = useState<TicketType[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
-  const [queue, setQueue] = useState<TicketType[]>([]);
-  const [history, setHistory] = useState<TicketType[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showPrinterTest, setShowPrinterTest] = useState(false);
-  const [printerStatus, setPrinterStatus] = useState<
-    "idle" | "testing" | "success" | "error"
-  >("idle");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  const [locationId, setLocationId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("triage_locationId");
-    if (stored) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocationId(Number(stored));
-    } else {
-      setLocationId(1);
-      localStorage.setItem("triage_locationId", "1");
-    }
-  }, []);
+  const { state, actions } = useTriageDashboard();
 
   const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
     Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info
@@ -74,128 +41,28 @@ export default function TriageDashboard({
     color: c.color,
   }));
 
-  const refreshState = useCallback(async () => {
-    if (locationId === null) return;
-    const res = await getQueueStateAction(locationId);
-    if (res.success && res.data) {
-      setQueue(res.data.tickets);
-      setHistory(res.data.history);
-    }
-  }, [locationId]);
-
-  const refreshStateRef = useRef(refreshState);
-  useEffect(() => {
-    refreshStateRef.current = refreshState;
-  }, [refreshState]);
-
-  useEffect(() => {
-    if (locationId !== null) {
-      setTimeout(() => {
-        refreshStateRef.current();
-      }, 0);
-    }
-  }, [locationId]);
-
-  useQueueStream(() => refreshStateRef.current());
-
-  const selectService = (cat: Category) => {
-    setSelectedCategory(cat);
-  };
-
-  const handleIssue = async (priority: "Normal" | "Prioritário") => {
-    if (!selectedCategory || locationId === null) return;
-    setPrinting(true);
-
-    const res = await issueTicketAction({
-      categoryId: selectedCategory.id,
-      categoryName: selectedCategory.name,
-      priority,
-      locationId,
-    });
-
-    if (res.success && res.data) {
-      setIssuedTicket(res.data as TicketType);
-      setRecentIssues((prev) => [res.data as TicketType, ...prev.slice(0, 9)]);
-    } else {
-      alert(res.error || "Erro ao emitir senha");
-    }
-
-    setPrinting(false);
-    setSelectedCategory(null);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.toUpperCase().trim();
-    if (!query) {
-      setSearchResult(null);
-      return;
-    }
-
-    const queuePos = queue.findIndex((t) => t.ticketNumber === query);
-    if (queuePos !== -1) {
-      const ticketsAhead = queue.slice(0, queuePos);
-      const normalAhead = ticketsAhead.filter((t) => t.priority === "Normal").length;
-      const priorityAhead = ticketsAhead.filter((t) => t.priority === "Prioritário").length;
-
-      setSearchResult({
-        id: query,
-        status: "pending",
-        ahead: queuePos,
-        normalAhead,
-        priorityAhead,
-        ticket: queue[queuePos],
-      });
-      return;
-    }
-
-    const historyItem = history.find((t) => t.ticketNumber === query);
-    if (historyItem) {
-      setSearchResult({
-        id: query,
-        status: historyItem.status as "calling" | "started" | "completed",
-        guiche: historyItem.guiche,
-        attendant: historyItem.attendant,
-        ticket: historyItem,
-      });
-      return;
-    }
-
-    setSearchResult({ id: query, status: "not_found" });
-  };
-
-  const handleTestPrinter = () => {
-    setPrinterStatus("testing");
-    setShowPrinterTest(true);
-    setTimeout(() => {
-      setPrinterStatus("success");
-    }, 2000);
-  };
-
   return (
     <div className="min-h-[100dvh] w-full bg-sefaz-light flex overflow-hidden font-display p-2 md:p-4">
       <div className="flex-1 flex overflow-hidden rounded-[32px] shadow-2xl border border-emerald-100 bg-white relative">
         <TriageSidebar
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleSearch={handleSearch}
-          searchResult={searchResult}
-          setSearchResult={setSearchResult}
-          recentIssues={recentIssues}
-          setIssuedTicket={setIssuedTicket}
+          isSidebarOpen={state.isSidebarOpen}
+          setIsSidebarOpen={actions.setIsSidebarOpen}
+          searchQuery={state.searchQuery}
+          setSearchQuery={actions.setSearchQuery}
+          handleSearch={actions.handleSearch}
+          searchResult={state.searchResult}
+          setSearchResult={actions.setSearchResult}
+          recentIssues={state.recentIssues}
+          setIssuedTicket={actions.setIssuedTicket}
           session={session}
         />
-        
-
 
         {/* Main Area: Categories */}
         <main className="flex-1 p-4 lg:p-6 flex flex-col overflow-hidden">
           <header className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3 md:gap-4">
               <button
-                onClick={() => setIsSidebarOpen(true)}
+                onClick={() => actions.setIsSidebarOpen(true)}
                 className="lg:hidden w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center text-sefaz-accent shadow-sm border border-emerald-100/50 hover:bg-emerald-50 transition-colors"
               >
                 <Menu size={20} className="md:w-6 md:h-6" />
@@ -218,9 +85,9 @@ export default function TriageDashboard({
             <div className="flex items-center gap-2 md:gap-4">
               <LocationSelector
                 locations={initialLocations}
-                value={locationId ?? 0}
+                value={state.locationId ?? 0}
                 onChange={(newLocId) => {
-                  setLocationId(newLocId);
+                  actions.setLocationId(newLocId);
                   localStorage.setItem("triage_locationId", String(newLocId));
                 }}
                 heightClass="h-10"
@@ -228,7 +95,7 @@ export default function TriageDashboard({
                 className="rounded-xl"
               />
               <button
-                onClick={handleTestPrinter}
+                onClick={actions.handleTestPrinter}
                 className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 h-10 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
               >
                 <Printer
@@ -242,7 +109,7 @@ export default function TriageDashboard({
 
               <div className="text-right relative">
                 <button
-                  onClick={() => setShowCalendar(!showCalendar)}
+                  onClick={() => actions.setShowCalendar(!state.showCalendar)}
                   className="hover:scale-105 active:scale-95 transition-transform"
                 >
                   <div className="text-lg font-black text-sefaz-dark leading-none">
@@ -258,31 +125,16 @@ export default function TriageDashboard({
 
           <CategoryGrid
             categories={categories}
-            selectService={selectService}
-            printing={printing}
+            selectService={actions.selectService}
+            printing={state.printing}
           />
         </main>
       </div>
 
-      <PriorityModal
-        selectedCategory={selectedCategory}
-        onClose={() => setSelectedCategory(null)}
-        onIssue={handleIssue}
-      />
-
-      <PrinterTestModal
-        show={showPrinterTest}
-        onClose={() => setShowPrinterTest(false)}
-        printerStatus={printerStatus}
-      />
-
-      <TicketReceiptModal
-        issuedTicket={issuedTicket}
-        onClose={() => setIssuedTicket(null)}
-      />
+      <TriageModals state={state} actions={actions} />
 
       {/* Loading State */}
-      {printing && (
+      {state.printing && (
         <div className="fixed inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-[200]">
           <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 border border-emerald-100">
             <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-sefaz-medium" />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { 
   UserPlus, 
@@ -13,127 +13,27 @@ import {
   BadgeInfo, 
   ChevronRight, 
   AlertTriangle,
-  CheckCircle2
 } from "lucide-react";
 import { motion } from "motion/react";
-import { registerUserAction } from "@/features/auth/actions";
 import { UserRole } from "@/features/users/types";
-import { formatCpf, formatMatricula, removeNonDigits } from "@/lib/formatters";
-import { isValidEmail } from "@/lib/validators";
+import { useRegisterForm } from "../hooks/useRegisterForm";
+import { RegisterSuccess } from "./RegisterSuccess";
 
 export function RegisterForm() {
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    cpf: "",
-    matricula: "",
-    username: "",
-    password: "",
-    confirmPassword: "",
-    role: UserRole.Atendente,
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    if (!formData.name || !formData.email || !formData.cpf || !formData.username || !formData.password || !formData.confirmPassword || !formData.matricula) {
-      setError("Preencha todos os campos obrigatórios.");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("As senhas não coincidem.");
-      setLoading(false);
-      return;
-    }
-
-    if (!isValidEmail(formData.email)) {
-      setError("O formato do e-mail é inválido.");
-      setLoading(false);
-      return;
-    }
-
-    const rawCpf = removeNonDigits(formData.cpf);
-    if (rawCpf.length !== 11) {
-      setError("O CPF deve conter exatamente 11 dígitos.");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.matricula.length !== 6) {
-      setError("A matrícula deve conter exatamente 6 dígitos.");
-      setLoading(false);
-      return;
-    }
-
-    const res = await registerUserAction({
-      name: formData.name,
-      email: formData.email,
-      cpf: rawCpf,
-      matricula: formData.matricula,
-      username: formData.username,
-      password: formData.password,
-      role: formData.role,
-      guiche: null,
-      services: [],
-    });
-
-    setLoading(false);
-
-    if (!res.success) {
-      setError(res.error || "Ocorreu um erro ao realizar o cadastro.");
-    } else {
-      setSuccess(true);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    let value = e.target.value;
-    const name = e.target.name;
-
-    if (name === "cpf") {
-      value = formatCpf(value);
-    } else if (name === "matricula") {
-      value = formatMatricula(value);
-    }
-
-    setFormData({ ...formData, [name]: value });
-  };
+  const {
+    formData,
+    showPassword,
+    error,
+    success,
+    loading,
+    setShowPassword,
+    handleSubmit,
+    handleChange,
+  } = useRegisterForm();
 
   if (success) {
-    return (
-      <div className="w-full max-w-md mx-auto p-12 bg-white rounded-[32px] shadow-xl shadow-emerald-900/5 border border-emerald-100/50 relative z-10 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <CheckCircle2 size={40} />
-        </motion.div>
-        <h3 className="text-3xl font-black text-sefaz-dark uppercase tracking-tighter mb-4">
-          Cadastro Realizado!
-        </h3>
-        <p className="text-sefaz-accent font-medium leading-relaxed mb-8">
-          Sua conta foi criada com sucesso, mas encontra-se <strong className="text-amber-500">Bloqueada</strong> aguardando liberação de um Administrador.
-        </p>
-        <button
-          onClick={() => router.push("/login")}
-          className="w-full py-4 bg-sefaz-accent text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:bg-sefaz-dark transition-all transform active:scale-95 cursor-pointer"
-        >
-          Voltar ao Login
-        </button>
-      </div>
-    );
+    return <RegisterSuccess />;
   }
 
   return (
