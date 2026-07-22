@@ -180,7 +180,7 @@ export default function TimelineView({ locationId, attendants, users, dateStr }:
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-gray-400 rounded-full" />
-          <span className="text-[10px] font-bold text-sefaz-dark">Fila (Aguardando)</span>
+          <span className="text-[10px] font-bold text-sefaz-dark">Chamada (Fila)</span>
         </div>
       </div>
 
