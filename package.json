@@ -13,8 +13,12 @@
     "unmock": "tsx --env-file=.env scripts/unmock.ts"
   },
   "dependencies": {
+    "@types/dom-to-image": "^2.6.7",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "dom-to-image": "^2.6.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.20.0",
     "motion": "^12.40.0",
     "next": "16.2.9",

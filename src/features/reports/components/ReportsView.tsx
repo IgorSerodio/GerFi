@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Printer, FileText } from "lucide-react";
+import { FileDown, FileText } from "lucide-react";
+import { generateReportPdf } from "../utils/pdfGenerator";
 
 import { getCategoriesAction } from "@/features/management/actions";;
 import { DbCategory } from "@/features/management/types";;
@@ -30,6 +31,39 @@ export default function ReportsView() {
     attendants: [] as string[],
   });
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportPdf = async () => {
+    if (!reportResult) return;
+    
+    // Construct readable filters
+    const locName = reportFilters.locationId === "all" ? "Todos" : locations.find(l => l.id === reportFilters.locationId)?.name || "Todos";
+    const servName = reportFilters.service === "all" ? "Todos" : categories.find(c => c.id.toString() === reportFilters.service)?.name || "Todos";
+    const attNames = reportFilters.attendants.length === 0 ? "Todos" : reportFilters.attendants.join(", ");
+    
+    const startDateFormatted = reportFilters.startDate ? reportFilters.startDate.split('-').reverse().join('/') : '';
+    const endDateFormatted = reportFilters.endDate ? reportFilters.endDate.split('-').reverse().join('/') : '';
+    const periodStr = (reportFilters.startDate && reportFilters.endDate) ? `${startDateFormatted} a ${endDateFormatted}` : 
+                      (reportFilters.startDate ? `A partir de ${startDateFormatted}` : 
+                      (reportFilters.endDate ? `Até ${endDateFormatted}` : "Todo o período"));
+
+    const filterDisplay = {
+      periodo: periodStr,
+      local: locName,
+      servico: servName,
+      atendentes: attNames
+    };
+
+    setIsExporting(true);
+    try {
+      await generateReportPdf(reportResult, filterDisplay);
+    } catch (err) {
+      console.error("Error exporting PDF", err);
+      alert("Erro ao exportar PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     const loadFiltersData = async () => {
@@ -65,7 +99,6 @@ export default function ReportsView() {
             yKey="total"
             name="Quantidade"
             color="#10b981"
-            id={`chart-${modelId}`}
           />
         );
       case "peak_hours":
@@ -76,7 +109,6 @@ export default function ReportsView() {
             yKey="total"
             name="Quantidade"
             color="#10b981"
-            id={`chart-${modelId}`}
           />
         );
       case "busy_days":
@@ -159,7 +191,7 @@ export default function ReportsView() {
       {/* Resultado Relatório */}
       <main className="lg:col-span-8">
         {reportResult ? (
-          <div className="bg-white rounded-[40px] shadow-sm border border-emerald-100 p-8 space-y-8">
+          <div id="report-content" className="bg-white rounded-[40px] shadow-sm border border-emerald-100 p-8 space-y-8">
             <div className="flex justify-between items-center print:hidden">
               <div>
                 <h2 className="text-3xl font-black text-sefaz-dark uppercase tracking-tight">
@@ -170,10 +202,12 @@ export default function ReportsView() {
                 </p>
               </div>
               <button
-                onClick={() => window.print()}
-                className="px-6 py-3 bg-sefaz-dark text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all cursor-pointer flex items-center gap-2"
+                onClick={exportPdf}
+                disabled={isExporting}
+                className="px-6 py-3 bg-sefaz-dark text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
               >
-                <Printer size={16} /> Imprimir
+                <FileDown size={16} /> 
+                {isExporting ? "Gerando..." : "Exportar PDF"}
               </button>
             </div>
 
@@ -190,7 +224,7 @@ export default function ReportsView() {
                       <h4 className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
                         {model?.label}
                       </h4>
-                      <div className="h-[200px] w-full">{renderReportChart(modelId)}</div>
+                      <div id={`chart-${modelId}`} className="h-[200px] w-full bg-white">{renderReportChart(modelId)}</div>
                     </div>
                   );
                 })}
