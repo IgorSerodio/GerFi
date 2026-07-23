@@ -40,6 +40,12 @@ export function getFilteredTicketsCTE(baseFilter: string): string {
                  AND f.created_at::date = b.created_at::date
              ) as chain_service_seconds,
              (
+               SELECT SUM(EXTRACT(EPOCH FROM (started_at - called_at)))
+               FROM base_filtered f
+               WHERE f.ticket_number = b.ticket_number 
+                 AND f.created_at::date = b.created_at::date
+             ) as chain_call_seconds,
+             (
                SELECT MIN(created_at) FROM base_filtered f 
                WHERE f.ticket_number = b.ticket_number 
                  AND f.created_at::date = b.created_at::date

@@ -23,8 +23,8 @@ export interface ReportFiltersType {
 }
 
 interface ReportsFilterSidebarProps {
-  reportType: "analytical" | "synthetic";
-  setReportType: (type: "analytical" | "synthetic") => void;
+  reportType: "analytical" | "synthetic" | "performance";
+  setReportType: (type: "analytical" | "synthetic" | "performance") => void;
   reportFilters: ReportFiltersType;
   setReportFilters: React.Dispatch<React.SetStateAction<ReportFiltersType>>;
   categories: DbCategory[];
@@ -75,7 +75,7 @@ export default function ReportsFilterSidebar({
             <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
               Tipo
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-emerald-50/50 p-1.5 rounded-2xl">
+            <div className="grid grid-cols-3 gap-2 bg-emerald-50/50 p-1.5 rounded-2xl">
               <button
                 onClick={() => setReportType("analytical")}
                 className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all cursor-pointer ${
@@ -95,6 +95,16 @@ export default function ReportsFilterSidebar({
                 }`}
               >
                 Sintético
+              </button>
+              <button
+                onClick={() => setReportType("performance")}
+                className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all cursor-pointer ${
+                  reportType === "performance"
+                    ? "bg-sefaz-accent text-white shadow-md"
+                    : "text-sefaz-accent opacity-60"
+                }`}
+              >
+                Desempenho
               </button>
             </div>
           </div>

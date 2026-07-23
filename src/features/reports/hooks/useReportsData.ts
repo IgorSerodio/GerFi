@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getReportsDataAction, DetailRow } from "@/features/reports/actions";
+import { PerformanceRow } from "@/features/reports/queries/performance";
 
 export interface ReportResultData {
   stats: {
@@ -11,7 +12,8 @@ export interface ReportResultData {
   categoryAggregation: Array<{ name: string; count: number; value: number }>;
   attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
   detailRows: DetailRow[];
-  reportType: "analytical" | "synthetic";
+  performanceRows?: PerformanceRow[];
+  reportType: "analytical" | "synthetic" | "performance";
   selectedModels: string[];
   evolutionSeries: Array<{ time: string; total: number; avg: number; wait: number }>;
   peakHours: Array<{ time: string; total: number; avg: number; wait: number }>;
@@ -24,7 +26,7 @@ export function useReportsData() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateReport = async (filters: {
-    reportType: "analytical" | "synthetic";
+    reportType: "analytical" | "synthetic" | "performance";
     startDate: string;
     endDate: string;
     service: string;

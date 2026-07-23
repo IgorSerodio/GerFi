@@ -14,6 +14,8 @@ import {
   getCategoryAvgDuration,
   getTimelineData,
   getAnalyticalData,
+  getPerformanceData,
+  PerformanceRow,
   ChartPoint,
 } from "./queries";
 import { getLocations } from "@/features/management/queries";
@@ -115,7 +117,7 @@ export async function getLogisticsDashboardDataAction(
 }
 
 export async function getReportsDataAction(payload: {
-  reportType: "analytical" | "synthetic";
+  reportType: "analytical" | "synthetic" | "performance";
   startDate: string;
   endDate: string;
   service: string;
@@ -161,6 +163,11 @@ export async function getReportsDataAction(payload: {
       });
     }
 
+    let performanceRows: PerformanceRow[] = [];
+    if (reportType === "performance") {
+      performanceRows = await getPerformanceData(start, end, locationId, attendants);
+    }
+
     return {
       success: true,
       data: {
@@ -168,6 +175,7 @@ export async function getReportsDataAction(payload: {
         categoryAggregation,
         attendantRanking,
         detailRows,
+        performanceRows,
         reportType,
         selectedModels,
         evolutionSeries,

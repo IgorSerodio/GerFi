@@ -14,13 +14,14 @@ import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
 import ReportsFilterSidebar, { ADVANCED_REPORTS } from "./ReportsFilterSidebar";
 import ReportsKpiPanel from "./ReportsKpiPanel";
 import AnalyticalTable from "./AnalyticalTable";
+import PerformanceTable from "./PerformanceTable";
 
 export default function ReportsView() {
   const { locations, users } = useReportFilters();
   const { reportResult, isGenerating: isGeneratingReport, generateReport } = useReportsData();
   
   const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [reportType, setReportType] = useState<"analytical" | "synthetic">("analytical");
+  const [reportType, setReportType] = useState<"analytical" | "synthetic" | "performance">("analytical");
   const [reportFilters, setReportFilters] = useState({
     startDate: "",
     endDate: "",
@@ -165,7 +166,7 @@ export default function ReportsView() {
                   Resultado da Consulta
                 </h2>
                 <p className="text-xs text-sefaz-accent font-bold uppercase tracking-widest opacity-60">
-                  {reportResult.reportType === "analytical" ? "Analítico" : "Sintético"}
+                  {reportResult.reportType === "analytical" ? "Analítico" : reportResult.reportType === "synthetic" ? "Sintético" : "Desempenho"}
                 </p>
               </div>
               <button
@@ -199,6 +200,11 @@ export default function ReportsView() {
             {/* Tabela Analítica */}
             {reportResult.reportType === "analytical" && (
               <AnalyticalTable rows={reportResult.detailRows} />
+            )}
+
+            {/* Tabela de Desempenho */}
+            {reportResult.reportType === "performance" && (
+              <PerformanceTable rows={reportResult.performanceRows || []} />
             )}
           </div>
         ) : (
