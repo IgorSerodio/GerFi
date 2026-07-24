@@ -12,6 +12,7 @@ export interface ReportResultData {
   categoryAggregation: Array<{ name: string; count: number; value: number }>;
   attendantRanking: Array<{ name: string; count: number; avgDuration: number; rating: number }>;
   detailRows: DetailRow[];
+  totalDetails: number;
   performanceRows?: PerformanceRow[];
   reportType: "analytical" | "synthetic" | "performance";
   selectedModels: string[];
@@ -33,6 +34,8 @@ export function useReportsData() {
     locationId: number | "all";
     attendants: string[];
     selectedModels: string[];
+    page?: number;
+    limit?: number;
   }) => {
     setIsGenerating(true);
     const res = await getReportsDataAction(filters);

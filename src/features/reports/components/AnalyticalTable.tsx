@@ -5,11 +5,14 @@ import { formatTime, formatDateTime } from "@/utils/dateFormatter";
 
 interface AnalyticalTableProps {
   rows: DetailRow[];
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
+export default function AnalyticalTable({ rows, currentPage = 1, totalPages = 1, onPageChange }: AnalyticalTableProps) {
   return (
-    <div className="rounded-[32px] border border-emerald-50 overflow-hidden mt-6">
+    <div className="rounded-[32px] border border-emerald-50 overflow-hidden mt-6 bg-white">
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left whitespace-nowrap">
           <thead className="bg-emerald-50/50">
@@ -71,6 +74,30 @@ export default function AnalyticalTable({ rows }: AnalyticalTableProps) {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && onPageChange && (
+        <div className="flex items-center justify-between px-6 py-4 bg-emerald-50/20 border-t border-emerald-50">
+          <span className="text-xs font-bold text-sefaz-accent">
+            Página {currentPage} de {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-white border border-emerald-100 text-sefaz-dark disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-50 transition-colors"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-sefaz-dark text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black transition-colors"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

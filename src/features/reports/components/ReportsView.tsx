@@ -5,10 +5,11 @@ import { motion } from "motion/react";
 import { FileDown, FileText } from "lucide-react";
 import { generateReportPdf } from "../utils/pdfGenerator";
 
-import { getCategoriesAction } from "@/features/management/actions";;
-import { DbCategory } from "@/features/management/types";;
+import { getCategoriesAction } from "@/features/management/actions";
+import { DbCategory } from "@/features/management/types";
 import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
-import { useReportsData } from "@/features/reports/hooks/useReportsData";
+import { useReportsData, ReportResultData } from "@/features/reports/hooks/useReportsData";
+import { getReportsDataAction } from "@/features/reports/actions";
 import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";
 import { BarChartGeneric } from "@/components/ui/charts/BarChartGeneric";
 import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
@@ -33,6 +34,9 @@ export default function ReportsView() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 50;
+
   const exportPdf = async () => {
     if (!reportResult) return;
     
@@ -56,7 +60,28 @@ export default function ReportsView() {
 
     setIsExporting(true);
     try {
-      await generateReportPdf(reportResult, filterDisplay);
+      let exportData = reportResult;
+      
+      // Se for relatório analítico, buscar todas as linhas para o PDF (sem limite de paginação)
+      if (reportType === "analytical") {
+        const fullRes = await getReportsDataAction({
+          reportType,
+          startDate: reportFilters.startDate,
+          endDate: reportFilters.endDate,
+          service: reportFilters.service,
+          locationId: reportFilters.locationId,
+          attendants: reportFilters.attendants,
+          selectedModels,
+          page: 1,
+          limit: 999999, // Um limite massivo para garantir que tudo venha
+        });
+        
+        if (fullRes.success && fullRes.data) {
+          exportData = fullRes.data as ReportResultData;
+        }
+      }
+
+      await generateReportPdf(exportData, filterDisplay);
     } catch (err) {
       console.error("Error exporting PDF", err);
       alert("Erro ao exportar PDF.");
@@ -76,6 +101,7 @@ export default function ReportsView() {
   }, []);
 
   const handleGenerateReport = async () => {
+    setCurrentPage(1); // Reset page on new filter
     await generateReport({
       reportType,
       startDate: reportFilters.startDate,
@@ -84,6 +110,23 @@ export default function ReportsView() {
       locationId: reportFilters.locationId,
       attendants: reportFilters.attendants,
       selectedModels,
+      page: 1,
+      limit,
+    });
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    setCurrentPage(newPage);
+    await generateReport({
+      reportType,
+      startDate: reportFilters.startDate,
+      endDate: reportFilters.endDate,
+      service: reportFilters.service,
+      locationId: reportFilters.locationId,
+      attendants: reportFilters.attendants,
+      selectedModels,
+      page: newPage,
+      limit,
     });
   };
 
@@ -233,7 +276,12 @@ export default function ReportsView() {
 
             {/* Tabela Analítica */}
             {reportResult.reportType === "analytical" && (
-              <AnalyticalTable rows={reportResult.detailRows} />
+              <AnalyticalTable 
+                rows={reportResult.detailRows} 
+                currentPage={currentPage}
+                totalPages={Math.ceil((reportResult.totalDetails || 1) / limit)}
+                onPageChange={handlePageChange}
+              />
             )}
 
             {/* Tabela de Desempenho */}

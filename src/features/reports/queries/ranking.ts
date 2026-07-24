@@ -17,28 +17,40 @@ export interface AttendantRank {
 /**
  * Obtém o ranking de serviços mais procurados no período
  */
-export async function getCategoryRanking(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<CategoryRank[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+export async function getCategoryRanking(startDate: Date | null, endDate: Date | null, locationId: number | "all", attendants: string[]): Promise<CategoryRank[]> {
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND m.date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND m.date >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND m.date <= $${params.length}`;
+  }
 
   if (locationId !== "all") {
     params.push(locationId);
-    baseFilter += ` AND t.location_id = $${params.length}`;
+    baseFilter += ` AND m.location_id = $${params.length}`;
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND m.attendant = ANY($${params.length})`;
   }
 
   const finalQuery = `
-    WITH ${getFilteredTicketsCTE(baseFilter)},
-    total_tickets AS (SELECT COUNT(*) as total FROM filtered_tickets)
+    WITH total_tickets AS (SELECT COALESCE(SUM(total_generated), 0) as total FROM daily_ticket_metrics m WHERE ${baseFilter})
     SELECT 
-      category_name as name,
-      COUNT(*) as count,
-      COALESCE((COUNT(*) * 100.0) / NULLIF((SELECT total FROM total_tickets), 0), 0) as percentage
-    FROM filtered_tickets
-    GROUP BY category_name
+      c.name,
+      SUM(m.total_generated) as count,
+      COALESCE((SUM(m.total_generated) * 100.0) / NULLIF((SELECT total FROM total_tickets), 0), 0) as percentage
+    FROM daily_ticket_metrics m
+    JOIN categories c ON m.category_id = c.id
+    WHERE ${baseFilter}
+    GROUP BY c.name
     ORDER BY count DESC
     LIMIT 4
   `;
@@ -55,28 +67,38 @@ export async function getCategoryRanking(startDate: Date, endDate: Date, locatio
 /**
  * Obtém produtividade dos atendentes no período
  */
-export async function getAttendantRanking(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<AttendantRank[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+export async function getAttendantRanking(startDate: Date | null, endDate: Date | null, locationId: number | "all", attendants: string[]): Promise<AttendantRank[]> {
+  let baseFilter = "m.attendant != 'Não Atribuído'";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND m.date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND m.date >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND m.date <= $${params.length}`;
+  }
 
   if (locationId !== "all") {
     params.push(locationId);
-    baseFilter += ` AND t.location_id = $${params.length}`;
+    baseFilter += ` AND m.location_id = $${params.length}`;
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND m.attendant = ANY($${params.length})`;
   }
 
   const queryStr = `
     SELECT 
-      t.attendant as name,
-      COUNT(t.id) as count,
-      COALESCE(AVG(EXTRACT(EPOCH FROM (t.completed_at - t.started_at))) / 60, 0) as avg_duration
-    FROM tickets t
-    WHERE t.status IN ('completed', 'forwarded') AND t.attendant IS NOT NULL
-      AND ${baseFilter}
-    GROUP BY t.attendant
+      m.attendant as name,
+      SUM(m.total_completed) as count,
+      COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration
+    FROM daily_ticket_metrics m
+    WHERE ${baseFilter}
+    GROUP BY m.attendant
     ORDER BY count DESC
   `;
 
@@ -90,27 +112,38 @@ export async function getAttendantRanking(startDate: Date, endDate: Date, locati
   }));
 }
 
-export async function getCategoryAvgDuration(startDate: Date, endDate: Date, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+export async function getCategoryAvgDuration(startDate: Date | null, endDate: Date | null, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND m.date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND m.date >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND m.date <= $${params.length}`;
+  }
 
   if (locationId !== "all") {
     params.push(locationId);
-    baseFilter += ` AND t.location_id = $${params.length}`;
+    baseFilter += ` AND m.location_id = $${params.length}`;
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND m.attendant = ANY($${params.length})`;
   }
 
   const queryStr = `
-    WITH ${getFilteredTicketsCTE(baseFilter)}
     SELECT 
-      category_name as name,
-      COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_duration
-    FROM filtered_tickets
-    WHERE effective_status = 'completed'
-    GROUP BY category_name
+      c.name,
+      COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration
+    FROM daily_ticket_metrics m
+    JOIN categories c ON m.category_id = c.id
+    WHERE ${baseFilter}
+    GROUP BY c.name
     ORDER BY avg_duration DESC
     LIMIT 5
   `;

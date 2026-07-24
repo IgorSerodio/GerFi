@@ -16,13 +16,24 @@ export interface PerformanceRow {
  * e o tempo médio de espera, chamada e atendimento para cada atendente.
  */
 export async function getPerformanceData(
-  startDate: Date,
-  endDate: Date,
+  startDate: Date | null,
+  endDate: Date | null,
   locationId: number | "all",
   attendants: string[]
 ): Promise<PerformanceRow[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND t.created_at >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND t.created_at <= $${params.length}`;
+  }
 
   if (locationId !== "all") {
     params.push(locationId);

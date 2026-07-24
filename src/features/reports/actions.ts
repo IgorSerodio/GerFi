@@ -124,14 +124,18 @@ export async function getReportsDataAction(payload: {
   locationId: number | "all";
   attendants: string[];
   selectedModels: string[];
+  page?: number;
+  limit?: number;
 }) {
   try {
     await requirePermission("ACCESS_MANAGEMENT");
-    const { reportType, startDate, endDate, service, locationId, attendants, selectedModels } = payload;
+    const { reportType, startDate, endDate, service, locationId, attendants, selectedModels, page = 1, limit = 50 } = payload;
 
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
-    end.setHours(23, 59, 59, 999);
+    const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+    let end: Date | null = null;
+    if (endDate) {
+      end = new Date(`${endDate}T23:59:59.999`);
+    }
 
     const stats = await getVolumeStats(start, end, locationId, attendants);
     const categoryAggregation = await getCategoryRanking(start, end, locationId, attendants);
@@ -143,9 +147,11 @@ export async function getReportsDataAction(payload: {
 
     // Busca detalhada dos tickets caso seja relatório analítico
     let detailRows: DetailRow[] = [];
+    let totalDetails = 0;
     if (reportType === "analytical") {
-      const rows = await getAnalyticalData(start, end, service, locationId, attendants);
-      detailRows = rows.map((row) => {
+      const result = await getAnalyticalData(start, end, service, locationId, attendants, page, limit);
+      totalDetails = result.total;
+      detailRows = result.data.map((row) => {
         const isForwarded = row.createdAt.getTime() > row.originalCreatedAt.getTime();
         return {
           createdAt: row.createdAt.toISOString(),
@@ -175,6 +181,7 @@ export async function getReportsDataAction(payload: {
         categoryAggregation,
         attendantRanking,
         detailRows,
+        totalDetails,
         performanceRows,
         reportType,
         selectedModels,

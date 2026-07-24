@@ -1,39 +1,106 @@
 import { pool } from "@/infra/database";
 import { QueryParam, ChartPoint, getFilteredTicketsCTE, EvolutionPoint } from "./base";
 
-export async function getEvolutionSeries(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
-  const diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
-  let groupBy = "date_trunc('hour', original_created_at)";
-  let dateFormat = "HH24:MI";
-  if (diffDays > 2) {
-    groupBy = "date_trunc('day', original_created_at)";
+export async function getEvolutionSeries(startDate: Date | null, endDate: Date | null, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
+  const diffDays = (startDate && endDate) ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) : 999;
+  
+  if (diffDays <= 2) {
+    // For small periods, use hourly aggregation via raw tickets table
+    let baseFilter = "1=1";
+    const params: QueryParam[] = [];
+
+    if (startDate && endDate) {
+      params.push(startDate, endDate);
+      baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
+    } else if (startDate) {
+      params.push(startDate);
+      baseFilter += ` AND t.created_at >= $${params.length}`;
+    } else if (endDate) {
+      params.push(endDate);
+      baseFilter += ` AND t.created_at <= $${params.length}`;
+    }
+
+    if (serviceId !== "all") {
+      params.push(parseInt(serviceId, 10));
+      baseFilter += ` AND t.category_id = $${params.length}`;
+    }
+    if (locationId !== "all") {
+      params.push(locationId);
+      baseFilter += ` AND t.location_id = $${params.length}`;
+    }
+    if (attendants && attendants.length > 0) {
+      params.push(attendants);
+      baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    }
+
+    const queryStr = `
+      WITH ${getFilteredTicketsCTE(baseFilter)}
+      SELECT 
+        to_char(date_trunc('hour', original_created_at), 'HH24:MI') as time_label,
+        COUNT(id) as total_count,
+        COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_duration,
+        COALESCE(AVG(chain_wait_seconds) / 60, 0) as avg_wait
+      FROM filtered_tickets
+      GROUP BY date_trunc('hour', original_created_at)
+      ORDER BY date_trunc('hour', original_created_at)
+    `;
+
+    const { rows } = await pool.query(queryStr, params);
+    return rows.map((row) => ({
+      time: row.time_label,
+      total: parseInt(row.total_count, 10),
+      avg: Math.round(parseFloat(row.avg_duration)),
+      wait: Math.round(parseFloat(row.avg_wait)),
+    }));
+  }
+
+  // For larger periods, use daily_ticket_metrics table
+  let groupBy = "date_trunc('day', m.date)";
+  let dateFormat = "DD/MM";
+
+  if (diffDays > 365) {
+    groupBy = "date_trunc('month', m.date)";
+    dateFormat = "MM/YYYY";
+  } else if (diffDays > 90) {
+    groupBy = "date_trunc('week', m.date)";
     dateFormat = "DD/MM";
   }
 
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND m.date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND m.date >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND m.date <= $${params.length}`;
+  }
 
   if (serviceId !== "all") {
     params.push(parseInt(serviceId, 10));
-    baseFilter += ` AND t.category_id = $${params.length}`;
+    baseFilter += ` AND m.category_id = $${params.length}`;
   }
   if (locationId !== "all") {
     params.push(locationId);
-    baseFilter += ` AND t.location_id = $${params.length}`;
+    baseFilter += ` AND m.location_id = $${params.length}`;
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND m.attendant = ANY($${params.length})`;
   }
 
   const queryStr = `
-    WITH ${getFilteredTicketsCTE(baseFilter)}
     SELECT 
       to_char(${groupBy}, '${dateFormat}') as time_label,
-      COUNT(id) as total_count,
-      COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_duration,
-      COALESCE(AVG(chain_wait_seconds) / 60, 0) as avg_wait
-    FROM filtered_tickets
+      SUM(m.total_generated) as total_count,
+      COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration,
+      COALESCE(SUM(m.sum_wait_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_wait
+    FROM daily_ticket_metrics m
+    WHERE ${baseFilter}
     GROUP BY ${groupBy}
     ORDER BY ${groupBy}
   `;
@@ -47,9 +114,20 @@ export async function getEvolutionSeries(startDate: Date, endDate: Date, service
   }));
 }
 
-export async function getPeakHours(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+export async function getPeakHours(startDate: Date | null, endDate: Date | null, serviceId: string, locationId: number | "all", attendants: string[]): Promise<EvolutionPoint[]> {
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND t.created_at >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND t.created_at <= $${params.length}`;
+  }
 
   if (serviceId !== "all") {
     params.push(parseInt(serviceId, 10));
@@ -84,31 +162,42 @@ export async function getPeakHours(startDate: Date, endDate: Date, serviceId: st
   }));
 }
 
-export async function getBusyDays(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
-  let baseFilter = "t.created_at BETWEEN $1 AND $2";
-  const params: QueryParam[] = [startDate, endDate];
+export async function getBusyDays(startDate: Date | null, endDate: Date | null, serviceId: string, locationId: number | "all", attendants: string[]): Promise<ChartPoint[]> {
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND m.date BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND m.date >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND m.date <= $${params.length}`;
+  }
 
   if (serviceId !== "all") {
     params.push(parseInt(serviceId, 10));
-    baseFilter += ` AND t.category_id = $${params.length}`;
+    baseFilter += ` AND m.category_id = $${params.length}`;
   }
   if (locationId !== "all") {
     params.push(locationId);
-    baseFilter += ` AND t.location_id = $${params.length}`;
+    baseFilter += ` AND m.location_id = $${params.length}`;
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND m.attendant = ANY($${params.length})`;
   }
 
   const queryStr = `
-    WITH ${getFilteredTicketsCTE(baseFilter)}
     SELECT 
-      EXTRACT(ISODOW FROM original_created_at) as dow,
-      COUNT(id) as total_count
-    FROM filtered_tickets
-    GROUP BY EXTRACT(ISODOW FROM original_created_at)
-    ORDER BY EXTRACT(ISODOW FROM original_created_at)
+      EXTRACT(ISODOW FROM m.date) as dow,
+      SUM(m.total_generated) as total_count
+    FROM daily_ticket_metrics m
+    WHERE ${baseFilter}
+    GROUP BY EXTRACT(ISODOW FROM m.date)
+    ORDER BY EXTRACT(ISODOW FROM m.date)
   `;
 
   const { rows } = await pool.query(queryStr, params);

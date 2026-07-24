@@ -1,5 +1,5 @@
 
-export type QueryParam = string | number | Date | string[];
+export type QueryParam = string | number | Date | null | string[];
 
 export interface ChartPoint {
   name: string;

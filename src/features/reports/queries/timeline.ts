@@ -84,44 +84,73 @@ export interface AnalyticalTicket {
   originalCompletedAt: Date | null;
 }
 
-export async function getAnalyticalData(startDate: Date, endDate: Date, serviceId: string, locationId: number | "all", attendants: string[]): Promise<AnalyticalTicket[]> {
-  let queryStr = `
+export async function getAnalyticalData(startDate: Date | null, endDate: Date | null, serviceId: string, locationId: number | "all", attendants: string[], page: number = 1, limit: number = 50): Promise<{ data: AnalyticalTicket[], total: number }> {
+  let baseFilter = "1=1";
+  const params: QueryParam[] = [];
+
+  if (startDate && endDate) {
+    params.push(startDate, endDate);
+    baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
+  } else if (startDate) {
+    params.push(startDate);
+    baseFilter += ` AND t.created_at >= $${params.length}`;
+  } else if (endDate) {
+    params.push(endDate);
+    baseFilter += ` AND t.created_at <= $${params.length}`;
+  }
+
+  if (serviceId !== "all") {
+    params.push(parseInt(serviceId, 10));
+    baseFilter += ` AND t.category_id = $${params.length}`;
+  }
+  if (locationId !== "all") {
+    params.push(locationId);
+    baseFilter += ` AND t.location_id = $${params.length}`;
+  }
+  if (attendants && attendants.length > 0) {
+    params.push(attendants);
+    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+  }
+
+  const countQuery = `SELECT COUNT(*) as total FROM tickets t WHERE ${baseFilter}`;
+  const countResult = await pool.query(countQuery, params);
+  const total = parseInt(countResult.rows[0].total, 10);
+
+  const offset = (page - 1) * limit;
+
+  // Add pagination params
+  params.push(limit);
+  const limitParamIdx = params.length;
+  params.push(offset);
+  const offsetParamIdx = params.length;
+
+  const queryStr = `
     SELECT 
       t.*,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
       (SELECT MIN(started_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_started_at,
       (SELECT MAX(completed_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_completed_at
     FROM tickets t
-    WHERE t.created_at BETWEEN $1 AND $2
+    WHERE ${baseFilter}
+    ORDER BY t.created_at DESC
+    LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
   `;
-  const params: QueryParam[] = [startDate, endDate];
 
-  if (serviceId !== "all") {
-    params.push(parseInt(serviceId, 10));
-    queryStr += ` AND t.category_id = $${params.length}`;
-  }
-  if (locationId !== "all") {
-    params.push(locationId);
-    queryStr += ` AND t.location_id = $${params.length}`;
-  }
-  if (attendants && attendants.length > 0) {
-    params.push(attendants);
-    queryStr += ` AND t.attendant = ANY($${params.length})`;
-  }
-
-  queryStr += ` ORDER BY t.created_at DESC LIMIT 100`;
   const { rows } = await pool.query(queryStr, params);
 
-  return rows.map((row) => ({
-    ticketNumber: row.ticket_number,
-    guiche: row.guiche,
-    attendant: row.attendant,
-    status: row.status,
-    createdAt: row.created_at,
-    originalCreatedAt: row.original_created_at,
-    startedAt: row.started_at,
-    completedAt: row.completed_at,
-    originalStartedAt: row.original_started_at,
-    originalCompletedAt: row.original_completed_at,
-  }));
+  return {
+    total,
+    data: rows.map((row) => ({
+      ticketNumber: row.ticket_number,
+      guiche: row.guiche,
+      attendant: row.attendant,
+      status: row.status,
+      createdAt: row.created_at,
+      originalCreatedAt: row.original_created_at,
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+      originalStartedAt: row.original_started_at,
+      originalCompletedAt: row.original_completed_at,
+    }))
+  };
 }
