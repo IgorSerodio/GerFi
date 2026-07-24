@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { FileDown, FileText } from "lucide-react";
 import { generateReportPdf } from "../utils/pdfGenerator";
+import { captureCharts } from "../utils/captureCharts";
 
 import { getCategoriesAction } from "@/features/management/actions";
 import { DbCategory } from "@/features/management/types";
@@ -81,7 +82,10 @@ export default function ReportsView() {
         }
       }
 
-      await generateReportPdf(exportData, filterDisplay);
+      // Capture charts before generating PDF
+      const chartImages = await captureCharts(reportResult.selectedModels || []);
+
+      await generateReportPdf(exportData, filterDisplay, chartImages);
     } catch (err) {
       console.error("Error exporting PDF", err);
       alert("Erro ao exportar PDF.");
