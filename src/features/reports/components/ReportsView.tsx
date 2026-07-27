@@ -3,27 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { FileDown, FileText } from "lucide-react";
-import { generateReportPdf } from "../utils/pdfGenerator";
-import { captureCharts } from "../utils/captureCharts";
-
-import { getCategoriesAction } from "@/features/management/actions";
-import { DbCategory } from "@/features/management/types";
 import { useReportFilters } from "@/features/reports/hooks/useReportFilters";
-import { useReportsData, ReportResultData } from "@/features/reports/hooks/useReportsData";
-import { getReportsDataAction } from "@/features/reports/actions";
-import { AreaChartGeneric } from "@/components/ui/charts/AreaChartGeneric";
-import { BarChartGeneric } from "@/components/ui/charts/BarChartGeneric";
-import { LineChartGeneric } from "@/components/ui/charts/LineChartGeneric";
+import { useReportsData } from "@/features/reports/hooks/useReportsData";
+import { useReportExport } from "@/features/reports/hooks/useReportExport";
+import { ReportChartRenderer } from "./ReportChartRenderer";
 import ReportsFilterSidebar, { ADVANCED_REPORTS } from "./ReportsFilterSidebar";
 import ReportsKpiPanel from "./ReportsKpiPanel";
 import AnalyticalTable from "./AnalyticalTable";
 import PerformanceTable from "./PerformanceTable";
 
 export default function ReportsView() {
-  const { locations, users } = useReportFilters();
+  const { locations, users, categories } = useReportFilters();
   const { reportResult, isGenerating: isGeneratingReport, generateReport } = useReportsData();
-  
-  const [categories, setCategories] = useState<DbCategory[]>([]);
+
   const [reportType, setReportType] = useState<"analytical" | "synthetic" | "performance">("analytical");
   const [reportFilters, setReportFilters] = useState({
     startDate: "",
@@ -33,76 +25,18 @@ export default function ReportsView() {
     attendants: [] as string[],
   });
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 50;
 
-  const exportPdf = async () => {
-    if (!reportResult) return;
-    
-    // Construct readable filters
-    const locName = reportFilters.locationId === "all" ? "Todos" : locations.find(l => l.id === reportFilters.locationId)?.name || "Todos";
-    const servName = reportFilters.service === "all" ? "Todos" : categories.find(c => c.id.toString() === reportFilters.service)?.name || "Todos";
-    const attNames = reportFilters.attendants.length === 0 ? "Todos" : reportFilters.attendants.join(", ");
-    
-    const startDateFormatted = reportFilters.startDate ? reportFilters.startDate.split('-').reverse().join('/') : '';
-    const endDateFormatted = reportFilters.endDate ? reportFilters.endDate.split('-').reverse().join('/') : '';
-    const periodStr = (reportFilters.startDate && reportFilters.endDate) ? `${startDateFormatted} a ${endDateFormatted}` : 
-                      (reportFilters.startDate ? `A partir de ${startDateFormatted}` : 
-                      (reportFilters.endDate ? `Até ${endDateFormatted}` : "Todo o período"));
+  const { exportPdf, isExporting } = useReportExport({
+    reportResult,
+    reportType,
+    reportFilters,
+    locations,
+    categories,
+    selectedModels,
+  });
 
-    const filterDisplay = {
-      periodo: periodStr,
-      local: locName,
-      servico: servName,
-      atendentes: attNames
-    };
-
-    setIsExporting(true);
-    try {
-      let exportData = reportResult;
-      
-      // Se for relatório analítico, buscar todas as linhas para o PDF (sem limite de paginação)
-      if (reportType === "analytical") {
-        const fullRes = await getReportsDataAction({
-          reportType,
-          startDate: reportFilters.startDate,
-          endDate: reportFilters.endDate,
-          service: reportFilters.service,
-          locationId: reportFilters.locationId,
-          attendants: reportFilters.attendants,
-          selectedModels,
-          page: 1,
-          limit: 999999, // Um limite massivo para garantir que tudo venha
-        });
-        
-        if (fullRes.success && fullRes.data) {
-          exportData = fullRes.data as ReportResultData;
-        }
-      }
-
-      // Capture charts before generating PDF
-      const chartImages = await captureCharts(reportResult.selectedModels || []);
-
-      await generateReportPdf(exportData, filterDisplay, chartImages);
-    } catch (err) {
-      console.error("Error exporting PDF", err);
-      alert("Erro ao exportar PDF.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  useEffect(() => {
-    const loadFiltersData = async () => {
-      const res = await getCategoriesAction();
-      if (res.success && res.data) {
-        setCategories(res.data as DbCategory[]);
-      }
-    };
-    loadFiltersData();
-  }, []);
 
   const handleGenerateReport = async () => {
     setCurrentPage(1); // Reset page on new filter
@@ -134,84 +68,7 @@ export default function ReportsView() {
     });
   };
 
-  const renderReportChart = (modelId: string) => {
-    if (!reportResult) return null;
 
-    switch (modelId) {
-      case "evolution":
-        return (
-          <AreaChartGeneric 
-            data={reportResult.evolutionSeries}
-            xKey="time"
-            yKey="total"
-            name="Quantidade"
-            color="#10b981"
-          />
-        );
-      case "peak_hours":
-        return (
-          <AreaChartGeneric 
-            data={reportResult.peakHours}
-            xKey="time"
-            yKey="total"
-            name="Quantidade"
-            color="#10b981"
-          />
-        );
-      case "busy_days":
-        return (
-          <BarChartGeneric 
-            data={reportResult.busyDays}
-            xKey="name"
-            yKey="value"
-            name="Quantidade"
-            color="#3b82f6"
-          />
-        );
-      case "wait_time":
-        return (
-          <LineChartGeneric 
-            data={reportResult.evolutionSeries}
-            xKey="time"
-            yKey="wait"
-            name="Tempo Médio de Espera"
-            color="#f59e0b"
-          />
-        );
-      case "most_requested_services":
-        return (
-          <BarChartGeneric 
-            data={reportResult.categoryAggregation}
-            xKey="name"
-            yKey="count"
-            name="Quantidade"
-            color="#f43f5e"
-          />
-        );
-      case "avg_service_duration":
-        return (
-          <BarChartGeneric 
-            data={reportResult.categoryAvgDuration}
-            xKey="name"
-            yKey="value"
-            name="Tempo Médio"
-            color="#6366f1"
-          />
-        );
-      case "performance_ranking":
-        return (
-          <BarChartGeneric 
-            data={reportResult.attendantRanking}
-            xKey="name"
-            yKey="count"
-            name="Quantidade"
-            color="#6366f1"
-          />
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <motion.div
@@ -271,7 +128,9 @@ export default function ReportsView() {
                       <h4 className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest">
                         {model?.label}
                       </h4>
-                      <div id={`chart-${modelId}`} className="h-[200px] w-full bg-white">{renderReportChart(modelId)}</div>
+                      <div id={`chart-${modelId}`} className="h-[200px] w-full bg-white">
+                        <ReportChartRenderer modelId={modelId} reportResult={reportResult} />
+                      </div>
                     </div>
                   );
                 })}
