@@ -43,7 +43,7 @@ export function TicketWindowFormModal({
               value={ticketWindowLabel}
               onChange={(e) => onTicketWindowLabelChange(e.target.value)}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
-              placeholder="Ex: MESA, SALA"
+              placeholder="Ex: Box, Local"
             />
           </div>
           <div className="space-y-1">
