@@ -17,6 +17,7 @@ import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./sc
 import { requirePermission } from "@/features/auth/actions";
 import { getUserById } from "@/features/users/queries";
 import { queueEmitter } from "@/infra/events";
+import { getTicketWindows } from "@/features/management/queries";
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -90,7 +91,11 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const ticket = await callNextTicket(locationId, attendant, guiche, allowedServices, priorityType, isForwardedCall);
+    const windows = await getTicketWindows(locationId);
+    const matchedWindow = windows.find(w => w.name === guiche);
+    const finalGuicheName = matchedWindow?.alias || guiche;
+
+    const ticket = await callNextTicket(locationId, attendant, finalGuicheName, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }

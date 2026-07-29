@@ -1,11 +1,12 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2 } from "lucide-react";
 import { DbTicketWindow } from "@/features/management/types";;
 
 interface TicketWindowsListProps {
   ticketWindows: DbTicketWindow[];
   selectedLocationId: number | null;
   onCreateTicketWindow: () => void;
+  onEditTicketWindow: (tw: DbTicketWindow) => void;
   onDeleteTicketWindow: (id: number) => void;
 }
 
@@ -13,6 +14,7 @@ export function TicketWindowsList({
   ticketWindows,
   selectedLocationId,
   onCreateTicketWindow,
+  onEditTicketWindow,
   onDeleteTicketWindow,
 }: TicketWindowsListProps) {
   return (
@@ -46,6 +48,7 @@ export function TicketWindowsList({
               <tr>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">ID</th>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Nome</th>
+                <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Apelido</th>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase text-right">Ações</th>
               </tr>
             </thead>
@@ -54,7 +57,11 @@ export function TicketWindowsList({
                 <tr key={tw.id} className="hover:bg-emerald-50/50 transition-colors">
                   <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">#{tw.id}</td>
                   <td className="px-4 py-3 text-xs font-black text-sefaz-dark">{tw.name}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">{tw.alias || "-"}</td>
                   <td className="px-4 py-3 text-right">
+                    <button onClick={() => onEditTicketWindow(tw)} className="p-2 text-sefaz-accent hover:bg-emerald-50 rounded-lg cursor-pointer mr-2">
+                      <Edit2 size={16} />
+                    </button>
                     <button onClick={() => onDeleteTicketWindow(tw.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer">
                       <Trash2 size={16} />
                     </button>

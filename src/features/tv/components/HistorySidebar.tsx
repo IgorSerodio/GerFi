@@ -7,12 +7,14 @@ interface HistorySidebarProps {
   recentTickets: Ticket[];
   duplicatedTickets: Ticket[];
   scrollDuration: number;
+  ticketWindows?: { name: string; alias?: string | null; label?: string | null }[];
 }
 
 export default function HistorySidebar({
   recentTickets,
   duplicatedTickets,
   scrollDuration,
+  ticketWindows,
 }: HistorySidebarProps) {
   return (
     <div className="w-1/3 shrink-0 flex flex-col h-full gap-8 min-h-0">
@@ -38,31 +40,36 @@ export default function HistorySidebar({
               }
             >
               {duplicatedTickets.map((ticket, i) => (
-                <div
-                  key={`hist-${ticket.id}-${i}`}
-                  className="relative group shrink-0 mb-5"
-                >
-                  <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <div className={`text-4xl md:text-5xl font-black tracking-tighter leading-none w-45 ${ticket.priority === "Prioritário" ? "text-red-600" : "text-emerald-950"}`}>
-                        {ticket.ticketNumber}
-                      </div>
-                      <div className="h-10 w-px bg-emerald-200 mx-1" />
-                      <div>
-                        <div className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em] mb-1 opacity-50 block">
-                          GUICHÊ
+                <div key={`${ticket.id}-${i}`} className="shrink-0 mb-5">
+                  {(() => {
+                    const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche || w.alias === ticket.guiche);
+                    const guicheLabel = currentWindow?.label || (ticket.guiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
+                    return (
+                      <div className="bg-emerald-50/50 hover:bg-emerald-50 p-6 rounded-[35px] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <div className={`text-4xl md:text-5xl font-black tracking-tighter leading-none w-45 ${ticket.priority === "Prioritário" ? "text-red-600" : "text-emerald-950"}`}>
+                            {ticket.ticketNumber}
+                          </div>
+                          <div className="h-10 w-px bg-emerald-200 mx-1" />
+                          <div>
+                            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em] mb-1 opacity-50 block">
+                              {guicheLabel}
+                            </div>
+                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${ticket.guiche?.toLowerCase().includes("guichê") ? "text-2xl" : "text-sm"} max-w-[120px] truncate`} title={ticket.guiche}>
+                              {ticket.guiche?.toLowerCase().includes("guichê") 
+                                ? (ticket.guiche.split(" ")[1] || "01")
+                                : ticket.guiche}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-2xl font-black text-emerald-950 uppercase tracking-tighter">
-                          {ticket.guiche?.split(" ")[1] || "01"}
+                        <div className="text-right">
+                          <div className="text-[20px] font-black text-emerald-600 tabular-nums tracking-tighter">
+                            {formatTime(ticket.calledAt)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[20px] font-black text-emerald-600 tabular-nums tracking-tighter">
-                        {formatTime(ticket.calledAt)}
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>

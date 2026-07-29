@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 
 import { Location, DbTicketWindow } from "@/features/management/types";;
-import { getLocationsAction, createLocationAction, updateLocationAction, deleteLocationAction, getTicketWindowsAction, createNextTicketWindowAction, deleteTicketWindowAction } from "@/features/management/actions";;
+import { getLocationsAction, createLocationAction, updateLocationAction, deleteLocationAction, getTicketWindowsAction, createNextTicketWindowAction, deleteTicketWindowAction, updateTicketWindowDetailsAction } from "@/features/management/actions";
 
 import { LocationsList } from "./LocationsList";
 import { TicketWindowsList } from "./TicketWindowsList";
 import { LocationFormModal } from "./modals/LocationFormModal";
+import { TicketWindowFormModal } from "./modals/TicketWindowFormModal";
 
 interface LocationsConfigViewProps {
   triggerSuccess: (msg: string) => void;
@@ -21,6 +22,11 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [editingLocationId, setEditingLocationId] = useState<number | null>(null);
   const [newLocationName, setNewLocationName] = useState("");
+
+  const [showTwModal, setShowTwModal] = useState(false);
+  const [editingTw, setEditingTw] = useState<DbTicketWindow | null>(null);
+  const [twAlias, setTwAlias] = useState("");
+  const [twLabel, setTwLabel] = useState("");
 
   const loadLocations = React.useCallback(async () => {
     const res = await getLocationsAction();
@@ -123,6 +129,26 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
     }
   };
 
+  const handleEditTicketWindow = (tw: DbTicketWindow) => {
+    setEditingTw(tw);
+    setTwAlias(tw.alias || "");
+    setTwLabel(tw.label || "");
+    setShowTwModal(true);
+  };
+
+  const handleSaveTicketWindow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTw) return;
+    const res = await updateTicketWindowDetailsAction(editingTw.id, twAlias || null, twLabel || null);
+    if (res.success) {
+      triggerSuccess("Apelido atualizado!");
+      setShowTwModal(false);
+      loadWindows();
+    } else {
+      alert(res.error || "Erro ao atualizar apelido");
+    }
+  };
+
   return (
     <motion.div
       key="config_locations"
@@ -158,6 +184,7 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
           ticketWindows={ticketWindows}
           selectedLocationId={selectedLocationId}
           onCreateTicketWindow={handleCreateTicketWindow}
+          onEditTicketWindow={handleEditTicketWindow}
           onDeleteTicketWindow={handleDeleteTicketWindow}
         />
 
@@ -171,6 +198,18 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
         locationName={newLocationName}
         onLocationNameChange={setNewLocationName}
         onSubmit={handleLocationSubmit}
+      />
+
+      {/* MODAL DE GUICHÊ */}
+      <TicketWindowFormModal
+        isOpen={showTwModal}
+        onClose={() => setShowTwModal(false)}
+        ticketWindowAlias={twAlias}
+        onTicketWindowAliasChange={setTwAlias}
+        ticketWindowLabel={twLabel}
+        onTicketWindowLabelChange={setTwLabel}
+        onSubmit={handleSaveTicketWindow}
+        originalName={editingTw?.name || ""}
       />
     </motion.div>
   );

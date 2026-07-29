@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 interface GuicheModalProps {
   show: boolean;
   currentGuiche: string;
-  ticketWindows: string[];
+  ticketWindows: { name: string; alias?: string | null }[];
   activeGuiches: { guiche: string; attendantName: string }[];
   onClose: () => void;
   onSelect: (guiche: string) => void;
@@ -58,7 +58,8 @@ export default function GuicheModal({
 
             <div className="p-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                {ticketWindows.map((guicheName) => {
+                {ticketWindows.map((tw) => {
+                  const guicheName = tw.name;
                   const isCurrent = currentGuiche === guicheName;
                   const occupant = activeGuiches.find((a) => a.guiche === guicheName);
                   const isOccupiedByOther = occupant && !isCurrent;
@@ -76,7 +77,7 @@ export default function GuicheModal({
                       }`}
                     >
                       <span className="font-black text-lg">
-                        {guicheName}
+                        {tw.alias || guicheName}
                       </span>
                       <span className={`text-[10px] uppercase tracking-widest font-bold truncate w-full text-left ${isCurrent ? 'text-white/80' : isOccupiedByOther ? 'text-red-500' : 'text-sefaz-accent/50'}`}>
                         {isCurrent ? "Seu Guichê" : occupant ? `Ocupado: ${occupant.attendantName}` : "Livre"}

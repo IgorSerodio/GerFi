@@ -28,7 +28,7 @@ interface AttendantModalsProps {
     observation: string;
     selectedResolutions: string[];
     showGuicheModal: boolean;
-    ticketWindows: { name: string }[];
+    ticketWindows: { name: string; alias?: string | null }[];
     activeGuiches: { guiche: string; attendantName: string }[];
     selectedHistoryTicket: Ticket | null;
   };
@@ -89,7 +89,7 @@ export default function AttendantModals({
       <GuicheModal
         show={state.showGuicheModal}
         currentGuiche={state.currentAttendant.guiche}
-        ticketWindows={state.ticketWindows.map((tw) => tw.name)}
+        ticketWindows={state.ticketWindows}
         activeGuiches={state.activeGuiches}
         onClose={() => actions.setShowGuicheModal(false)}
         onSelect={actions.handleSaveGuiche}

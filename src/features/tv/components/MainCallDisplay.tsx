@@ -12,6 +12,7 @@ interface MainCallDisplayProps {
   slideIndex: number;
   defaultSlides: { title: string; text: string; type: string }[];
   getPlaylistUrl: () => string;
+  ticketWindows?: { name: string; alias?: string | null; label?: string | null }[];
 }
 
 export default function MainCallDisplay({
@@ -21,7 +22,10 @@ export default function MainCallDisplay({
   slideIndex,
   defaultSlides,
   getPlaylistUrl,
+  ticketWindows,
 }: MainCallDisplayProps) {
+  const currentWindow = ticketWindows?.find(w => w.name === currentCall?.guiche || w.alias === currentCall?.guiche);
+  const guicheLabel = currentWindow?.label || (currentCall?.guiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
   return (
     <div className="flex-1 flex flex-col h-full justify-between min-h-0">
       <div
@@ -98,16 +102,18 @@ export default function MainCallDisplay({
                     }}
                   >
                     <span
-                      className="font-light tracking-widest opacity-60"
+                      className="font-light tracking-widest opacity-60 uppercase"
                       style={{ fontSize: "2.5cqh" }}
                     >
-                      GUICHÊ
+                      {guicheLabel}
                     </span>
                     <span
-                      className="font-black leading-none tracking-tighter"
-                      style={{ fontSize: "9cqh" }}
+                      className="font-black leading-none tracking-tighter uppercase whitespace-nowrap"
+                      style={{ fontSize: currentCall.guiche?.toLowerCase().includes("guichê") ? "9cqh" : "5cqh", maxWidth: "40cqw", overflow: "hidden", textOverflow: "ellipsis" }}
                     >
-                      {currentCall.guiche?.split(" ")[1] || "01"}
+                      {currentCall.guiche?.toLowerCase().includes("guichê") 
+                        ? (currentCall.guiche.split(" ")[1] || "01")
+                        : currentCall.guiche}
                     </span>
                   </div>
                 </div>

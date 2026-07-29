@@ -17,11 +17,13 @@ import { useTvSync } from "../hooks/useTvSync";
 interface TvDashboardProps {
   initialHistory: Ticket[];
   initialSettings: TvSettings;
+  initialTicketWindows?: { name: string; alias?: string | null; label?: string | null }[];
 }
 
 export default function TvDashboard({
   initialHistory,
   initialSettings,
+  initialTicketWindows = [],
 }: TvDashboardProps) {
   const { time, isIdle, setIsIdle, showControls, resetIdleTimer, resetControlsTimer } = useTvTimers();
   
@@ -60,6 +62,7 @@ export default function TvDashboard({
           slideIndex={slideIndex}
           defaultSlides={defaultSlides}
           getPlaylistUrl={getPlaylistUrl}
+          ticketWindows={initialTicketWindows}
         />
 
         <div className="w-15 h-full shrink-0">
@@ -77,6 +80,7 @@ export default function TvDashboard({
           recentTickets={recentTickets}
           duplicatedTickets={duplicatedTickets}
           scrollDuration={scrollDuration}
+          ticketWindows={initialTicketWindows}
         />
       </div>
 

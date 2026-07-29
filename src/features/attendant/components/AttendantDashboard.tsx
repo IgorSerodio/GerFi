@@ -51,11 +51,14 @@ export default function AttendantDashboard({
   const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário" && !t.forwardedTo);
   const forwardedCount = state.queue.filter((t) => t.status === "pending" && t.forwardedTo === state.currentAttendant.guiche).length;
 
+  const currentWindow = state.ticketWindows.find(w => w.name === state.currentAttendant.guiche);
+  const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guiche;
+
   return (
     <div className="min-h-[100dvh] w-full bg-sefaz-light flex p-2 md:p-4 font-sans">
       <div className="flex-1 flex overflow-hidden rounded-[32px] shadow-2xl border border-emerald-100 bg-white">
         <AttendantSidebar
-          currentAttendant={state.currentAttendant}
+          currentAttendant={{ ...state.currentAttendant, guiche: currentGuicheDisplay }}
           showServiceConfig={state.showServiceConfig}
           setShowServiceConfig={actions.setShowServiceConfig}
           setShowGuicheModal={actions.setShowGuicheModal}

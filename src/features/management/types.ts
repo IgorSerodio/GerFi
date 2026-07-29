@@ -15,6 +15,8 @@ export interface DbCategory {
 export interface DbTicketWindow {
   id: number;
   name: string;
+  alias?: string | null;
+  label?: string | null;
   locationId: number;
 }
 

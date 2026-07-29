@@ -1,0 +1,1 @@
+ALTER TABLE ticket_windows ADD COLUMN IF NOT EXISTS label VARCHAR(50);

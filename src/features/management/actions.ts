@@ -11,6 +11,7 @@ import {
   getTicketWindows,
   createNextTicketWindow,
   deleteTicketWindow,
+  updateTicketWindowDetails,
   getLocations,
   createLocation,
   updateLocation,
@@ -108,6 +109,17 @@ export async function deleteTicketWindowAction(id: number) {
     return { success };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao excluir guichê.") };
+  }
+}
+
+export async function updateTicketWindowDetailsAction(id: number, alias: string | null, label: string | null) {
+  try {
+    await requirePermission("MANAGE_CONFIGS");
+    const window = await updateTicketWindowDetails(id, alias, label);
+    triggerRealTimeUpdate();
+    return { success: true, data: window };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error, "Erro ao editar guichê.") };
   }
 }
 
