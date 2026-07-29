@@ -55,7 +55,7 @@ export function TicketWindowFormModal({
               value={ticketWindowAlias}
               onChange={(e) => onTicketWindowAliasChange(e.target.value)}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
-              placeholder="Ex: Mesa 1, Sala Médica"
+              placeholder="Ex: Sala Médica"
             />
           </div>
         </div>
