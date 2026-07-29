@@ -1,6 +1,15 @@
 
 export type QueryParam = string | number | Date | null | string[];
 
+export interface ReportFiltersDTO {
+  startDate: Date | null;
+  endDate: Date | null;
+  service?: string;
+  locationId: number | "all";
+  attendants: string[];
+  subcategories?: string[];
+}
+
 export interface ChartPoint {
   name: string;
   value: number;
@@ -60,6 +69,16 @@ export function getFilteredTicketsCTE(baseFilter: string): string {
         )
       )
     )`;
+}
+
+/**
+ * Cria o fragmento SQL para filtro via JSONB de resoluções (subcategorias)
+ */
+export function buildSubcategoryFilter(paramIndex: number): string {
+  return `EXISTS (
+    SELECT 1 FROM jsonb_array_elements_text(resolutions) AS r 
+    WHERE r = ANY($${paramIndex})
+  )`;
 }
 
 export interface EvolutionPoint {

@@ -1,5 +1,5 @@
 import { pool } from "@/infra/database";
-import { QueryParam } from "./base";
+import { QueryParam, ReportFiltersDTO, buildSubcategoryFilter } from "./base";
 
 export interface TimelineTicket {
   id: string;
@@ -20,8 +20,8 @@ export interface TimelineTicket {
   globalServiceSeconds: number;
 }
 
-export async function getTimelineData(locationId: number | "all", attendants: string[], dateStr?: string): Promise<TimelineTicket[]> {
-  const targetDate = dateStr || new Date().toISOString().split('T')[0];
+export async function getTimelineData(filters: ReportFiltersDTO): Promise<TimelineTicket[]> {
+  const targetDate = filters.startDate ? filters.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
   let queryStr = `
     SELECT 
@@ -38,13 +38,17 @@ export async function getTimelineData(locationId: number | "all", attendants: st
   `;
   const params: QueryParam[] = [targetDate];
 
-  if (locationId !== "all") {
-    params.push(locationId);
+  if (filters.locationId !== "all") {
+    params.push(filters.locationId);
     queryStr += ` AND t.location_id = $${params.length}`;
   }
-  if (attendants && attendants.length > 0) {
-    params.push(attendants);
+  if (filters.attendants && filters.attendants.length > 0) {
+    params.push(filters.attendants);
     queryStr += ` AND t.attendant = ANY($${params.length})`;
+  }
+  if (filters.subcategories && filters.subcategories.length > 0) {
+    params.push(filters.subcategories);
+    queryStr += ` AND ${buildSubcategoryFilter(params.length)}`;
   }
 
   queryStr += ` ORDER BY t.called_at ASC`;
@@ -84,32 +88,36 @@ export interface AnalyticalTicket {
   originalCompletedAt: Date | null;
 }
 
-export async function getAnalyticalData(startDate: Date | null, endDate: Date | null, serviceId: string, locationId: number | "all", attendants: string[], page: number = 1, limit: number = 50): Promise<{ data: AnalyticalTicket[], total: number }> {
+export async function getAnalyticalData(filters: ReportFiltersDTO, page: number = 1, limit: number = 50): Promise<{ data: AnalyticalTicket[], total: number }> {
   let baseFilter = "1=1";
   const params: QueryParam[] = [];
 
-  if (startDate && endDate) {
-    params.push(startDate, endDate);
+  if (filters.startDate && filters.endDate) {
+    params.push(filters.startDate, filters.endDate);
     baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
-  } else if (startDate) {
-    params.push(startDate);
+  } else if (filters.startDate) {
+    params.push(filters.startDate);
     baseFilter += ` AND t.created_at >= $${params.length}`;
-  } else if (endDate) {
-    params.push(endDate);
+  } else if (filters.endDate) {
+    params.push(filters.endDate);
     baseFilter += ` AND t.created_at <= $${params.length}`;
   }
 
-  if (serviceId !== "all") {
-    params.push(parseInt(serviceId, 10));
+  if (filters.service && filters.service !== "all") {
+    params.push(parseInt(filters.service, 10));
     baseFilter += ` AND t.category_id = $${params.length}`;
   }
-  if (locationId !== "all") {
-    params.push(locationId);
+  if (filters.locationId !== "all") {
+    params.push(filters.locationId);
     baseFilter += ` AND t.location_id = $${params.length}`;
   }
-  if (attendants && attendants.length > 0) {
-    params.push(attendants);
+  if (filters.attendants && filters.attendants.length > 0) {
+    params.push(filters.attendants);
     baseFilter += ` AND t.attendant = ANY($${params.length})`;
+  }
+  if (filters.subcategories && filters.subcategories.length > 0) {
+    params.push(filters.subcategories);
+    baseFilter += ` AND ${buildSubcategoryFilter(params.length)}`;
   }
 
   const countQuery = `SELECT COUNT(*) as total FROM tickets t WHERE ${baseFilter}`;

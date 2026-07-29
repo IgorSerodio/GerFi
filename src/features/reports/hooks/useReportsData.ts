@@ -33,6 +33,7 @@ export function useReportsData() {
     service: string;
     locationId: number | "all";
     attendants: string[];
+    subcategories?: string[];
     selectedModels: string[];
     page?: number;
     limit?: number;

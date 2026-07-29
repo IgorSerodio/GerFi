@@ -4,6 +4,8 @@ import { User } from "@/features/users/types";
 import { Printer, Activity, Clock, CalendarDays, Timer, TrendingUp, Trophy } from "lucide-react";
 import { AttendantMultiSelect } from "./AttendantMultiSelect";
 
+import { SubcategoryFilter } from "./SubcategoryFilter";
+
 export const ADVANCED_REPORTS = [
   { id: "peak_hours", label: "Horário de Pico", icon: Clock, color: "text-blue-500", bg: "bg-blue-50" },
   { id: "busy_days", label: "Dias mais Movimentados", icon: CalendarDays, color: "text-emerald-500", bg: "bg-emerald-50" },
@@ -20,6 +22,7 @@ export interface ReportFiltersType {
   service: string;
   locationId: number | "all";
   attendants: string[];
+  subcategories: string[];
 }
 
 interface ReportsFilterSidebarProps {
@@ -145,6 +148,13 @@ export default function ReportsFilterSidebar({
               ))}
             </select>
           </div>
+
+          <SubcategoryFilter
+            categories={categories}
+            selectedService={reportFilters.service}
+            selectedSubcategories={reportFilters.subcategories}
+            onChange={(subcategories) => setReportFilters((prev) => ({ ...prev, subcategories }))}
+          />
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-sefaz-accent uppercase tracking-widest pl-2 font-display">

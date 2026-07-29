@@ -23,6 +23,7 @@ export default function ReportsView() {
     service: "all",
     locationId: "all" as number | "all",
     attendants: [] as string[],
+    subcategories: [] as string[],
   });
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +38,11 @@ export default function ReportsView() {
     selectedModels,
   });
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReportFilters((prev) => ({ ...prev, subcategories: [] }));
+  }, [reportFilters.service]);
+
 
   const handleGenerateReport = async () => {
     setCurrentPage(1); // Reset page on new filter
@@ -47,6 +53,7 @@ export default function ReportsView() {
       service: reportFilters.service,
       locationId: reportFilters.locationId,
       attendants: reportFilters.attendants,
+      subcategories: reportFilters.subcategories,
       selectedModels,
       page: 1,
       limit,
@@ -62,6 +69,7 @@ export default function ReportsView() {
       service: reportFilters.service,
       locationId: reportFilters.locationId,
       attendants: reportFilters.attendants,
+      subcategories: reportFilters.subcategories,
       selectedModels,
       page: newPage,
       limit,

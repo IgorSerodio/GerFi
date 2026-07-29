@@ -84,10 +84,17 @@ export async function getLogisticsDashboardDataAction(
       endDate.setHours(23, 59, 59, 999);
     }
 
+    const filters = {
+      startDate,
+      endDate,
+      locationId,
+      attendants
+    };
+
     const [stats, categoryAggregation, attendantRanking] = await Promise.all([
-      getVolumeStats(startDate, endDate, locationId, attendants),
-      getCategoryRanking(startDate, endDate, locationId, attendants),
-      getAttendantRanking(startDate, endDate, locationId, attendants),
+      getVolumeStats(filters),
+      getCategoryRanking(filters),
+      getAttendantRanking(filters),
     ]);
 
     let chartData: ChartPoint[] = [];
@@ -123,13 +130,14 @@ export async function getReportsDataAction(payload: {
   service: string;
   locationId: number | "all";
   attendants: string[];
+  subcategories?: string[];
   selectedModels: string[];
   page?: number;
   limit?: number;
 }) {
   try {
     await requirePermission("ACCESS_MANAGEMENT");
-    const { reportType, startDate, endDate, service, locationId, attendants, selectedModels, page = 1, limit = 50 } = payload;
+    const { reportType, startDate, endDate, service, locationId, attendants, subcategories, selectedModels, page = 1, limit = 50 } = payload;
 
     const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
     let end: Date | null = null;
@@ -137,19 +145,28 @@ export async function getReportsDataAction(payload: {
       end = new Date(`${endDate}T23:59:59.999`);
     }
 
-    const stats = await getVolumeStats(start, end, locationId, attendants);
-    const categoryAggregation = await getCategoryRanking(start, end, locationId, attendants);
-    const attendantRanking = await getAttendantRanking(start, end, locationId, attendants);
-    const evolutionSeries = await getEvolutionSeries(start, end, service, locationId, attendants);
-    const peakHours = await getPeakHours(start, end, service, locationId, attendants);
-    const busyDays = await getBusyDays(start, end, service, locationId, attendants);
-    const categoryAvgDuration = await getCategoryAvgDuration(start, end, locationId, attendants);
+    const filters = {
+      startDate: start,
+      endDate: end,
+      service,
+      locationId,
+      attendants,
+      subcategories
+    };
+
+    const stats = await getVolumeStats(filters);
+    const categoryAggregation = await getCategoryRanking(filters);
+    const attendantRanking = await getAttendantRanking(filters);
+    const evolutionSeries = await getEvolutionSeries(filters);
+    const peakHours = await getPeakHours(filters);
+    const busyDays = await getBusyDays(filters);
+    const categoryAvgDuration = await getCategoryAvgDuration(filters);
 
     // Busca detalhada dos tickets caso seja relatório analítico
     let detailRows: DetailRow[] = [];
     let totalDetails = 0;
     if (reportType === "analytical") {
-      const result = await getAnalyticalData(start, end, service, locationId, attendants, page, limit);
+      const result = await getAnalyticalData(filters, page, limit);
       totalDetails = result.total;
       detailRows = result.data.map((row) => {
         const isForwarded = row.createdAt.getTime() > row.originalCreatedAt.getTime();
@@ -171,7 +188,7 @@ export async function getReportsDataAction(payload: {
 
     let performanceRows: PerformanceRow[] = [];
     if (reportType === "performance") {
-      performanceRows = await getPerformanceData(start, end, locationId, attendants);
+      performanceRows = await getPerformanceData(filters);
     }
 
     return {
@@ -199,7 +216,17 @@ export async function getReportsDataAction(payload: {
 export async function getTimelineAction(locationId: number | "all", attendants: string[], dateStr?: string) {
   try {
     await requirePermission("ACCESS_MANAGEMENT");
-    const data = await getTimelineData(locationId, attendants, dateStr);
+    
+    const targetDate = dateStr ? new Date(`${dateStr}T12:00:00`) : new Date();
+    
+    const filters = {
+      startDate: targetDate,
+      endDate: targetDate,
+      locationId,
+      attendants
+    };
+    
+    const data = await getTimelineData(filters);
     return { success: true, data };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao carregar dados da linha do tempo.") };

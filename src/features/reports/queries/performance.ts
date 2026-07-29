@@ -1,5 +1,5 @@
 import { pool } from "@/infra/database";
-import { QueryParam } from "./base";
+import { QueryParam, ReportFiltersDTO, buildSubcategoryFilter } from "./base";
 
 export interface PerformanceRow {
   attendant: string;
@@ -15,33 +15,36 @@ export interface PerformanceRow {
  * As métricas calculam a quantidade de tickets atendidos (ou encaminhados)
  * e o tempo médio de espera, chamada e atendimento para cada atendente.
  */
-export async function getPerformanceData(
-  startDate: Date | null,
-  endDate: Date | null,
-  locationId: number | "all",
-  attendants: string[]
-): Promise<PerformanceRow[]> {
+export async function getPerformanceData(filters: ReportFiltersDTO): Promise<PerformanceRow[]> {
   let baseFilter = "1=1";
   const params: QueryParam[] = [];
 
-  if (startDate && endDate) {
-    params.push(startDate, endDate);
+  if (filters.startDate && filters.endDate) {
+    params.push(filters.startDate, filters.endDate);
     baseFilter += ` AND t.created_at BETWEEN $${params.length - 1} AND $${params.length}`;
-  } else if (startDate) {
-    params.push(startDate);
+  } else if (filters.startDate) {
+    params.push(filters.startDate);
     baseFilter += ` AND t.created_at >= $${params.length}`;
-  } else if (endDate) {
-    params.push(endDate);
+  } else if (filters.endDate) {
+    params.push(filters.endDate);
     baseFilter += ` AND t.created_at <= $${params.length}`;
   }
 
-  if (locationId !== "all") {
-    params.push(locationId);
+  if (filters.service && filters.service !== "all") {
+    params.push(parseInt(filters.service, 10));
+    baseFilter += ` AND t.category_id = $${params.length}`;
+  }
+  if (filters.locationId !== "all") {
+    params.push(filters.locationId);
     baseFilter += ` AND t.location_id = $${params.length}`;
   }
-  if (attendants && attendants.length > 0) {
-    params.push(attendants);
+  if (filters.attendants && filters.attendants.length > 0) {
+    params.push(filters.attendants);
     baseFilter += ` AND t.attendant = ANY($${params.length})`;
+  }
+  if (filters.subcategories && filters.subcategories.length > 0) {
+    params.push(filters.subcategories);
+    baseFilter += ` AND ${buildSubcategoryFilter(params.length)}`;
   }
 
   const queryStr = `
