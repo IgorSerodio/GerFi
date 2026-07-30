@@ -12,7 +12,10 @@ export function SubcategoryFilter({ categories, selectedService, selectedSubcate
   if (selectedService === "all") return null;
 
   const category = categories.find((c) => c.id.toString() === selectedService);
-  if (!category || !category.resolutions || category.resolutions.length === 0) return null;
+  if (!category) return null;
+
+  const categoryResolutions = category.resolutions || [];
+  const allResolutions = Array.from(new Set([...categoryResolutions, "Outro(s)"]));
 
   const toggleSubcategory = (res: string) => {
     if (selectedSubcategories.includes(res)) {
@@ -28,7 +31,7 @@ export function SubcategoryFilter({ categories, selectedService, selectedSubcate
         Subcategorias
       </label>
       <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-3 max-h-[160px] overflow-y-auto custom-scrollbar space-y-2">
-        {category.resolutions.map((res) => {
+        {allResolutions.map((res) => {
           const isSelected = selectedSubcategories.includes(res);
           return (
             <label
