@@ -3,8 +3,18 @@ import { getQueueStateAction } from "@/features/queue/actions";;;
 import { getTvSettingsAction } from "@/features/tv/actions";
 import { getTicketWindowsAction } from "@/features/management/actions";
 import TvDashboard from "@/features/tv/components/TvDashboard";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/features/auth/permissions";
 
 export default async function CustomTvPage({ params }: { params: Promise<{ slug: string }> }) {
+  const session = await getServerSession(authOptions);
+  
+  if (session && !hasPermission("ACCESS_TV", session.user.role)) {
+    redirect("/");
+  }
+
   const resolvedParams = await params;
   const tvRes = await getTvSettingsAction(resolvedParams.slug);
   

@@ -15,6 +15,9 @@ export const PERMISSIONS = {
   
   // Ações de Leitura Genérica
   VIEW_SYSTEM_DATA:  [UserRole.Admin, UserRole.Gerente, UserRole.Atendente, UserRole.Triador], // Leitura de dados transversais (categorias, guichês)
+  
+  // Acesso à TV (telas de exibição)
+  ACCESS_TV:         [UserRole.Admin, UserRole.Gerente], // Permite visualizar as TVs quando logado (Atendentes e Triadores bloqueados)
 } as const;
 
 export type ActionName = keyof typeof PERMISSIONS;

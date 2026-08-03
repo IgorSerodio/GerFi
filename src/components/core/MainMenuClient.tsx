@@ -49,6 +49,7 @@ export default function MainMenuClient({ session }: MainMenuClientProps) {
           icon={<Tv className="h-8 w-8" />}
           description="Exibição de senhas para o público"
           color="bg-emerald-500"
+          disabled={!!session && !hasPermission("ACCESS_TV")}
         />
         <FeatureCard
           onClick={() => router.push("/triagem")}
