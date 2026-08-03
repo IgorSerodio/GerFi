@@ -22,7 +22,6 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
     restart: unless-stopped
-    # Nota: a porta 3000 não é exportada para o host. O nginx lidará com isso.
 
   nginx:
     build:
