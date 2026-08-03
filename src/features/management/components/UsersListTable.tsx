@@ -2,6 +2,8 @@ import React from "react";
 import { Pen, Trash2, Ban } from "lucide-react";
 import { User, UserRole } from "@/features/users/types";
 
+import { DbTicketWindow, Location } from "@/features/management/types";
+
 interface UsersListTableProps {
   users: User[];
   isGerente: boolean;
@@ -9,6 +11,8 @@ interface UsersListTableProps {
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
   onToggleBlock: (id: number) => void;
+  ticketWindows?: DbTicketWindow[];
+  locations?: Location[];
 }
 
 export function UsersListTable({
@@ -18,6 +22,8 @@ export function UsersListTable({
   onEdit,
   onDelete,
   onToggleBlock,
+  ticketWindows = [],
+  locations = [],
 }: UsersListTableProps) {
   const visibleUsers = users.filter((u) => {
     if (isGerente && u.role === UserRole.Admin) return false;
@@ -65,7 +71,38 @@ export function UsersListTable({
                   </span>
                 </td>
                 <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
-                  {user.guiche}
+                  {(() => {
+                    if (!user.guiche) return "-";
+                    // Encontra guiche com alias (se existir)
+                    let alias = "";
+                    let labelToDisplay = user.guiche;
+
+                    if (ticketWindows && locations) {
+                      const tw = ticketWindows.find((t) => {
+                        const loc = locations.find((l) => l.id === t.locationId);
+                        const label = loc ? `${loc.name} - ${t.name}` : t.name;
+                        return label === user.guiche || t.name === user.guiche;
+                      });
+                      
+                      if (tw) {
+                        const loc = locations.find((l) => l.id === tw.locationId);
+                        labelToDisplay = loc ? `${loc.name} - ${tw.name}` : tw.name;
+                        if (tw.alias) {
+                          alias = tw.alias;
+                        }
+                      }
+                    }
+                    
+                    if (alias) {
+                      return (
+                        <div className="flex flex-col">
+                          <span>{labelToDisplay}</span>
+                          <span className="text-[10px] text-sefaz-accent font-medium">{alias}</span>
+                        </div>
+                      );
+                    }
+                    return labelToDisplay;
+                  })()}
                 </td>
                 <td className="px-6 py-4">
                   <span

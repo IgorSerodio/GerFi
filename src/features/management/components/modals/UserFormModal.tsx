@@ -144,20 +144,44 @@ export function UserFormModal({
               Guichê
             </label>
             <select
-              value={newUser.guiche}
+              value={(() => {
+                if (!newUser.guiche) return "";
+                const match = ticketWindows.find(tw => {
+                  const loc = locations.find(l => l.id === tw.locationId);
+                  const label = loc ? `${loc.name} - ${tw.name}` : tw.name;
+                  return label === newUser.guiche || tw.name === newUser.guiche;
+                });
+                if (match) {
+                  const loc = locations.find(l => l.id === match.locationId);
+                  return loc ? `${loc.name} - ${match.name}` : match.name;
+                }
+                return newUser.guiche;
+              })()}
               onChange={(e) => setNewUser({ ...newUser, guiche: e.target.value })}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
             >
               <option value="">Sem guichê</option>
-              {ticketWindows.map((tw) => {
-                const loc = locations.find((l) => l.id === tw.locationId);
-                const label = loc ? `${loc.name} - ${tw.name}` : tw.name;
-                return (
-                  <option key={tw.id} value={label}>
-                    {label}
-                  </option>
-                );
-              })}
+              {ticketWindows
+                .slice()
+                .sort((a, b) => {
+                  const locA = locations.find((l) => l.id === a.locationId)?.name || "";
+                  const locB = locations.find((l) => l.id === b.locationId)?.name || "";
+                  if (locA !== locB) return locA.localeCompare(locB);
+                  return a.name.localeCompare(b.name);
+                })
+                .map((tw) => {
+                  const loc = locations.find((l) => l.id === tw.locationId);
+                  const baseLabel = loc ? `${loc.name} - ${tw.name}` : tw.name;
+                  let displayLabel = baseLabel;
+                  if (tw.alias) {
+                    displayLabel += ` (${tw.alias})`;
+                  }
+                  return (
+                    <option key={tw.id} value={baseLabel}>
+                      {displayLabel}
+                    </option>
+                  );
+                })}
             </select>
           </div>
         </div>

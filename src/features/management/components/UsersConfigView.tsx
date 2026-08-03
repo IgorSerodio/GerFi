@@ -167,6 +167,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
         onEdit={handleEditUser}
         onDelete={handleDeleteUserClick}
         onToggleBlock={handleToggleBlock}
+        ticketWindows={ticketWindows}
+        locations={locations}
       />
       {/* User Edit Modal */}
       <UserFormModal 
