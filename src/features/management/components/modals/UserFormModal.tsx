@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
 import { UserRole } from "@/features/users/types";
-import { DbCategory, DbTicketWindow, Location } from "@/features/management/types";;
+import { DbCategory, DbTicketWindow, Location } from "@/features/management/types";
+import { formatCpf, removeNonDigits } from "@/lib/formatters";
 
 export interface NewUserFormData {
   name: string;
@@ -99,8 +100,8 @@ export function UserFormModal({
             <input
               type="text"
               required
-              value={newUser.cpf}
-              onChange={(e) => setNewUser({ ...newUser, cpf: e.target.value })}
+              value={formatCpf(newUser.cpf)}
+              onChange={(e) => setNewUser({ ...newUser, cpf: removeNonDigits(e.target.value) })}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
             />
           </div>

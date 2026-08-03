@@ -3,6 +3,7 @@ import { Pen, Trash2, Ban } from "lucide-react";
 import { User, UserRole } from "@/features/users/types";
 
 import { DbTicketWindow, Location } from "@/features/management/types";
+import { formatCpf } from "@/lib/formatters";
 
 interface UsersListTableProps {
   users: User[];
@@ -55,7 +56,7 @@ export function UsersListTable({
                   <p className="text-[10px] text-sefaz-accent font-medium">{user.email}</p>
                 </td>
                 <td className="px-6 py-4 text-xs font-bold text-sefaz-accent">
-                  {user.matricula} <span className="opacity-50">/</span> {user.cpf}
+                  {user.matricula} <span className="opacity-50">/</span> {formatCpf(user.cpf)}
                 </td>
                 <td className="px-6 py-4">
                   <span
