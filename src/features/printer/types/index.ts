@@ -10,3 +10,10 @@ export interface IPrinterService {
 }
 
 export type PaperSize = "58mm" | "80mm";
+
+export interface PrinterConfig {
+  paperSize: PaperSize;
+  printBarcode: boolean;
+  autocut: boolean;
+  soundAlert: boolean;
+}

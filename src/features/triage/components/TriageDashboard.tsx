@@ -2,7 +2,7 @@
 
 import React from "react";
 import NextLink from "next/link";
-import { ArrowLeft, Menu, Printer, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
+import { ArrowLeft, Menu, Printer, Settings, Landmark, History, Gavel, Accessibility, UserPlus, FileText, Info } from "lucide-react";
 import { DbCategory } from "@/features/management/types";
 import { Session } from "next-auth";
 
@@ -94,18 +94,26 @@ export default function TriageDashboard({
                 textSizeClass="text-[10px]"
                 className="rounded-xl"
               />
-              <button
-                onClick={actions.handleTestPrinter}
-                className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 h-10 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
-              >
-                <Printer
-                  size={18}
-                  className="group-hover:rotate-12 transition-transform"
-                />
-                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
-                  Testar Impressora
-                </span>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={actions.handleTestPrinter}
+                  className="bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent px-4 h-10 rounded-xl border border-emerald-200 flex items-center gap-2 transition-all active:scale-95 group cursor-pointer"
+                >
+                  <Printer
+                    size={18}
+                    className="group-hover:rotate-12 transition-transform"
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
+                    Testar Impressora
+                  </span>
+                </button>
+                <button
+                  onClick={() => actions.setShowPrinterConfig(true)}
+                  className="bg-white hover:bg-emerald-50 text-sefaz-accent w-10 h-10 rounded-xl border border-emerald-200 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                >
+                  <Settings size={18} className="hover:rotate-90 transition-transform duration-300" />
+                </button>
+              </div>
 
               <div className="text-right relative">
                 <button

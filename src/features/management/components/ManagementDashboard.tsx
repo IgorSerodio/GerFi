@@ -12,7 +12,6 @@ import ConfigHubMenu from "./ConfigHubMenu";
 import ServicesConfigView from "./ServicesConfigView";
 import UsersConfigView from "./UsersConfigView";
 import TvConfigView from "./TvConfigView";
-import PrinterConfigView from "./PrinterConfigView";
 import LocationsConfigView from "./LocationsConfigView";
 
 
@@ -101,7 +100,6 @@ export default function ManagementDashboard({ session, reportsViewComponent, das
           {view === "config_locations" && <LocationsConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_users" && <UsersConfigView triggerSuccess={triggerSuccess} />}
           {view === "config_tv" && <TvConfigView triggerSuccess={triggerSuccess} />}
-          {view === "config_printer" && <PrinterConfigView triggerSuccess={triggerSuccess} />}
         </AnimatePresence>
       </div>
     </div>

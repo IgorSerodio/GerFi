@@ -39,15 +39,7 @@ export default function ConfigHubMenu({ setView }: ConfigHubMenuProps) {
           color="bg-slate-700"
           disabled={!hasPermission("MANAGE_CONFIGS")}
         />
-        <FeatureCard
-          layout="vertical"
-          onClick={() => hasPermission("MANAGE_CONFIGS") && setView("config_printer")}
-          title="Triagem & Impressora"
-          description="Status do terminal térmico, alertas e layout do cupom de senhas."
-          icon={<Printer size={32} />}
-          color="bg-blue-500"
-          disabled={!hasPermission("MANAGE_CONFIGS")}
-        />
+
         <FeatureCard
           layout="vertical"
           onClick={() => hasPermission("MANAGE_CONFIGS") && setView("config_locations")}

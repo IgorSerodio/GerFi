@@ -15,6 +15,7 @@ export function useTriageDashboard() {
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showPrinterTest, setShowPrinterTest] = useState(false);
+  const [showPrinterConfig, setShowPrinterConfig] = useState(false);
   const [printerStatus, setPrinterStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
@@ -152,6 +153,7 @@ export function useTriageDashboard() {
       searchResult,
       showCalendar,
       showPrinterTest,
+      showPrinterConfig,
       printerStatus,
       isSidebarOpen,
       locationId,
@@ -164,6 +166,7 @@ export function useTriageDashboard() {
       setLocationId,
       setShowCalendar,
       setShowPrinterTest,
+      setShowPrinterConfig,
       setPrinterStatus,
       setSelectedCategory,
       selectService,

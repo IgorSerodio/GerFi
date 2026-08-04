@@ -23,9 +23,21 @@ export class BrowserPrintStrategy implements IPrinterService {
         return;
       }
 
+      let config = { paperSize: "58mm", printBarcode: true, soundAlert: true };
+      try {
+        const stored = localStorage.getItem("printerConfig");
+        if (stored) {
+          config = { ...config, ...JSON.parse(stored) };
+        }
+      } catch (e) {
+        console.error("Erro ao ler configurações da impressora", e);
+      }
+
       const dateStr = new Date(ticket.createdAt).toLocaleDateString();
       const timeStr = formatTime(ticket.createdAt);
       const priorityLabel = ticket.priority === "Prioritário" ? "PRIORITÁRIO" : "GERAL";
+      
+      const is80mm = config.paperSize === "80mm";
 
       // Layout otimizado para bobinas térmicas de 58/80mm
       const htmlContent = `
@@ -50,25 +62,25 @@ export class BrowserPrintStrategy implements IPrinterService {
                 box-sizing: border-box;
               }
               .header { margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-              .header h1 { font-size: 14px; margin: 0; text-transform: uppercase; }
-              .header h2 { font-size: 12px; margin: 2px 0; }
-              .header p { font-size: 10px; margin: 0; }
+              .header h1 { font-size: ${is80mm ? "18px" : "14px"}; margin: 0; text-transform: uppercase; }
+              .header h2 { font-size: ${is80mm ? "14px" : "12px"}; margin: 2px 0; }
+              .header p { font-size: ${is80mm ? "12px" : "10px"}; margin: 0; }
               
               .ticket-info { margin: 15px 0; }
-              .category { font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; }
-              .priority { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
-              .ticket-number { font-size: 42px; font-weight: bold; margin: 5px 0; letter-spacing: -2px; }
+              .category { font-size: ${is80mm ? "22px" : "18px"}; font-weight: bold; margin: 0; text-transform: uppercase; }
+              .priority { font-size: ${is80mm ? "14px" : "12px"}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
+              .ticket-number { font-size: ${is80mm ? "54px" : "42px"}; font-weight: bold; margin: 5px 0; letter-spacing: -2px; }
               
-              .details { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 15px 0; text-align: left; font-size: 11px; font-weight: bold; }
+              .details { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 15px 0; text-align: left; font-size: ${is80mm ? "13px" : "11px"}; font-weight: bold; }
               .details div { display: flex; justify-content: space-between; margin-bottom: 4px; }
               
-              .footer { font-size: 10px; font-weight: bold; }
+              .footer { font-size: ${is80mm ? "12px" : "10px"}; font-weight: bold; }
               .footer p { margin: 2px 0; }
               .security-code { border: 1px dashed #000; padding: 5px; margin: 10px auto; width: 80%; }
-              .security-code p { margin: 0; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
-              .security-code h3 { margin: 2px 0 0 0; font-size: 18px; letter-spacing: 4px; }
+              .security-code p { margin: 0; font-size: ${is80mm ? "11px" : "9px"}; text-transform: uppercase; letter-spacing: 1px; }
+              .security-code h3 { margin: 2px 0 0 0; font-size: ${is80mm ? "22px" : "18px"}; letter-spacing: 4px; }
               
-              .barcode-text { font-size: 9px; letter-spacing: 3px; margin-top: 10px; }
+              .barcode-text { font-size: ${is80mm ? "11px" : "9px"}; letter-spacing: 3px; margin-top: 10px; display: ${config.printBarcode ? 'block' : 'none'}; }
             }
             body { font-family: 'Courier New', Courier, monospace; } /* Fallback for viewing */
           </style>
@@ -101,7 +113,7 @@ export class BrowserPrintStrategy implements IPrinterService {
               <h3>${ticket.securityCode || "0000"}</h3>
             </div>
             
-            <p class="barcode-text">${ticket.ticketNumber}2024SFM</p>
+            ${config.printBarcode ? `<p class="barcode-text">*${ticket.ticketNumber}2024SFM*</p>` : ''}
           </div>
         </body>
         </html>
