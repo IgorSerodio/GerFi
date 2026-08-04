@@ -140,7 +140,11 @@ export default function TicketReceiptModal({
 
             <div className="mt-8 flex justify-center gap-4">
               <button
-                onClick={onClose}
+                onClick={async () => {
+                  const { printerService } = await import("@/features/printer/services/printerService");
+                  await printerService.printTicket(issuedTicket);
+                  onClose();
+                }}
                 className="px-8 py-3 bg-emerald-500 text-white rounded-2xl font-black tracking-widest shadow-lg hover:bg-emerald-600 transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <Printer size={18} /> IMPRIMIR & SAIR

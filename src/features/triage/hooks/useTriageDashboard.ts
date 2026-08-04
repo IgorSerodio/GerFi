@@ -71,8 +71,13 @@ export function useTriageDashboard() {
     });
 
     if (res.success && res.data) {
-      setIssuedTicket(res.data as TicketType);
-      setRecentIssues((prev) => [res.data as TicketType, ...prev.slice(0, 9)]);
+      const ticket = res.data as TicketType;
+      setIssuedTicket(ticket);
+      setRecentIssues((prev) => [ticket, ...prev.slice(0, 9)]);
+      
+      // Imprimir via browser (spooler)
+      const { printerService } = await import("@/features/printer/services/printerService");
+      await printerService.printTicket(ticket);
     } else {
       alert(res.error || "Erro ao emitir senha");
     }
@@ -121,12 +126,18 @@ export function useTriageDashboard() {
     setSearchResult({ id: query, status: "not_found" });
   };
 
-  const handleTestPrinter = () => {
+  const handleTestPrinter = async () => {
     setPrinterStatus("testing");
     setShowPrinterTest(true);
-    setTimeout(() => {
+    
+    try {
+      const { printerService } = await import("@/features/printer/services/printerService");
+      await printerService.printTestTicket(locationId || 1);
       setPrinterStatus("success");
-    }, 2000);
+    } catch (e) {
+      console.error(e);
+      setPrinterStatus("error");
+    }
   };
 
   return {
