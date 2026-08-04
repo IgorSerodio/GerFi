@@ -118,25 +118,7 @@ export default function MainCallDisplay({
                   </div>
                 </div>
 
-                <div
-                  className="w-px bg-emerald-100"
-                  style={{ height: "10cqh" }}
-                />
 
-                <div className="text-left">
-                  <span
-                    className="font-black text-emerald-600/40 uppercase tracking-[0.3em] block"
-                    style={{ fontSize: "1.8cqh", marginBottom: "0.6cqh" }}
-                  >
-                    ATENDENTE
-                  </span>
-                  <h3
-                    className="font-black text-emerald-950 uppercase tracking-tighter max-w-sm leading-tight"
-                    style={{ fontSize: "4.5cqh" }}
-                  >
-                    {currentCall.attendant}
-                  </h3>
-                </div>
               </div>
             </motion.div>
           ) : (
