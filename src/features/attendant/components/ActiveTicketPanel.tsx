@@ -29,7 +29,7 @@ export function ActiveTicketPanel({
   const { cooldownLeft, canRecall, canMarkAsNoShow } = useTicketRecallTimer(currentCall);
 
   return (
-    <div className="w-full text-center space-y-6 animate-fade-in">
+    <div className="@container w-full text-center space-y-6 animate-fade-in">
       <div className="flex flex-col items-center gap-2 mb-4">
         <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
           {getTicketStatusLabel(currentCall.status)}
@@ -43,7 +43,7 @@ export function ActiveTicketPanel({
           className="mt-2 scale-110"
         />
       </div>
-      <h3 className={`text-[10rem] font-black leading-none drop-shadow-sm mb-4 ${getPriorityTextColorClass(currentCall.priority, "text-sefaz-accent")}`}>
+      <h3 className={`text-[clamp(4rem,25cqw,12rem)] font-black leading-none drop-shadow-sm mb-4 ${getPriorityTextColorClass(currentCall.priority, "text-sefaz-accent")}`}>
         {currentCall.ticketNumber}
       </h3>
       <div className="flex flex-wrap justify-center gap-4 w-full max-w-3xl">

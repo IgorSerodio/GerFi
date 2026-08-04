@@ -28,10 +28,10 @@ export function NextCallSelector({
         <Users size={48} />
       </div>
       <div>
-        <h3 className="text-3xl font-black text-sefaz-dark">
+        <h3 className="text-[clamp(1.5rem,3vw,3rem)] font-black text-sefaz-dark">
           Ninguém sendo atendido
         </h3>
-        <p className="text-sefaz-accent/60 font-medium">
+        <p className="text-[clamp(1rem,1.5vw,1.5rem)] text-sefaz-accent/60 font-medium">
           Escolha qual fila deseja chamar
         </p>
         {allowedServicesCount > 0 && (
@@ -44,17 +44,17 @@ export function NextCallSelector({
         {forwardedCount > 0 ? (
           <button
             onClick={handleCallForwarded}
-            className="flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
+            className="flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
           >
             <span className="whitespace-nowrap">CHAMAR ENCAMINHADO</span>
-            <span className="text-sm font-bold opacity-80">{forwardedCount} na fila</span>
+            <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{forwardedCount} na fila</span>
           </button>
         ) : (
           <>
             <button
               onClick={() => handleCall("Prioritário")}
               disabled={availablePriorityCount === 0 || !canCallPriority}
-              className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
+              className={`flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallPriority
                   ? "bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:grayscale disabled:opacity-50"
                   : "bg-gray-400 cursor-not-allowed opacity-50"
@@ -62,12 +62,12 @@ export function NextCallSelector({
               title={!canCallPriority ? "Você não tem permissão para chamar esta fila." : undefined}
             >
               <span className="whitespace-nowrap">CHAMAR PRIORIDADE</span>
-              <span className="text-sm font-bold opacity-80">{availablePriorityCount} na fila</span>
+              <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{availablePriorityCount} na fila</span>
             </button>
             <button
               onClick={() => handleCall("Normal")}
               disabled={availableNormalCount === 0 || !canCallNormal}
-              className={`flex-1 px-4 py-6 text-white rounded-3xl font-black text-base sm:text-lg transition-all flex flex-col items-center gap-1 ${
+              className={`flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallNormal
                   ? "bg-sefaz-accent hover:scale-105 active:scale-95 shadow-xl shadow-emerald-950/30 cursor-pointer disabled:grayscale disabled:opacity-50"
                   : "bg-gray-400 cursor-not-allowed opacity-50"
@@ -75,7 +75,7 @@ export function NextCallSelector({
               title={!canCallNormal ? "Você não tem permissão para chamar esta fila." : undefined}
             >
               <span className="whitespace-nowrap">CHAMAR NORMAL</span>
-              <span className="text-sm font-bold opacity-80">{availableNormalCount} na fila</span>
+              <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{availableNormalCount} na fila</span>
             </button>
           </>
         )}
