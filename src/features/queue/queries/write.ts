@@ -33,8 +33,8 @@ export async function insertTicket(
     const countRes = await client.query(
       `SELECT COALESCE(MAX(CAST(SUBSTRING(ticket_number FROM '\\d+') AS INTEGER)), 0) + 1 AS next_num
        FROM tickets 
-       WHERE created_at >= CURRENT_DATE AND ticket_number NOT LIKE '%E' AND location_id = $1`,
-      [locationId]
+       WHERE created_at >= CURRENT_DATE AND ticket_number NOT LIKE '%E' AND location_id = $1 AND category_id = $2 AND priority = $3`,
+      [locationId, categoryId, priority]
     );
     
     const nextNum = countRes.rows[0].next_num;
