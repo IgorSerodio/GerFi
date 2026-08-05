@@ -50,42 +50,46 @@ export class BrowserPrintStrategy implements IPrinterService {
             @media print {
               @page {
                 margin: 0;
-                size: auto;
               }
               body {
                 margin: 0;
-                padding: 10px;
+                padding: 0;
                 font-family: 'Courier New', Courier, monospace;
                 text-align: center;
                 color: #000;
-                width: 100%;
+              }
+              .ticket-container {
+                width: ${is80mm ? '72mm' : '48mm'};
+                margin: 0 auto;
+                padding: 5mm 0;
                 box-sizing: border-box;
               }
               .header { margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-              .header h1 { font-size: ${is80mm ? "18px" : "14px"}; margin: 0; text-transform: uppercase; }
-              .header h2 { font-size: ${is80mm ? "14px" : "12px"}; margin: 2px 0; }
-              .header p { font-size: ${is80mm ? "12px" : "10px"}; margin: 0; }
+              .header h1 { font-size: ${is80mm ? "18px" : "13px"}; margin: 0; text-transform: uppercase; }
+              .header h2 { font-size: ${is80mm ? "14px" : "11px"}; margin: 2px 0; }
+              .header p { font-size: ${is80mm ? "12px" : "9px"}; margin: 0; }
               
               .ticket-info { margin: 15px 0; }
-              .category { font-size: ${is80mm ? "22px" : "18px"}; font-weight: bold; margin: 0; text-transform: uppercase; }
-              .priority { font-size: ${is80mm ? "14px" : "12px"}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
-              .ticket-number { font-size: ${is80mm ? "54px" : "42px"}; font-weight: bold; margin: 5px 0; letter-spacing: -2px; }
+              .category { font-size: ${is80mm ? "22px" : "16px"}; font-weight: bold; margin: 0; text-transform: uppercase; }
+              .priority { font-size: ${is80mm ? "14px" : "11px"}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
+              .ticket-number { font-size: ${is80mm ? "54px" : "38px"}; font-weight: bold; margin: 5px 0; letter-spacing: -1px; }
               
-              .details { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 15px 0; text-align: left; font-size: ${is80mm ? "13px" : "11px"}; font-weight: bold; }
+              .details { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 15px 0; text-align: left; font-size: ${is80mm ? "13px" : "10px"}; font-weight: bold; }
               .details div { display: flex; justify-content: space-between; margin-bottom: 4px; }
               
               .footer { font-size: ${is80mm ? "12px" : "10px"}; font-weight: bold; }
               .footer p { margin: 2px 0; }
-              .security-code { border: 1px dashed #000; padding: 5px; margin: 10px auto; width: 80%; }
+              .security-code { border: 1px dashed #000; padding: 5px; margin: 10px auto; width: 90%; }
               .security-code p { margin: 0; font-size: ${is80mm ? "11px" : "9px"}; text-transform: uppercase; letter-spacing: 1px; }
               .security-code h3 { margin: 2px 0 0 0; font-size: ${is80mm ? "22px" : "18px"}; letter-spacing: 4px; }
               
-              .barcode-text { font-size: ${is80mm ? "11px" : "9px"}; letter-spacing: 3px; margin-top: 10px; display: ${config.printBarcode ? 'block' : 'none'}; }
+              .barcode-text { font-size: ${is80mm ? "11px" : "9px"}; letter-spacing: 2px; margin-top: 10px; display: ${config.printBarcode ? 'block' : 'none'}; }
             }
             body { font-family: 'Courier New', Courier, monospace; } /* Fallback for viewing */
           </style>
         </head>
         <body>
+          <div class="ticket-container">
           <div class="header">
             <h1>Município de Caruaru</h1>
             <h2>Secretaria da Fazenda Municipal</h2>
@@ -114,6 +118,7 @@ export class BrowserPrintStrategy implements IPrinterService {
             </div>
             
             ${config.printBarcode ? `<p class="barcode-text">*${ticket.ticketNumber}2024SFM*</p>` : ''}
+          </div>
           </div>
         </body>
         </html>
