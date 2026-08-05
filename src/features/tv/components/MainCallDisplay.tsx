@@ -10,7 +10,7 @@ interface MainCallDisplayProps {
   currentCall: Ticket | null;
   tvSettings: TvSettings;
   slideIndex: number;
-  defaultSlides: { title: string; text: string; type: string }[];
+  slides: { title: string; text: string; type: string }[];
   getPlaylistUrl: () => string;
   ticketWindows?: { name: string; alias?: string | null; label?: string | null }[];
 }
@@ -20,7 +20,7 @@ export default function MainCallDisplay({
   currentCall,
   tvSettings,
   slideIndex,
-  defaultSlides,
+  slides,
   getPlaylistUrl,
   ticketWindows,
 }: MainCallDisplayProps) {
@@ -184,13 +184,13 @@ export default function MainCallDisplay({
                           className="font-black text-white tracking-tighter leading-none drop-shadow-2xl uppercase max-w-4xl"
                           style={{ fontSize: "10cqh" }}
                         >
-                          {defaultSlides[slideIndex].title}
+                          {slides.length > 0 ? slides[slideIndex % slides.length]?.title : "BEM-VINDO"}
                         </h2>
                         <p
                           className="text-emerald-100/80 font-light leading-relaxed max-w-5xl mx-auto italic tracking-tight"
                           style={{ fontSize: "4.5cqh" }}
                         >
-                          {defaultSlides[slideIndex].text}
+                          {slides.length > 0 ? slides[slideIndex % slides.length]?.text : "Aguarde o seu chamado..."}
                         </p>
                         <div
                           className="bg-emerald-500/20 rounded-full"

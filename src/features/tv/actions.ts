@@ -55,6 +55,8 @@ export async function createTvSettingsAction(payload: {
   uploadedFiles?: string[];
   services?: number[];
   locationId: number;
+  marqueeMessages?: string[];
+  slides?: { title: string; text: string; type: string }[];
 }) {
   try {
     await requirePermission("MANAGE_CONFIGS");
@@ -65,7 +67,9 @@ export async function createTvSettingsAction(payload: {
       payload.videoUrl,
       payload.uploadedFiles || [],
       payload.services || [],
-      payload.locationId
+      payload.locationId,
+      payload.marqueeMessages || [],
+      payload.slides || []
     );
     triggerRealTimeUpdate();
     return { success: true, data: settings };
@@ -86,6 +90,8 @@ export async function updateTvSettingsAction(payload: {
   uploadedFiles?: string[];
   services?: number[];
   locationId: number;
+  marqueeMessages?: string[];
+  slides?: { title: string; text: string; type: string }[];
 }) {
   try {
     await requirePermission("MANAGE_CONFIGS");
@@ -97,7 +103,9 @@ export async function updateTvSettingsAction(payload: {
       payload.videoUrl,
       payload.uploadedFiles || [],
       payload.services || [],
-      payload.locationId
+      payload.locationId,
+      payload.marqueeMessages || [],
+      payload.slides || []
     );
     triggerRealTimeUpdate();
     return { success: true, data: settings };

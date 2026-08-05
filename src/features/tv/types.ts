@@ -13,4 +13,6 @@ export interface TvSettings {
   uploadedFiles: string[];
   services: number[];
   locationId: number;
+  marqueeMessages: string[];
+  slides: { title: string; text: string; type: string }[];
 }

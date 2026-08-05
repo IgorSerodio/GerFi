@@ -38,7 +38,7 @@ export default function TvDashboard({
     playAlert,
   } = useTvSync(initialSettings, initialHistory, setIsIdle, resetIdleTimer);
 
-  const { slideIndex, getPlaylistUrl, defaultSlides } = useTvMedia(tvSettings);
+  const { slideIndex, getPlaylistUrl, slides } = useTvMedia(tvSettings);
 
   const showMiddleBar = !soundEnabled || showControls;
 
@@ -60,7 +60,7 @@ export default function TvDashboard({
           currentCall={currentCall}
           tvSettings={tvSettings}
           slideIndex={slideIndex}
-          defaultSlides={defaultSlides}
+          slides={slides}
           getPlaylistUrl={getPlaylistUrl}
           ticketWindows={initialTicketWindows}
         />
@@ -84,7 +84,7 @@ export default function TvDashboard({
         />
       </div>
 
-      <TvFooter />
+      <TvFooter tvSettings={tvSettings} />
     </div>
   );
 }

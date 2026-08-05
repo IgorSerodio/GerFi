@@ -30,10 +30,25 @@ async function main() {
     // 2. Seed TV Settings
     console.log("Seeding TV settings...");
     await client.query(`
-      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files, location_id)
-      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 1)
-      ON CONFLICT (id) DO NOTHING;
-    `);
+      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files, location_id, marquee_messages, slides)
+      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 1, $1::jsonb, $2::jsonb)
+      ON CONFLICT (id) DO UPDATE SET
+        marquee_messages = CASE WHEN tv_settings.marquee_messages = '[]'::jsonb OR tv_settings.marquee_messages IS NULL THEN EXCLUDED.marquee_messages ELSE tv_settings.marquee_messages END,
+        slides = CASE WHEN tv_settings.slides = '[]'::jsonb OR tv_settings.slides IS NULL THEN EXCLUDED.slides ELSE tv_settings.slides END;
+    `, [
+      JSON.stringify([
+        "USE O PORTAL \"FAZENDA MUNICIPAL\" PARA CONSULTAS RÁPIDAS",
+        "HORÁRIO DE ATENDIMENTO PRESENCIAL: 08H ÀS 14H",
+        "ATENÇÃO: Contribuintes com parcelamento em atraso podem regularizar seus débitos",
+        "EMISSÃO DE NOTA FISCAL ELETRÔNICA DISPONÍVEL 24H"
+      ]),
+      JSON.stringify([
+        {title: "IPTU 2026", text: "Pague sua cota única até Abril e receba 20% de desconto. Contribua com o crescimento de Caruaru.", type: "tax"},
+        {title: "Nota Fiscal Caruaruense", text: "Peça seu CPF na nota e participe de sorteios mensais de até R$ 10.000,00.", type: "program"},
+        {title: "Atendimento Online", text: "Evite filas! Mais de 50 serviços disponíveis no portal caruaru.pe.gov.br", type: "tax"},
+        {title: "SEFAZ Informa", text: "Novos canais de atendimento via WhatsApp: (81) 99999-9999", type: "news"}
+      ])
+    ]);
 
     // 2. Seed Admin User
     console.log(`Seeding admin user (${ADMIN_USERNAME})...`);

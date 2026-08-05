@@ -1,43 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 import { TvSettings } from "@/features/tv/types";
 
-export const defaultSlides = [
-  {
-    title: "IPTU 2026",
-    text: "Pague sua cota única até Abril e receba 20% de desconto. Contribua com o crescimento de Caruaru.",
-    type: "tax",
-  },
-  {
-    title: "Nota Fiscal Caruaruense",
-    text: "Peça seu CPF na nota e participe de sorteios mensais de até R$ 10.000,00.",
-    type: "program",
-  },
-  {
-    title: "Atendimento Online",
-    text: "Evite filas! Mais de 50 serviços disponíveis no portal caruaru.pe.gov.br",
-    type: "tax",
-  },
-  {
-    title: "SEFAZ Informa",
-    text: "Novos canais de atendimento via WhatsApp: (81) 99999-9999",
-    type: "news",
-  },
-];
-
+// Removed defaultSlides since they are now loaded from the database
 export function useTvMedia(tvSettings: TvSettings) {
   const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     const slideTimer = setInterval(() => {
-      if (tvSettings.uploadedFiles.length > 0) {
+      if (tvSettings.uploadedFiles && tvSettings.uploadedFiles.length > 0) {
         setSlideIndex((prev) => (prev + 1) % tvSettings.uploadedFiles.length);
+      } else if (tvSettings.slides && tvSettings.slides.length > 0) {
+        setSlideIndex((prev) => (prev + 1) % tvSettings.slides.length);
       } else {
-        setSlideIndex((prev) => (prev + 1) % defaultSlides.length);
+        setSlideIndex(0);
       }
     }, 8000);
 
     return () => clearInterval(slideTimer);
-  }, [tvSettings.uploadedFiles]);
+  }, [tvSettings.uploadedFiles, tvSettings.slides]);
 
   const getPlaylistUrl = useCallback(() => {
     if (!tvSettings.videoUrl || tvSettings.videoUrl.length === 0) return "";
@@ -58,5 +38,5 @@ export function useTvMedia(tvSettings: TvSettings) {
     return url;
   }, [tvSettings.videoUrl]);
 
-  return { slideIndex, getPlaylistUrl, defaultSlides };
+  return { slideIndex, getPlaylistUrl, slides: tvSettings.slides || [] };
 }

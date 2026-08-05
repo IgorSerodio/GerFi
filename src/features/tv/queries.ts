@@ -10,6 +10,8 @@ interface DbTvSettingsRow {
   uploaded_files: string[] | string | null;
   services: number[];
   location_id: number;
+  marquee_messages?: string[] | string | null;
+  slides?: { title: string; text: string; type: string }[] | string | null;
 }
 
 function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
@@ -36,6 +38,20 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
     }
   }
 
+  let marqueeMessages: string[] = [];
+  if (Array.isArray(row.marquee_messages)) {
+    marqueeMessages = row.marquee_messages;
+  } else if (typeof row.marquee_messages === "string") {
+    try { marqueeMessages = JSON.parse(row.marquee_messages); } catch { marqueeMessages = []; }
+  }
+
+  let slides: { title: string; text: string; type: string }[] = [];
+  if (Array.isArray(row.slides)) {
+    slides = row.slides;
+  } else if (typeof row.slides === "string") {
+    try { slides = JSON.parse(row.slides); } catch { slides = []; }
+  }
+
   return {
     id: row.id,
     slug: row.slug || "global",
@@ -45,6 +61,8 @@ function mapTvSettingsRow(row: DbTvSettingsRow): TvSettings {
     uploadedFiles,
     services: row.services || [],
     locationId: row.location_id || 1,
+    marqueeMessages,
+    slides,
   };
 }
 
@@ -55,7 +73,7 @@ export async function getTvSettings(slug: string = "global"): Promise<TvSettings
   const { rows } = await pool.query("SELECT * FROM tv_settings WHERE slug = $1", [slug]);
   if (rows.length === 0) {
     if (slug === "global") {
-      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [], locationId: 1 };
+      return { id: 1, slug: "global", name: "TV Principal", mode: "live", videoUrl: [], uploadedFiles: [], services: [], locationId: 1, marqueeMessages: [], slides: [] };
     }
     throw new Error("TV não encontrada.");
   }
@@ -80,13 +98,15 @@ export async function createTvSettings(
   videoUrl: YouTubeVideo[],
   uploadedFiles: string[],
   services: number[],
-  locationId: number
+  locationId: number,
+  marqueeMessages: string[] = [],
+  slides: { title: string; text: string; type: string }[] = []
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
-    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services, location_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO tv_settings (slug, name, mode, live_url, uploaded_files, services, location_id, marquee_messages, slides)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId]
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId, JSON.stringify(marqueeMessages), JSON.stringify(slides)]
   );
   return mapTvSettingsRow(rows[0]);
 }
@@ -102,7 +122,9 @@ export async function updateTvSettings(
   videoUrl: YouTubeVideo[],
   uploadedFiles: string[],
   services: number[],
-  locationId: number
+  locationId: number,
+  marqueeMessages: string[] = [],
+  slides: { title: string; text: string; type: string }[] = []
 ): Promise<TvSettings> {
   const { rows } = await pool.query(
     `UPDATE tv_settings
@@ -112,10 +134,12 @@ export async function updateTvSettings(
          live_url = $4,
          uploaded_files = $5,
          services = $6,
-         location_id = $7
-     WHERE id = $8
+         location_id = $7,
+         marquee_messages = $8,
+         slides = $9
+     WHERE id = $10
      RETURNING *`,
-    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId, id]
+    [slug, name, mode, JSON.stringify(videoUrl), JSON.stringify(uploadedFiles), services, locationId, JSON.stringify(marqueeMessages), JSON.stringify(slides), id]
   );
   return mapTvSettingsRow(rows[0]);
 }
