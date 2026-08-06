@@ -19,9 +19,9 @@ export default function HistorySidebar({
   return (
     <div className="w-1/3 shrink-0 flex flex-col h-full gap-[2vw] min-h-0">
       <div className="flex-1 bg-white rounded-[3vw] p-[2vw] flex flex-col shadow-2xl border-t-[1vh] border-emerald-500 relative z-20 min-h-0">
-        <h2 className="text-emerald-950 font-black uppercase tracking-[0.3em] text-[1.5vh] mb-[3vh] flex items-center gap-[1vw]">
+        <h2 className="text-emerald-950 font-black uppercase tracking-[0.3em] text-[2.5vh] mb-[3vh] flex items-center gap-[1vw]">
           <div className="p-[0.5vw] bg-emerald-500 text-white rounded-[1vw]">
-            <Clock className="h-[2.5vh] w-[2.5vh]" />
+            <Clock className="h-[3.5vh] w-[3.5vh]" />
           </div>
           Últimas Chamadas
         </h2>

@@ -10,7 +10,7 @@ interface TvHeaderProps {
 
 export default function TvHeader({ time }: TvHeaderProps) {
   return (
-    <header className="flex justify-between items-stretch bg-white rounded-[2vw] pl-[2vw] pr-0 shadow-xl border border-emerald-50/50 h-[10vh] shrink-0">
+    <header className="flex justify-between items-stretch bg-white rounded-[2vw] pl-[2vw] pr-0 shadow-xl border border-emerald-50/50 h-[12vh] shrink-0">
       <div className="flex items-center gap-[1vw]">
         <NextLink
           href="/"
@@ -19,10 +19,10 @@ export default function TvHeader({ time }: TvHeaderProps) {
           <ArrowLeft className="w-[3vh] h-[3vh]" />
         </NextLink>
         <div>
-          <h1 className="text-[2.5vh] font-black text-emerald-950 uppercase tracking-tight leading-none mb-[0.5vh]">
+          <h1 className="text-[3.5vh] font-black text-emerald-950 uppercase tracking-tight leading-none mb-[0.5vh]">
             Prefeitura de Caruaru
           </h1>
-          <p className="text-emerald-600 font-bold uppercase tracking-[0.3em] text-[1.2vh] opacity-70">
+          <p className="text-emerald-600 font-bold uppercase tracking-[0.3em] text-[1.8vh] opacity-70">
             Secretaria da Fazenda Municipal
           </p>
         </div>
@@ -30,12 +30,12 @@ export default function TvHeader({ time }: TvHeaderProps) {
 
       <div className="flex items-center gap-[2vw] h-full">
         <div className="text-right py-[1.5vh]">
-          <div className="text-[4.5vh] font-black text-emerald-900 tracking-tighter tabular-nums leading-none">
+          <div className="text-[6vh] font-black text-emerald-900 tracking-tighter tabular-nums leading-none">
             {time
               ? formatTime(time, { showSeconds: true })
               : "--:--:--"}
           </div>
-          <div className="text-emerald-500 font-black uppercase tracking-widest text-[1.2vh] mt-[0.5vh] pr-1">
+          <div className="text-emerald-500 font-black uppercase tracking-widest text-[1.8vh] mt-[0.5vh] pr-1">
             {time
               ? time.toLocaleDateString("pt-BR", {
                   weekday: "long",
@@ -59,10 +59,10 @@ export default function TvHeader({ time }: TvHeaderProps) {
               />
             </div>
             <div className="shrink-0 text-left">
-              <p className="text-[1.2vh] uppercase font-black tracking-[0.2em] text-emerald-400 leading-none">
+              <p className="text-[1.5vh] uppercase font-black tracking-[0.2em] text-emerald-400 leading-none">
                 ATENDIMENTO
               </p>
-              <p className="text-[1.2vh] uppercase font-black tracking-[0.2em] text-white leading-none mt-[0.5vh]">
+              <p className="text-[1.5vh] uppercase font-black tracking-[0.2em] text-white leading-none mt-[0.5vh]">
                 VIRTUAL
               </p>
             </div>
