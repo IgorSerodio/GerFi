@@ -28,14 +28,13 @@ export default function MiddleBar({
             setSoundEnabled(true);
             playAlert();
           }}
-          className="w-full h-full text-amber-600 font-black uppercase rounded-[20px] flex flex-col justify-center items-center gap-4 py-8 px-1 z-20 cursor-pointer transition-all hover:scale-[1.05] active:scale-95 duration-200 group"
+          className="w-full h-full text-amber-600 font-black uppercase rounded-[1vw] flex flex-col justify-center items-center gap-[1vw] py-[2vh] px-[0.2vw] z-20 cursor-pointer transition-all hover:scale-[1.05] active:scale-95 duration-200 group"
         >
           <Play
-            size={16}
-            className="animate-bounce shrink-0 text-amber-500"
+            className="animate-bounce shrink-0 text-amber-500 w-[2vh] h-[2vh]"
           />
           <span
-            className="tracking-[0.2em] text-[8px] whitespace-nowrap"
+            className="tracking-[0.2em] text-[1vh] whitespace-nowrap"
             style={{
               writingMode: "vertical-rl",
               transform: "rotate(180deg)",
@@ -45,16 +44,16 @@ export default function MiddleBar({
           </span>
         </button>
       ) : (
-        <div className="w-full h-full flex flex-col justify-between items-center rounded-[20px] py-8 px-1 z-20">
+        <div className="w-full h-full flex flex-col justify-between items-center rounded-[1vw] py-[2vh] px-[0.2vw] z-20">
           <button
             onClick={() => setVolume((prev) => (prev === 0 ? 0.7 : 0))}
-            className="w-8 h-8 bg-emerald-500 hover:bg-emerald-500/20 rounded-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="w-[3vh] h-[3vh] bg-emerald-500 hover:bg-emerald-500/20 rounded-[0.5vw] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             title={volume === 0 ? "Ativar som" : "Mutar som"}
           >
-            <Volume2 size={14} className="text-white" />
+            <Volume2 className="text-white w-[1.5vh] h-[1.5vh]" />
           </button>
 
-          <div className="flex-1 flex items-center justify-center py-4">
+          <div className="flex-1 flex items-center justify-center py-[1vh]">
             <input
               type="range"
               min="0"
@@ -62,7 +61,7 @@ export default function MiddleBar({
               step="0.1"
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="h-56 w-1 bg-emerald-100 rounded-full cursor-pointer accent-emerald-500"
+              className="h-[30vh] w-[0.3vw] bg-emerald-100 rounded-full cursor-pointer accent-emerald-500"
               style={
                 {
                   writingMode: "vertical-lr",
@@ -73,7 +72,7 @@ export default function MiddleBar({
             />
           </div>
 
-          <div className="text-[8px] font-black text-emerald-800 tracking-wider">
+          <div className="text-[1vh] font-black text-emerald-800 tracking-wider">
             {Math.round(volume * 100)}%
           </div>
         </div>

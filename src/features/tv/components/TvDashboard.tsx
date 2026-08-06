@@ -50,7 +50,7 @@ export default function TvDashboard({
     <div
       onMouseMove={resetControlsTimer}
       onClick={resetControlsTimer}
-      className="h-screen w-full bg-sefaz-light flex flex-col p-4 md:p-8 gap-4 md:gap-8 font-display overflow-hidden select-none"
+      className="h-screen w-full bg-sefaz-light flex flex-col p-[2vh] gap-[2vh] font-display overflow-hidden select-none"
     >
       <TvHeader time={time} />
 
@@ -65,7 +65,7 @@ export default function TvDashboard({
           ticketWindows={initialTicketWindows}
         />
 
-        <div className="w-15 h-full shrink-0">
+        <div className="w-[4vw] h-full shrink-0">
           <MiddleBar
             showMiddleBar={showMiddleBar}
             soundEnabled={soundEnabled}
