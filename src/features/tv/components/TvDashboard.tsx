@@ -38,7 +38,16 @@ export default function TvDashboard({
     playAlert,
   } = useTvSync(initialSettings, initialHistory, setIsIdle, resetIdleTimer);
 
-  const { slideIndex, getPlaylistUrl, slides } = useTvMedia(tvSettings);
+  const { 
+    slideIndex, 
+    slides, 
+    currentVideoUrl, 
+    handleVideoError, 
+    handleVideoEnd, 
+    handleVideoStart, 
+    useSlidesFallback,
+    hasVideos
+  } = useTvMedia(tvSettings);
 
   const showMiddleBar = !soundEnabled || showControls;
 
@@ -61,7 +70,12 @@ export default function TvDashboard({
           tvSettings={tvSettings}
           slideIndex={slideIndex}
           slides={slides}
-          getPlaylistUrl={getPlaylistUrl}
+          currentVideoUrl={currentVideoUrl}
+          handleVideoError={handleVideoError}
+          handleVideoEnd={handleVideoEnd}
+          handleVideoStart={handleVideoStart}
+          useSlidesFallback={useSlidesFallback}
+          hasVideos={hasVideos}
           ticketWindows={initialTicketWindows}
         />
 
