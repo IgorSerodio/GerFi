@@ -5,6 +5,7 @@ export interface IPrinterService {
    * Dispara a impressão de um ticket.
    * @param ticket Dados do ticket a ser impresso.
    * @returns Promise indicando o sucesso da operação.
+   */
   printTicket(ticket: Ticket, locationName?: string): Promise<boolean>;
 }
 

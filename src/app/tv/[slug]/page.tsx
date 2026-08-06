@@ -27,6 +27,8 @@ export default async function CustomTvPage({ params }: { params: Promise<{ slug:
     uploadedFiles: [],
     services: [],
     locationId: 1,
+    marqueeMessages: [],
+    slides: [],
   };
 
   // Puxa o estado inicial da fila já filtrado para essa TV

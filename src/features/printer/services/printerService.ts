@@ -8,8 +8,8 @@ class PrinterService {
     this.strategy = new BrowserPrintStrategy();
   }
 
-  public async printTicket(ticket: Parameters<IPrinterService["printTicket"]>[0]) {
-    return this.strategy.printTicket(ticket);
+  public async printTicket(...args: Parameters<IPrinterService["printTicket"]>) {
+    return this.strategy.printTicket(...args);
   }
 
   // Gera e imprime um ticket de teste genérico

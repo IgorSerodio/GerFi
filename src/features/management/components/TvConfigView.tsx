@@ -65,7 +65,9 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
       videoUrl: globalTv?.videoUrl ? [...globalTv.videoUrl] : [],
       uploadedFiles: globalTv?.uploadedFiles ? [...globalTv.uploadedFiles] : [],
       services: [],
-      locationId: filterLocationId
+      locationId: filterLocationId,
+      marqueeMessages: globalTv?.marqueeMessages ? [...globalTv.marqueeMessages] : [],
+      slides: globalTv?.slides ? [...globalTv.slides] : [],
     });
     setIsCreating(true);
   };

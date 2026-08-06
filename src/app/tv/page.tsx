@@ -25,6 +25,8 @@ export default async function TvPage() {
     uploadedFiles: [],
     services: [],
     locationId: 1,
+    marqueeMessages: [],
+    slides: [],
   };
 
   const queueRes = await getQueueStateAction(initialSettings.locationId, initialSettings.services);
