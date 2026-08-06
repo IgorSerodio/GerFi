@@ -139,7 +139,7 @@ export default function TriageDashboard({
         </main>
       </div>
 
-      <TriageModals state={state} actions={actions} />
+      <TriageModals state={state} actions={actions} locationName={initialLocations.find(l => l.id === state.locationId)?.name || "LOCAL NÃO DEFINIDO"} />
 
       {/* Loading State */}
       {state.printing && (

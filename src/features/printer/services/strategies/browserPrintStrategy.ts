@@ -3,7 +3,7 @@ import { formatTime } from "@/utils/dateFormatter";
 import { IPrinterService } from "../../types";
 
 export class BrowserPrintStrategy implements IPrinterService {
-  public async printTicket(ticket: Ticket): Promise<boolean> {
+  public async printTicket(ticket: Ticket, locationName: string = "LOCAL NÃO DEFINIDO"): Promise<boolean> {
     return new Promise((resolve) => {
       // Cria um iframe invisível no DOM
       const iframe = document.createElement("iframe");
@@ -113,19 +113,16 @@ export class BrowserPrintStrategy implements IPrinterService {
           <div class="details">
             <div><span>DATA:</span> <span>${dateStr}</span></div>
             <div><span>HORA:</span> <span>${timeStr}</span></div>
-            <div><span>POSTO:</span> <span>TRIAGEM CENTRAL</span></div>
+            <div><span>LOCAL:</span> <span>${locationName}</span></div>
           </div>
           
           <div class="footer">
             <p>AGUARDE SER CHAMADO NO PAINEL PRINCIPAL</p>
-            <p>TEMPO MÉDIO DE ESPERA: 15 MIN</p>
             
             <div class="security-code">
               <p>CÓDIGO DE INICIALIZAÇÃO</p>
               <h3>${ticket.securityCode || "0000"}</h3>
             </div>
-            
-            ${config.printBarcode ? `<p class="barcode-text">*${ticket.ticketNumber}2024SFM*</p>` : ''}
           </div>
           </div>
         </body>

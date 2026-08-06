@@ -8,6 +8,7 @@ import { Category } from "./types";
 import { Ticket as TicketType } from "@/features/queue/types";
 
 interface TriageModalsProps {
+  locationName: string;
   state: {
     selectedCategory: Category | null;
     showPrinterTest: boolean;
@@ -25,7 +26,7 @@ interface TriageModalsProps {
   };
 }
 
-export default function TriageModals({ state, actions }: TriageModalsProps) {
+export default function TriageModals({ state, actions, locationName }: TriageModalsProps) {
   return (
     <>
       <PriorityModal
@@ -42,6 +43,7 @@ export default function TriageModals({ state, actions }: TriageModalsProps) {
 
       <TicketReceiptModal
         issuedTicket={state.issuedTicket}
+        locationName={locationName}
         onClose={() => actions.setIssuedTicket(null)}
       />
 

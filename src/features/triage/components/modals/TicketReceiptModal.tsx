@@ -7,11 +7,13 @@ import { Ticket as TicketType } from "@/features/queue/types";
 
 interface TicketReceiptModalProps {
   issuedTicket: TicketType | null;
+  locationName: string;
   onClose: () => void;
 }
 
 export default function TicketReceiptModal({
   issuedTicket,
+  locationName,
   onClose,
 }: TicketReceiptModalProps) {
   return (
@@ -80,16 +82,14 @@ export default function TicketReceiptModal({
                   <span>{formatTime(issuedTicket.createdAt)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>POSTO:</span>
-                  <span>TRIAGEM CENTRAL</span>
+                  <span>LOCAL:</span>
+                  <span>{locationName}</span>
                 </div>
               </div>
 
               <div className="text-center">
                 <p className="text-[9px] font-bold leading-tight mb-4">
                   AGUARDE SER CHAMADO NO PAINEL PRINCIPAL
-                  <br />
-                  TEMPO MÉDIO DE ESPERA: 15 MIN
                 </p>
 
                 <div className="border border-dashed border-gray-400 p-2 mb-4 mx-4">
@@ -100,22 +100,6 @@ export default function TicketReceiptModal({
                     {issuedTicket.securityCode}
                   </p>
                 </div>
-
-                {/* Fake barcode */}
-                <div className="h-10 w-full bg-gray-200 flex justify-center items-center overflow-hidden mb-2">
-                  {[...Array(40)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-full bg-black mx-[1px]"
-                      style={{
-                        width: i % 3 === 0 || i % 7 === 0 ? "2px" : "1px",
-                      }}
-                    />
-                  ))}
-                </div>
-                <p className="text-[8px] font-bold tracking-[0.4em]">
-                  {issuedTicket.ticketNumber}2024SFM
-                </p>
               </div>
 
               {/* Torn edge effect bottom */}
@@ -142,7 +126,7 @@ export default function TicketReceiptModal({
               <button
                 onClick={async () => {
                   const { printerService } = await import("@/features/printer/services/printerService");
-                  await printerService.printTicket(issuedTicket);
+                  await printerService.printTicket(issuedTicket, locationName);
                   onClose();
                 }}
                 className="px-8 py-3 bg-emerald-500 text-white rounded-2xl font-black tracking-widest shadow-lg hover:bg-emerald-600 transition-colors flex items-center gap-2 cursor-pointer"
