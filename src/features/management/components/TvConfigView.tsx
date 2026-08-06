@@ -112,7 +112,9 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
         services: editingTv.services,
-        locationId: editingTv.locationId || 1
+        locationId: editingTv.locationId || 1,
+        marqueeMessages: editingTv.marqueeMessages,
+        slides: editingTv.slides
       });
       if (res.success) {
         triggerSuccess("TV criada com sucesso!");
@@ -130,7 +132,9 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
         videoUrl: editingTv.videoUrl,
         uploadedFiles: editingTv.uploadedFiles,
         services: editingTv.services,
-        locationId: editingTv.locationId || 1
+        locationId: editingTv.locationId || 1,
+        marqueeMessages: editingTv.marqueeMessages,
+        slides: editingTv.slides
       });
       if (res.success) {
         triggerSuccess("Configurações da TV salvas!");
