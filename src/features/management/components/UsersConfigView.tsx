@@ -14,6 +14,7 @@ import { getLocationsAction, getTicketWindowsAction, getCategoriesAction } from 
 import { UsersListTable } from "./UsersListTable";
 import { UserFormModal, NewUserFormData } from "./modals/UserFormModal";
 import { UserDeleteModal } from "./modals/UserDeleteModal";
+import { hasPermission } from "@/features/auth/permissions";
 
 interface UsersConfigViewProps {
   triggerSuccess: (msg: string) => void;
@@ -45,8 +46,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   });
 
   const { data: session } = useSession();
-  const isGerente = session?.user?.role === UserRole.Gerente;
-  const isAdmin = session?.user?.role === UserRole.Admin;
+  const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session?.user?.role);
+  const currentUserId = session?.user?.id ? Number(session.user.id) : undefined;
 
   const loadData = React.useCallback(async () => {
     const resUsers = await getUsersAction();
@@ -142,7 +143,7 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const visibleUsers = users.filter((u) => {
-    if (isGerente && u.role === UserRole.Admin) return false;
+    if (!canManageSensitive && u.role === UserRole.Admin) return false;
     return true;
   });
 
@@ -160,24 +161,25 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
         </h3>
       </div>
 
-      <UsersListTable 
+      <UsersListTable
         users={users}
-        isGerente={isGerente}
-        isAdmin={isAdmin}
+        canManageSensitive={canManageSensitive}
+        currentUserId={currentUserId}
         onEdit={handleEditUser}
         onDelete={handleDeleteUserClick}
         onToggleBlock={handleToggleBlock}
         ticketWindows={ticketWindows}
         locations={locations}
       />
-      {/* User Edit Modal */}
+      {/* User Edit Modal */}
       <UserFormModal 
         isOpen={showUserModal}
         onClose={() => setShowUserModal(false)}
         newUser={newUser}
         setNewUser={setNewUser}
         onSubmit={handleUserSubmit}
-        isGerente={isGerente}
+        canManageSensitive={canManageSensitive}
+        isSelfEdit={currentUserId !== undefined && (editingUserId === currentUserId)}
         ticketWindows={ticketWindows}
         locations={locations}
         categories={categories}

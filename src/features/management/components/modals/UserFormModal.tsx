@@ -23,7 +23,8 @@ interface UserFormModalProps {
   newUser: NewUserFormData;
   setNewUser: (user: NewUserFormData) => void;
   onSubmit: (e: React.FormEvent) => Promise<void>;
-  isGerente: boolean;
+  canManageSensitive: boolean;
+  isSelfEdit: boolean;
   ticketWindows: DbTicketWindow[];
   locations: Location[];
   categories: DbCategory[];
@@ -36,12 +37,15 @@ export function UserFormModal({
   newUser,
   setNewUser,
   onSubmit,
-  isGerente,
+  canManageSensitive,
+  isSelfEdit,
   ticketWindows,
   locations,
   categories,
   toggleUserService,
 }: UserFormModalProps) {
+  const disableSensitive = !canManageSensitive && isSelfEdit;
+
   return (
     <Modal 
       isOpen={isOpen} 
@@ -61,9 +65,10 @@ export function UserFormModal({
             <input
               type="text"
               required
+              disabled={disableSensitive}
               value={newUser.name}
               onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             />
           </div>
           <div className="space-y-1">
@@ -73,9 +78,10 @@ export function UserFormModal({
             <input
               type="email"
               required
+              disabled={disableSensitive}
               value={newUser.email}
               onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             />
           </div>
         </div>
@@ -88,9 +94,10 @@ export function UserFormModal({
             <input
               type="text"
               required
+              disabled={disableSensitive}
               value={newUser.matricula}
               onChange={(e) => setNewUser({ ...newUser, matricula: e.target.value })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             />
           </div>
           <div className="space-y-1">
@@ -100,9 +107,10 @@ export function UserFormModal({
             <input
               type="text"
               required
+              disabled={disableSensitive}
               value={formatCpf(newUser.cpf)}
               onChange={(e) => setNewUser({ ...newUser, cpf: removeNonDigits(e.target.value) })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             />
           </div>
         </div>
@@ -115,9 +123,10 @@ export function UserFormModal({
             <input
               type="text"
               required
+              disabled={disableSensitive}
               value={newUser.username}
               onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             />
           </div>
         </div>
@@ -128,12 +137,13 @@ export function UserFormModal({
               Cargo / Perfil
             </label>
             <select
+              disabled={disableSensitive}
               value={newUser.role}
               onChange={(e) => setNewUser({ ...newUser, role: e.target.value as UserRole })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {Object.values(UserRole).filter(r => {
-                if (isGerente && (r === UserRole.Admin || r === UserRole.Gerente)) return false;
+                if (!canManageSensitive && (r === UserRole.Admin || r === UserRole.Gerente) && r !== newUser.role) return false;
                 return true;
               }).map((role) => (
                 <option key={role} value={role}>{role}</option>
@@ -145,6 +155,7 @@ export function UserFormModal({
               Guichê
             </label>
             <select
+              disabled={disableSensitive}
               value={(() => {
                 if (!newUser.guiche) return "";
                 const match = ticketWindows.find(tw => {
@@ -159,7 +170,7 @@ export function UserFormModal({
                 return newUser.guiche;
               })()}
               onChange={(e) => setNewUser({ ...newUser, guiche: e.target.value })}
-              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold"
+              className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <option value="">Sem guichê</option>
               {ticketWindows

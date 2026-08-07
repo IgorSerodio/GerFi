@@ -7,8 +7,8 @@ import { formatCpf } from "@/lib/formatters";
 
 interface UsersListTableProps {
   users: User[];
-  isGerente: boolean;
-  isAdmin: boolean;
+  canManageSensitive: boolean;
+  currentUserId?: number;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
   onToggleBlock: (id: number) => void;
@@ -18,8 +18,8 @@ interface UsersListTableProps {
 
 export function UsersListTable({
   users,
-  isGerente,
-  isAdmin,
+  canManageSensitive,
+  currentUserId,
   onEdit,
   onDelete,
   onToggleBlock,
@@ -27,7 +27,7 @@ export function UsersListTable({
   locations = [],
 }: UsersListTableProps) {
   const visibleUsers = users.filter((u) => {
-    if (isGerente && u.role === UserRole.Admin) return false;
+    if (!canManageSensitive && u.role === UserRole.Admin) return false;
     return true;
   });
 
@@ -46,8 +46,9 @@ export function UsersListTable({
         </thead>
         <tbody className="divide-y divide-emerald-50">
           {visibleUsers.map((user) => {
-            const canEdit = isAdmin || (isGerente && user.role !== UserRole.Gerente && user.role !== UserRole.Admin);
-            const canDelete = isAdmin;
+            const isSelf = user.id === currentUserId;
+            const canEdit = canManageSensitive || isSelf || (!canManageSensitive && user.role !== UserRole.Admin && user.role !== UserRole.Gerente);
+            const canDelete = canManageSensitive;
 
             return (
               <tr key={user.id} className="hover:bg-emerald-50/30">

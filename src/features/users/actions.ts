@@ -12,6 +12,7 @@ import {
 } from "./queries";
 import { queueEmitter } from "@/infra/events";
 import { requirePermission } from "@/features/auth/actions";
+import { hasPermission } from "@/features/auth/permissions";
 import { User, UserRole } from "./types";
 import bcrypt from "bcryptjs";
 import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
@@ -27,7 +28,8 @@ export async function getUsersAction() {
   try {
     const session = await requirePermission("MANAGE_USERS");
     const users = await getUsers();
-    if (session.user.role === UserRole.Gerente) {
+    const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session.user.role);
+    if (!canManageSensitive) {
       return { success: true, data: users.filter((u: User) => u.role !== UserRole.Admin) };
     }
     return { success: true, data: users };
@@ -42,10 +44,11 @@ export async function getUsersAction() {
 export async function createUserAction(userData: Omit<User, "id">) {
   try {
     const session = await requirePermission("MANAGE_USERS");
+    const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session.user.role);
     
-    if (session.user.role === UserRole.Gerente) {
+    if (!canManageSensitive) {
       if (userData.role === UserRole.Admin || userData.role === UserRole.Gerente) {
-        return { success: false, error: "Gerentes não podem criar usuários com perfil de Admin ou Gerente." };
+        return { success: false, error: "Usuários sem privilégio total não podem criar contas de Admin ou Gerente." };
       }
     }
 
@@ -77,15 +80,32 @@ export async function createUserAction(userData: Omit<User, "id">) {
 export async function updateUserAction(id: number, userData: Partial<User>) {
   try {
     const session = await requirePermission("MANAGE_USERS");
+    const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session.user.role);
     
-    if (session.user.role === UserRole.Gerente) {
-      const targetUser = await getUserById(id);
-      if (!targetUser) return { success: false, error: "Usuário não encontrado." };
-      if (targetUser.role === UserRole.Admin || targetUser.role === UserRole.Gerente) {
-        return { success: false, error: "Gerentes não podem editar Admins ou outros Gerentes." };
-      }
-      if (userData.role === UserRole.Admin || userData.role === UserRole.Gerente) {
-        return { success: false, error: "Gerentes não podem promover usuários para Admin ou Gerente." };
+    const targetUser = await getUserById(id);
+    if (!targetUser) return { success: false, error: "Usuário não encontrado." };
+    
+    const isSelfEdit = Number(session.user.id) === id;
+
+    if (!canManageSensitive) {
+      if (!isSelfEdit) {
+        if (targetUser.role === UserRole.Admin || targetUser.role === UserRole.Gerente) {
+          return { success: false, error: "Sem privilégios para editar Administradores ou Gerentes." };
+        }
+        if (userData.role === UserRole.Admin || userData.role === UserRole.Gerente) {
+          return { success: false, error: "Sem privilégios para promover usuários a Administrador ou Gerente." };
+        }
+      } else {
+        // Self-edit without full permissions: preserve sensitive data
+        userData.name = targetUser.name;
+        userData.role = targetUser.role;
+        userData.guiche = targetUser.guiche;
+        userData.matricula = targetUser.matricula;
+        userData.cpf = targetUser.cpf;
+        userData.email = targetUser.email;
+        userData.username = targetUser.username;
+        userData.password = undefined; // Deny password changes
+        userData.blocked = targetUser.blocked;
       }
     }
     
@@ -120,8 +140,9 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
 export async function deleteUserAction(id: number) {
   try {
     const session = await requirePermission("MANAGE_USERS");
-    if (session.user.role === UserRole.Gerente) {
-      return { success: false, error: "Gerentes não têm permissão para excluir usuários." };
+    const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session.user.role);
+    if (!canManageSensitive) {
+      return { success: false, error: "Sem permissão para excluir usuários." };
     }
     const success = await deleteUser(id);
     return { success };
@@ -136,11 +157,13 @@ export async function deleteUserAction(id: number) {
 export async function toggleBlockUserAction(id: number) {
   try {
     const session = await requirePermission("MANAGE_USERS");
-    if (session.user.role === UserRole.Gerente) {
+    const canManageSensitive = hasPermission("MANAGE_SENSITIVE_USER_DATA", session.user.role);
+    
+    if (!canManageSensitive) {
       const targetUser = await getUserById(id);
       if (!targetUser) return { success: false, error: "Usuário não encontrado." };
       if (targetUser.role === UserRole.Admin || targetUser.role === UserRole.Gerente) {
-        return { success: false, error: "Gerentes não podem alterar o bloqueio de Admins ou Gerentes." };
+        return { success: false, error: "Sem permissão para alterar o bloqueio de Admins ou Gerentes." };
       }
     }
     const user = await toggleBlockUser(id);

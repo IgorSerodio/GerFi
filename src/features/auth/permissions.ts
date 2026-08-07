@@ -6,8 +6,9 @@ export const PERMISSIONS = {
   ACCESS_TRIAGE:     [UserRole.Admin, UserRole.Triador, UserRole.Gerente],
   
   // Ações de Gerenciamento
-  MANAGE_CONFIGS:    [UserRole.Admin], // Criar, editar, deletar TVs, Categorias, Guichês
-  MANAGE_USERS:      [UserRole.Admin, UserRole.Gerente], // Gerenciar, editar, bloquear usuários
+  MANAGE_CONFIGS:             [UserRole.Admin], // Criar, editar, deletar TVs, Categorias, Guichês
+  MANAGE_USERS:               [UserRole.Admin, UserRole.Gerente], // Gerenciar, editar, bloquear usuários
+  MANAGE_SENSITIVE_USER_DATA: [UserRole.Admin], // Editar nome, matrícula, CPF, cargo, guichê e senha de usuários
   
   // Ações Operacionais (Fila)
   OPERATE_QUEUE:     [UserRole.Admin, UserRole.Atendente, UserRole.Gerente], // Chamar, encaminhar, concluir senhas
