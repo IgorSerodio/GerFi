@@ -42,8 +42,9 @@ export default function HistorySidebar({
               {duplicatedTickets.map((ticket, i) => (
                 <div key={`${ticket.id}-${i}`} className="shrink-0 mb-[2vh]">
                   {(() => {
-                    const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche || w.alias === ticket.guiche);
-                    const guicheLabel = currentWindow?.label || (ticket.guiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
+                    const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche);
+                    const displayGuiche = currentWindow?.alias || ticket.guiche;
+                    const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
                     return (
                       <div className="bg-emerald-50/50 hover:bg-emerald-50 p-[1.5vw] rounded-[2vw] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
                         <div className="flex items-center gap-2">
@@ -55,10 +56,10 @@ export default function HistorySidebar({
                             <div className="text-[1.2vh] text-emerald-600 font-black uppercase tracking-[0.2em] mb-[0.5vh] opacity-50 block">
                               {guicheLabel}
                             </div>
-                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${ticket.guiche?.toLowerCase().includes("guichê") ? "text-[2.5vh]" : "text-[1.5vh]"} max-w-[120px] truncate`} title={ticket.guiche}>
-                              {ticket.guiche?.toLowerCase().includes("guichê") 
-                                ? (ticket.guiche.split(" ")[1] || "01")
-                                : ticket.guiche}
+                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${displayGuiche?.toLowerCase().includes("guichê") ? "text-[2.5vh]" : "text-[1.5vh]"} max-w-[120px] truncate`} title={displayGuiche}>
+                              {displayGuiche?.toLowerCase().includes("guichê") 
+                                ? (displayGuiche.split(" ")[1] || "01")
+                                : displayGuiche}
                             </div>
                           </div>
                         </div>

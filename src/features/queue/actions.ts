@@ -91,11 +91,7 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const windows = await getTicketWindows(locationId);
-    const matchedWindow = windows.find(w => w.name === guiche);
-    const finalGuicheName = matchedWindow?.alias || guiche;
-
-    const ticket = await callNextTicket(locationId, attendant, finalGuicheName, allowedServices, priorityType, isForwardedCall);
+    const ticket = await callNextTicket(locationId, attendant, guiche, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }

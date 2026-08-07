@@ -35,8 +35,9 @@ export default function MainCallDisplay({
   hasVideos,
   ticketWindows,
 }: MainCallDisplayProps) {
-  const currentWindow = ticketWindows?.find(w => w.name === currentCall?.guiche || w.alias === currentCall?.guiche);
-  const guicheLabel = currentWindow?.label || (currentCall?.guiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
+  const currentWindow = ticketWindows?.find(w => w.name === currentCall?.guiche);
+  const displayGuiche = currentWindow?.alias || currentCall?.guiche;
+  const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
 
   const playerRef = React.useRef<React.ComponentRef<typeof ReactPlayer>>(null);
 
@@ -237,11 +238,11 @@ export default function MainCallDisplay({
                     </span>
                     <span
                       className="font-black leading-none tracking-tighter uppercase whitespace-nowrap"
-                      style={{ fontSize: currentCall.guiche?.toLowerCase().includes("guichê") ? "9cqh" : "5cqh", maxWidth: "40cqw", overflow: "hidden", textOverflow: "ellipsis" }}
+                      style={{ fontSize: displayGuiche?.toLowerCase().includes("guichê") ? "9cqh" : "5cqh", maxWidth: "40cqw", overflow: "hidden", textOverflow: "ellipsis" }}
                     >
-                      {currentCall.guiche?.toLowerCase().includes("guichê") 
-                        ? (currentCall.guiche.split(" ")[1] || "01")
-                        : currentCall.guiche}
+                      {displayGuiche?.toLowerCase().includes("guichê") 
+                        ? (displayGuiche.split(" ")[1] || "01")
+                        : displayGuiche}
                     </span>
                   </div>
                 </div>

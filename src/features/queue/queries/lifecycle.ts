@@ -40,16 +40,17 @@ export async function callNextTicket(
 
   if (isForwardedCall) {
     queryStr += ` AND forwarded_to = $3`;
+    queryStr += ` AND ($1::integer[] IS NULL OR $1::integer[] IS NOT NULL)`;
   } else {
     queryStr += ` AND forwarded_to IS NULL`;
     if (priorityParam) {
-      queryStr += ` AND priority = $5`;
       queryParams.push(priorityParam);
+      queryStr += ` AND priority = $${queryParams.length}`;
     }
+    queryStr += ` AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))`;
   }
 
   queryStr += `
-      AND ($1::integer[] IS NULL OR category_id = ANY($1::integer[]))
       ORDER BY created_at ASC 
       LIMIT 1 
       FOR UPDATE SKIP LOCKED
