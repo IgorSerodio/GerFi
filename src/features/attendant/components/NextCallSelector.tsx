@@ -23,15 +23,15 @@ export function NextCallSelector({
   handleCallForwarded,
 }: NextCallSelectorProps) {
   return (
-    <div className="text-center space-y-8 py-10">
-      <div className="w-24 h-24 bg-sefaz-light rounded-full flex items-center justify-center mx-auto text-sefaz-accent animate-pulse">
-        <Users size={48} />
+    <div className="text-center space-y-2 py-2">
+      <div className="w-12 h-12 bg-sefaz-light rounded-full flex items-center justify-center mx-auto text-sefaz-accent animate-pulse">
+        <Users size={24} />
       </div>
       <div>
-        <h3 className="text-[clamp(1.5rem,3vw,3rem)] font-black text-sefaz-dark">
+        <h3 className="text-[clamp(1.25rem,2vw,2rem)] font-black text-sefaz-dark">
           Ninguém sendo atendido
         </h3>
-        <p className="text-[clamp(1rem,1.5vw,1.5rem)] text-sefaz-accent/60 font-medium">
+        <p className="text-[clamp(0.875rem,1.2vw,1.125rem)] text-sefaz-accent/60 font-medium">
           Escolha qual fila deseja chamar
         </p>
         {allowedServicesCount > 0 && (
@@ -44,7 +44,7 @@ export function NextCallSelector({
         {forwardedCount > 0 ? (
           <button
             onClick={handleCallForwarded}
-            className="flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
+            className="flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
           >
             <span className="whitespace-nowrap">CHAMAR ENCAMINHADO</span>
             <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{forwardedCount} na fila</span>
@@ -54,7 +54,7 @@ export function NextCallSelector({
             <button
               onClick={() => handleCall("Prioritário")}
               disabled={availablePriorityCount === 0 || !canCallPriority}
-              className={`flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 ${
+              className={`flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallPriority
                   ? "bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:grayscale disabled:opacity-50"
                   : "bg-gray-400 cursor-not-allowed opacity-50"
@@ -67,7 +67,7 @@ export function NextCallSelector({
             <button
               onClick={() => handleCall("Normal")}
               disabled={availableNormalCount === 0 || !canCallNormal}
-              className={`flex-1 px-[2vw] py-[3vh] min-h-[6rem] lg:min-h-[8rem] text-white rounded-[clamp(1rem,2vw,2rem)] font-black text-[clamp(1rem,1.5vw,1.5rem)] transition-all flex flex-col items-center justify-center gap-1 ${
+              className={`flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallNormal
                   ? "bg-sefaz-accent hover:scale-105 active:scale-95 shadow-xl shadow-emerald-950/30 cursor-pointer disabled:grayscale disabled:opacity-50"
                   : "bg-gray-400 cursor-not-allowed opacity-50"

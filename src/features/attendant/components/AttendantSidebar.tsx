@@ -28,7 +28,7 @@ export default function AttendantSidebar({
   onLocationChange,
 }: AttendantSidebarProps) {
   return (
-    <div className="w-64 bg-sefaz-dark text-emerald-100 p-6 flex flex-col">
+    <div className="w-full h-full bg-sefaz-dark text-emerald-100 p-6 flex flex-col rounded-l-[32px]">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-black tracking-tighter text-white">
           FAZENDA <span className="font-light">MUNICIPAL</span>

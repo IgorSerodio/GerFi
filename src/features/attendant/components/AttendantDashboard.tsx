@@ -55,8 +55,8 @@ export default function AttendantDashboard({
   const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guiche;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-sefaz-light flex p-2 md:p-4 font-sans">
-      <div className="flex-1 flex overflow-hidden rounded-[32px] shadow-2xl border border-emerald-100 bg-white">
+    <div className="w-full bg-sefaz-light p-2 md:p-4 font-sans">
+      <div className="grid lg:grid-cols-[16rem_1fr] rounded-[32px] shadow-2xl border border-emerald-100 bg-white min-h-[calc(100dvh-2rem)]">
         <AttendantSidebar
           currentAttendant={{ ...state.currentAttendant, guiche: currentGuicheDisplay }}
           showServiceConfig={state.showServiceConfig}
@@ -71,7 +71,7 @@ export default function AttendantDashboard({
           }}
         />
 
-        <div className="flex-1 p-10 flex flex-col space-y-8 overflow-auto relative">
+        <div className="p-4 md:p-6 space-y-4">
           {state.showServiceConfig && (
             <ServiceConfigOverlay
               categories={categories}
@@ -84,8 +84,8 @@ export default function AttendantDashboard({
             totalQueueCount={state.queue.length}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8 min-w-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="lg:col-span-2 space-y-4 min-w-0">
               {!state.currentAttendant.guiche ? (
                 <div className="bg-white rounded-[40px] shadow-sm border-2 border-amber-100 p-10 flex flex-col items-center justify-center min-h-[400px] text-center">
                   <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-amber-500 animate-pulse">
@@ -119,7 +119,11 @@ export default function AttendantDashboard({
                     setShowForwardModal={actions.setShowForwardModal}
                     handleFinish={actions.handleFinish}
                   />
-                  <QueuePreview availableTickets={availableTickets} categories={categories} />
+                  <HistoryPanel
+                    history={state.history}
+                    attendantName={state.currentAttendant.name}
+                    setSelectedHistoryTicket={actions.setSelectedHistoryTicket}
+                  />
                 </>
               )}
 
@@ -128,11 +132,7 @@ export default function AttendantDashboard({
             </div>
 
             <div className="space-y-8 min-w-0">
-              <HistoryPanel
-                history={state.history}
-                attendantName={state.currentAttendant.name}
-                setSelectedHistoryTicket={actions.setSelectedHistoryTicket}
-              />
+              <QueuePreview availableTickets={availableTickets} categories={categories} />
             </div>
           </div>
         </div>

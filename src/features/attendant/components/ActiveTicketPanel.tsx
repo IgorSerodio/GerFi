@@ -29,8 +29,8 @@ export function ActiveTicketPanel({
   const { cooldownLeft, canRecall, canMarkAsNoShow } = useTicketRecallTimer(currentCall);
 
   return (
-    <div className="@container w-full text-center space-y-6 animate-fade-in">
-      <div className="flex flex-col items-center gap-2 mb-4">
+    <div className="@container w-full text-center space-y-2 animate-fade-in">
+      <div className="flex flex-col items-center gap-1 mb-2">
         <div className="inline-block px-4 py-1.5 bg-emerald-50 text-sefaz-accent rounded-full font-black text-xs tracking-widest border border-emerald-100 uppercase">
           {getTicketStatusLabel(currentCall.status)}
         </div>
@@ -43,7 +43,7 @@ export function ActiveTicketPanel({
           className="mt-2 scale-110"
         />
       </div>
-      <h3 className={`text-[clamp(4rem,25cqw,12rem)] font-black leading-none drop-shadow-sm mb-4 ${getPriorityTextColorClass(currentCall.priority, "text-sefaz-accent")}`}>
+      <h3 className={`text-[clamp(2.5rem,10cqw,5rem)] font-black leading-none drop-shadow-sm mb-1 ${getPriorityTextColorClass(currentCall.priority, "text-sefaz-accent")}`}>
         {currentCall.ticketNumber}
       </h3>
       <div className="flex flex-wrap justify-center gap-4 w-full max-w-3xl">
@@ -52,7 +52,7 @@ export function ActiveTicketPanel({
             <button
               onClick={() => handleRecall(currentCall.id)}
               disabled={!canRecall}
-              className={`min-w-[160px] flex-1 px-4 py-6 border-2 border-emerald-100 rounded-3xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all ${
+              className={`min-w-[120px] flex-1 px-4 py-2 border-2 border-emerald-100 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all ${
                 canRecall 
                   ? "bg-white text-emerald-700 hover:bg-emerald-50 cursor-pointer" 
                   : "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
@@ -66,7 +66,7 @@ export function ActiveTicketPanel({
             {canMarkAsNoShow && (
               <button
                 onClick={() => handleNoShow(currentCall.id)}
-                className="min-w-[160px] flex-1 px-4 py-6 bg-red-50 text-red-600 border-2 border-red-200 rounded-3xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                className="min-w-[120px] flex-1 px-4 py-2 bg-red-50 text-red-600 border-2 border-red-200 rounded-xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 <UserX size={24} className="shrink-0" />
                 <div className="flex flex-col items-center text-center leading-tight text-sm sm:text-base">
@@ -77,7 +77,7 @@ export function ActiveTicketPanel({
             )}
             <button
               onClick={() => setShowStartModal(true)}
-              className="min-w-[160px] flex-1 px-4 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+              className="min-w-[120px] flex-1 px-4 py-2 bg-sefaz-accent text-white rounded-xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
             >
               <CheckCircle2 size={24} className="shrink-0" />
               <span className="text-left leading-tight text-sm sm:text-base">INICIAR</span>
@@ -87,14 +87,14 @@ export function ActiveTicketPanel({
           <>
             <button
               onClick={() => setShowForwardModal(true)}
-              className="min-w-[160px] flex-1 px-4 py-6 bg-white text-amber-600 border-2 border-amber-100 rounded-3xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              className="min-w-[120px] flex-1 px-4 py-2 bg-white text-amber-600 border-2 border-amber-100 rounded-xl font-bold hover:bg-amber-50 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
               <Send size={24} className="shrink-0" />
               <span className="text-left leading-tight text-sm sm:text-base">ENCAMINHAR</span>
             </button>
             <button
               onClick={() => handleFinish(currentCall.id)}
-              className="min-w-[160px] flex-1 px-4 py-6 bg-sefaz-accent text-white rounded-3xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
+              className="min-w-[120px] flex-1 px-4 py-2 bg-sefaz-accent text-white rounded-xl font-bold hover:bg-sefaz-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer"
             >
               <CheckCircle2 size={24} className="shrink-0" />
               <span className="text-left leading-tight text-sm sm:text-base">FINALIZAR</span>

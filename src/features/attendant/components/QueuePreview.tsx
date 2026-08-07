@@ -14,7 +14,7 @@ export default function QueuePreview({ availableTickets, categories }: QueuePrev
       <h4 className="text-xl font-black text-sefaz-dark mb-6 tracking-tighter uppercase">
         Minha Fila de Espera
       </h4>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="flex flex-col space-y-4">
         {availableTickets.slice(0, 8).map((t) => (
           <div
             key={t.id}
