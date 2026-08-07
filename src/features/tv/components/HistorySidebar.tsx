@@ -46,24 +46,24 @@ export default function HistorySidebar({
                     const displayGuiche = ticket.guicheAlias || ticket.guiche;
                     const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
                     return (
-                      <div className="bg-emerald-50/50 hover:bg-emerald-50 p-[1.5vw] rounded-[2vw] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <div className={`text-[4vh] md:text-[5vh] font-black tracking-tighter leading-none w-[12vw] ${ticket.priority === "Prioritário" ? "text-red-600" : "text-emerald-950"}`}>
+                      <div className="bg-emerald-50/50 hover:bg-emerald-50 p-[1.5vw] rounded-[2vw] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className={`text-[4vh] md:text-[5vh] font-black tracking-tighter leading-none shrink-0 min-w-[8vw] xl:min-w-[10vw] ${ticket.priority === "Prioritário" ? "text-red-600" : "text-emerald-950"}`}>
                             {ticket.ticketNumber}
                           </div>
-                          <div className="h-[5vh] w-px bg-emerald-200 mx-1" />
-                          <div>
-                            <div className="text-[1.2vh] text-emerald-600 font-black uppercase tracking-[0.2em] mb-[0.5vh] opacity-50 block">
+                          <div className="h-[5vh] w-px bg-emerald-200 mx-1 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[1.2vh] text-emerald-600 font-black uppercase tracking-[0.2em] mb-[0.5vh] opacity-50 truncate">
                               {guicheLabel}
                             </div>
-                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${displayGuiche?.toLowerCase().includes("guichê") ? "text-[2.5vh]" : "text-[1.5vh]"} max-w-[120px] truncate`} title={displayGuiche}>
+                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${displayGuiche?.toLowerCase().includes("guichê") ? "text-[2.5vh]" : "text-[1.5vh]"} truncate`} title={displayGuiche}>
                               {displayGuiche?.toLowerCase().includes("guichê") 
                                 ? (displayGuiche.split(" ")[1] || "01")
                                 : displayGuiche}
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <div className="text-[2.2vh] font-black text-emerald-600 tabular-nums tracking-tighter">
                             {formatTime(ticket.calledAt)}
                           </div>
