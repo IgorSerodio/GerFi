@@ -57,6 +57,8 @@ export async function callNextTicket(
   }
 
   queryStr += `
+      ORDER BY created_at ASC 
+      LIMIT 1 
       FOR UPDATE SKIP LOCKED
     )
     RETURNING *
