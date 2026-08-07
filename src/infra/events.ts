@@ -6,6 +6,7 @@ const globalForEvents = globalThis as unknown as {
   listenerClient: Client | undefined;
 };
 export const queueEmitter = globalForEvents.queueEmitter ?? new EventEmitter();
+queueEmitter.setMaxListeners(50);
 
 if (process.env.NODE_ENV !== "production") {
   globalForEvents.queueEmitter = queueEmitter;
