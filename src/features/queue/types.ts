@@ -10,6 +10,7 @@ export interface Ticket {
   completedAt?: string;
   attendant?: string;
   guiche?: string;
+  guicheAlias?: string;
   observation?: string;
   locationId: number;
   securityCode?: string;

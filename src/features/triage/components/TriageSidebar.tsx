@@ -132,7 +132,7 @@ export default function TriageSidebar({
                       <p className="text-xs font-bold leading-tight">
                         Dirija-se ao{" "}
                         <span className="text-amber-400">
-                          {searchResult.guiche}
+                          {searchResult.guicheAlias || searchResult.guiche}
                         </span>
                       </p>
                     </div>

@@ -43,7 +43,7 @@ export default function HistorySidebar({
                 <div key={`${ticket.id}-${i}`} className="shrink-0 mb-[2vh]">
                   {(() => {
                     const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche);
-                    const displayGuiche = currentWindow?.alias || ticket.guiche;
+                    const displayGuiche = ticket.guicheAlias || ticket.guiche;
                     const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
                     return (
                       <div className="bg-emerald-50/50 hover:bg-emerald-50 p-[1.5vw] rounded-[2vw] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm">

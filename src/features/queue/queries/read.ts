@@ -9,12 +9,13 @@ export async function getActiveQueue(locationId: number, services?: number[]): P
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
-    `SELECT * FROM tickets 
-     WHERE status = 'pending' 
-       AND location_id = $1
-       AND created_at >= CURRENT_DATE
-       AND ($2::integer[] IS NULL OR category_id = ANY($2::integer[]))
-     ORDER BY (priority = 'Prioritário') DESC, created_at ASC`,
+    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+     WHERE t.status = 'pending' 
+       AND t.location_id = $1
+       AND t.created_at >= CURRENT_DATE
+       AND ($2::integer[] IS NULL OR t.category_id = ANY($2::integer[]))
+     ORDER BY (t.priority = 'Prioritário') DESC, t.created_at ASC`,
     [locationId, servicesArray]
   );
   return rows.map(mapTicketRow);
@@ -27,12 +28,13 @@ export async function getHistory(locationId: number, services?: number[]): Promi
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
-    `SELECT * FROM tickets 
-     WHERE status IN ('calling', 'started', 'completed', 'no_show', 'forwarded') 
-       AND location_id = $1
-       AND created_at >= CURRENT_DATE
-       AND ($2::integer[] IS NULL OR category_id = ANY($2::integer[]))
-     ORDER BY COALESCE((SELECT max(x) FROM unnest(recall_history) x), called_at, created_at) DESC 
+    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+     WHERE t.status IN ('calling', 'started', 'completed', 'no_show', 'forwarded') 
+       AND t.location_id = $1
+       AND t.created_at >= CURRENT_DATE
+       AND ($2::integer[] IS NULL OR t.category_id = ANY($2::integer[]))
+     ORDER BY COALESCE((SELECT max(x) FROM unnest(t.recall_history) x), t.called_at, t.created_at) DESC 
      LIMIT 50`,
     [locationId, servicesArray]
   );
@@ -44,7 +46,9 @@ export async function getHistory(locationId: number, services?: number[]): Promi
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    "SELECT * FROM tickets WHERE id = $1",
+    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+     WHERE t.id = $1`,
     [ticketId]
   );
   if (rows.length === 0) return null;

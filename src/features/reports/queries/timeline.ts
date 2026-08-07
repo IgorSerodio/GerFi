@@ -25,7 +25,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
 
   let queryStr = `
     SELECT 
-      t.id, t.attendant, t.guiche, t.priority, t.status, t.ticket_number,
+      t.id, t.attendant, t.guiche, tw.alias as guiche_alias, t.priority, t.status, t.ticket_number,
       t.created_at, t.called_at, t.started_at, t.completed_at,
       t.recall_history, t.forwarded_to,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
@@ -33,6 +33,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
       (SELECT SUM(EXTRACT(EPOCH FROM (called_at - created_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_wait_seconds,
       (SELECT SUM(EXTRACT(EPOCH FROM (completed_at - started_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_service_seconds
     FROM tickets t
+    LEFT JOIN ticket_windows tw ON t.guiche = tw.name
     WHERE t.created_at >= $1::date 
       AND t.created_at < ($1::date + interval '1 day')
   `;
@@ -58,7 +59,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
   return rows.map((row) => ({
     id: row.id,
     attendant: row.attendant || "Desconhecido",
-    guiche: row.guiche || "-",
+    guiche: row.guiche_alias || row.guiche || "-",
     priority: row.priority,
     status: row.status,
     ticketNumber: row.ticket_number,
@@ -134,11 +135,12 @@ export async function getAnalyticalData(filters: ReportFiltersDTO, page: number 
 
   const queryStr = `
     SELECT 
-      t.*,
+      t.*, tw.alias as guiche_alias,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
       (SELECT MIN(started_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_started_at,
       (SELECT MAX(completed_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_completed_at
     FROM tickets t
+    LEFT JOIN ticket_windows tw ON t.guiche = tw.name
     WHERE ${baseFilter}
     ORDER BY t.created_at DESC
     LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
@@ -150,7 +152,7 @@ export async function getAnalyticalData(filters: ReportFiltersDTO, page: number 
     total,
     data: rows.map((row) => ({
       ticketNumber: row.ticket_number,
-      guiche: row.guiche,
+      guiche: row.guiche_alias || row.guiche,
       attendant: row.attendant,
       status: row.status,
       createdAt: row.created_at,

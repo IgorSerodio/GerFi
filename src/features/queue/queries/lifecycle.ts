@@ -7,7 +7,12 @@ import { mapTicketRow } from "./base";
  */
 export async function registerTicketRecall(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    "UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *",
+    `WITH updated AS (
+       UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *
+     )
+     SELECT u.*, tw.alias AS guiche_alias
+     FROM updated u
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
     [ticketId]
   );
   if (rows.length === 0) return null;
@@ -28,8 +33,9 @@ export async function callNextTicket(
   const servicesArray = allowedServices.length > 0 ? allowedServices : null;
 
   let queryStr = `
-    UPDATE tickets 
-    SET status = 'calling', called_at = NOW(), attendant = $2, guiche = $3
+    WITH updated AS (
+      UPDATE tickets 
+      SET status = 'calling', called_at = NOW(), attendant = $2, guiche = $3
     WHERE id = (
       SELECT id FROM tickets 
       WHERE status = 'pending' 
@@ -51,11 +57,13 @@ export async function callNextTicket(
   }
 
   queryStr += `
-      ORDER BY created_at ASC 
-      LIMIT 1 
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING *`;
+    RETURNING *
+  )
+  SELECT u.*, tw.alias AS guiche_alias
+  FROM updated u
+  LEFT JOIN ticket_windows tw ON u.guiche = tw.name`;
 
   const { rows } = await pool.query(queryStr, queryParams);
 
@@ -68,11 +76,16 @@ export async function callNextTicket(
  */
 export async function markAsNoShow(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    `UPDATE tickets
-     SET status = 'no_show',
-         completed_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
+    `WITH updated AS (
+       UPDATE tickets
+       SET status = 'no_show',
+           completed_at = NOW()
+       WHERE id = $1
+       RETURNING *
+     )
+     SELECT u.*, tw.alias AS guiche_alias
+     FROM updated u
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
     [ticketId]
   );
   if (rows.length === 0) return null;
@@ -84,13 +97,18 @@ export async function markAsNoShow(ticketId: string): Promise<Ticket | null> {
  */
 export async function finishTicket(ticketId: string, observation?: string, resolutions?: string[]): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    `UPDATE tickets
-     SET status = 'completed',
-         completed_at = NOW(),
-         observation = $2,
-         resolutions = $3::jsonb
-     WHERE id = $1
-     RETURNING *`,
+    `WITH updated AS (
+       UPDATE tickets
+       SET status = 'completed',
+           completed_at = NOW(),
+           observation = $2,
+           resolutions = $3::jsonb
+       WHERE id = $1
+       RETURNING *
+     )
+     SELECT u.*, tw.alias AS guiche_alias
+     FROM updated u
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
     [ticketId, observation || null, JSON.stringify(resolutions || [])]
   );
   if (rows.length === 0) return null;
@@ -109,11 +127,16 @@ export async function startTicket(ticketId: string, code: string): Promise<{ suc
   }
 
   const updateRes = await pool.query(
-    `UPDATE tickets
-     SET status = 'started',
-         started_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
+    `WITH updated AS (
+       UPDATE tickets
+       SET status = 'started',
+           started_at = NOW()
+       WHERE id = $1
+       RETURNING *
+     )
+     SELECT u.*, tw.alias AS guiche_alias
+     FROM updated u
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
     [ticketId]
   );
   
@@ -148,9 +171,14 @@ export async function forwardTicket(
     );
 
     const newRes = await client.query(
-      `INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code, location_id)
-       VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
-       RETURNING *`,
+      `WITH inserted AS (
+         INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code, location_id)
+         VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
+         RETURNING *
+       )
+       SELECT i.*, tw.alias AS guiche_alias
+       FROM inserted i
+       LEFT JOIN ticket_windows tw ON i.guiche = tw.name`,
       [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code, original.location_id]
     );
 

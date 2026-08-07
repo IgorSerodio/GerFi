@@ -12,6 +12,7 @@ export interface DbTicketRow {
   completed_at?: Date | null;
   attendant?: string | null;
   guiche?: string | null;
+  guiche_alias?: string | null;
   observation?: string | null;
   security_code?: string;
   started_at?: Date | null;
@@ -34,6 +35,7 @@ export function mapTicketRow(row: DbTicketRow): Ticket {
     completedAt: row.completed_at?.toISOString() || undefined,
     attendant: row.attendant || undefined,
     guiche: row.guiche || undefined,
+    guicheAlias: row.guiche_alias || undefined,
     observation: row.observation || undefined,
     securityCode: row.security_code || undefined,
     startedAt: row.started_at?.toISOString() || undefined,

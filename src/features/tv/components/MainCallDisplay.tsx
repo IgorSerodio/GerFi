@@ -36,7 +36,7 @@ export default function MainCallDisplay({
   ticketWindows,
 }: MainCallDisplayProps) {
   const currentWindow = ticketWindows?.find(w => w.name === currentCall?.guiche);
-  const displayGuiche = currentWindow?.alias || currentCall?.guiche;
+  const displayGuiche = currentCall?.guicheAlias || currentCall?.guiche;
   const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
 
   const playerRef = React.useRef<React.ComponentRef<typeof ReactPlayer>>(null);
