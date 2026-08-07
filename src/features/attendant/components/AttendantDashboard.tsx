@@ -71,7 +71,7 @@ export default function AttendantDashboard({
           }}
         />
 
-        <div className="p-4 md:p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-4 relative overflow-hidden rounded-r-[32px]">
           {state.showServiceConfig && (
             <ServiceConfigOverlay
               categories={categories}
@@ -131,7 +131,7 @@ export default function AttendantDashboard({
 
             </div>
 
-            <div className="space-y-8 min-w-0">
+            <div className="h-full min-w-0">
               <QueuePreview availableTickets={availableTickets} categories={categories} />
             </div>
           </div>

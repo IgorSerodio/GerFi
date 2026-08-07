@@ -23,7 +23,7 @@ interface ActiveCallCardProps {
 
 export default function ActiveCallCard(props: ActiveCallCardProps) {
   return (
-    <div className="bg-white rounded-[40px] shadow-sm border-2 border-emerald-50 p-8 flex flex-col items-center min-h-[300px] flex-1 w-full justify-center shadow-glow">
+    <div className="bg-white rounded-[40px] shadow-sm border-2 border-emerald-50 p-8 flex flex-col items-center min-h-[340px] lg:min-h-[360px] flex-1 w-full justify-center shadow-glow">
       {props.currentCall ? (
         <ActiveTicketPanel 
           currentCall={props.currentCall}

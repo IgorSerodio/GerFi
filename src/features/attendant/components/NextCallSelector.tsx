@@ -34,11 +34,6 @@ export function NextCallSelector({
         <p className="text-[clamp(0.875rem,1.2vw,1.125rem)] text-sefaz-accent/60 font-medium">
           Escolha qual fila deseja chamar
         </p>
-        {allowedServicesCount > 0 && (
-          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-2">
-            Filtrando por {allowedServicesCount} serviços selecionados
-          </p>
-        )}
       </div>
       <div className="flex gap-4 w-full px-8 max-w-4xl mx-auto">
         {forwardedCount > 0 ? (

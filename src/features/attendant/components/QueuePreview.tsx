@@ -10,15 +10,15 @@ interface QueuePreviewProps {
 
 export default function QueuePreview({ availableTickets, categories }: QueuePreviewProps) {
   return (
-    <div className="bg-white rounded-[40px] shadow-sm border border-emerald-100 p-10">
-      <h4 className="text-xl font-black text-sefaz-dark mb-6 tracking-tighter uppercase">
+    <div className="bg-white rounded-[40px] shadow-sm border border-emerald-100 p-10 h-full flex flex-col">
+      <h4 className="text-xl font-black text-sefaz-dark mb-6 tracking-tighter uppercase shrink-0">
         Minha Fila de Espera
       </h4>
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-4 overflow-y-auto min-h-0 pr-2 pb-2">
         {availableTickets.slice(0, 8).map((t) => (
           <div
             key={t.id}
-            className={`p-6 rounded-2xl border-2 text-center transition-colors ${
+            className={`p-6 rounded-2xl border-2 text-center transition-colors shrink-0 ${
               t.priority === "Prioritário"
                 ? "border-emerald-200 bg-emerald-50"
                 : "border-emerald-50 bg-white"
