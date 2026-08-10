@@ -43,8 +43,19 @@ export default function HistorySidebar({
                 <div key={`${ticket.id}-${i}`} className="shrink-0 mb-[2vh]">
                   {(() => {
                     const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche);
-                    const displayGuiche = ticket.guicheAlias || ticket.guiche;
-                    const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
+                    const displayGuiche = ticket.guicheAlias || ticket.guiche || "";
+                    const isGuiche = displayGuiche.toLowerCase().includes("guichê");
+                    const guicheLabel = currentWindow?.label || (isGuiche ? "GUICHÊ" : "LOCAL");
+                    
+                    const displayValue = isGuiche 
+                      ? (displayGuiche.split(" ")[1] || "01")
+                      : displayGuiche;
+                      
+                    const charCount = displayValue.length;
+                    const fontSizeVh = charCount <= 3 
+                      ? 2.5 
+                      : Math.max(1.2, 2.5 - (charCount - 3) * 0.12);
+
                     return (
                       <div className="bg-emerald-50/50 hover:bg-emerald-50 p-[1.5vw] rounded-[2vw] flex justify-between items-center border border-emerald-100/50 transition-all hover:scale-[1.02] active:scale-100 shadow-sm gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -56,10 +67,12 @@ export default function HistorySidebar({
                             <div className="text-[1.2vh] text-emerald-600 font-black uppercase tracking-[0.2em] mb-[0.5vh] opacity-50 truncate">
                               {guicheLabel}
                             </div>
-                            <div className={`font-black text-emerald-950 uppercase tracking-tighter ${displayGuiche?.toLowerCase().includes("guichê") ? "text-[2.5vh]" : "text-[1.5vh]"} truncate`} title={displayGuiche}>
-                              {displayGuiche?.toLowerCase().includes("guichê") 
-                                ? (displayGuiche.split(" ")[1] || "01")
-                                : displayGuiche}
+                            <div 
+                              className="font-black text-emerald-950 uppercase tracking-tighter truncate" 
+                              style={{ fontSize: `${fontSizeVh}vh` }}
+                              title={displayGuiche}
+                            >
+                              {displayValue}
                             </div>
                           </div>
                         </div>

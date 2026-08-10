@@ -28,7 +28,7 @@ export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCal
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="flex items-center justify-center font-black uppercase tracking-[0.4em] drop-shadow-sm text-emerald-900"
-        style={{ fontSize: "3.2cqh", gap: "1.5cqh" }}
+        style={{ fontSize: "min(3.2cqh, 2cqw)", gap: "1.5cqh" }}
       >
         <div
           className="bg-red-500 rounded-full animate-ping"
@@ -39,7 +39,7 @@ export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCal
 
       <div
         className={`relative leading-none font-black tracking-tighter ${getPriorityTextColorClass(currentCall.priority, "text-emerald-950")} ${currentCall.priority === "Prioritário" ? "drop-shadow-[0_20px_50px_rgba(220,38,38,0.3)]" : "drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]"}`}
-        style={{ fontSize: "28cqh" }}
+        style={{ fontSize: "min(28cqh, 16cqw)" }}
       >
         {currentCall.ticketNumber}
       </div>
@@ -64,7 +64,7 @@ export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCal
         <div className="flex flex-col items-center">
           <span
             className="font-black text-emerald-600/40 uppercase tracking-[0.3em]"
-            style={{ fontSize: "3.5cqh", marginBottom: "0.8cqh" }}
+            style={{ fontSize: "min(3.5cqh, 2.2cqw)", marginBottom: "0.8cqh" }}
           >
             DIRIJA-SE AO
           </span>
@@ -78,13 +78,13 @@ export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCal
           >
             <span
               className="font-light tracking-widest opacity-60 uppercase"
-              style={{ fontSize: "4cqh" }}
+              style={{ fontSize: "min(4cqh, 2.5cqw)" }}
             >
               {guicheLabel}
             </span>
             <span
               className="font-black leading-none tracking-tighter uppercase whitespace-nowrap"
-              style={{ fontSize: displayGuiche?.toLowerCase().includes("guichê") ? "14cqh" : "8cqh", maxWidth: "50cqw", overflow: "hidden", textOverflow: "ellipsis" }}
+              style={{ fontSize: displayGuiche?.toLowerCase().includes("guichê") ? "min(14cqh, 8cqw)" : "min(8cqh, 5cqw)", maxWidth: "50cqw", overflow: "hidden", textOverflow: "ellipsis" }}
             >
               {displayGuiche?.toLowerCase().includes("guichê") 
                 ? (displayGuiche.split(" ")[1] || "01")
