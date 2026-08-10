@@ -21,6 +21,7 @@ import {
 import { getLocations } from "@/features/management/queries";
 import { getUsers } from "@/features/users/queries";
 import { requirePermission } from "@/features/auth/actions";
+import { UserRole } from "@/features/users/types";
 
 export interface DetailRow {
   createdAt: string;
@@ -43,7 +44,8 @@ function getErrorMessage(error: unknown, fallback: string): string {
 export async function getReportFiltersDataAction() {
   try {
     await requirePermission("ACCESS_MANAGEMENT");
-    const [locations, users] = await Promise.all([getLocations(), getUsers()]);
+    const [locations, allUsers] = await Promise.all([getLocations(), getUsers()]);
+    const users = allUsers.filter(u => u.role !== UserRole.Admin);
     return { success: true, data: { locations, users } };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao carregar filtros.") };
@@ -162,7 +164,6 @@ export async function getReportsDataAction(payload: {
     const busyDays = await getBusyDays(filters);
     const categoryAvgDuration = await getCategoryAvgDuration(filters);
 
-    // Busca detalhada dos tickets caso seja relatório analítico
     let detailRows: DetailRow[] = [];
     let totalDetails = 0;
     if (reportType === "analytical") {

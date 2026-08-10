@@ -6,7 +6,7 @@ import { CategoryRank, AttendantRank } from "../ranking";
 
 export class RawMetricsStrategy implements MetricsStrategy {
   private getBaseFilter(filters: ReportFiltersDTO, params: QueryParam[], tableAlias = 't'): string {
-    let baseFilter = "1=1";
+    let baseFilter = `${tableAlias}.attendant IS NULL OR ${tableAlias}.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')`;
 
     if (filters.startDate && filters.endDate) {
       params.push(filters.startDate, filters.endDate);

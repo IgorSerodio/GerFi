@@ -16,7 +16,7 @@ export interface PerformanceRow {
  * e o tempo médio de espera, chamada e atendimento para cada atendente.
  */
 export async function getPerformanceData(filters: ReportFiltersDTO): Promise<PerformanceRow[]> {
-  let baseFilter = "1=1";
+  let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
   const params: QueryParam[] = [];
 
   if (filters.startDate && filters.endDate) {

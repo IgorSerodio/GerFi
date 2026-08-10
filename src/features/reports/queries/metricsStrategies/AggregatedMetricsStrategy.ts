@@ -6,7 +6,7 @@ import { CategoryRank, AttendantRank } from "../ranking";
 
 export class AggregatedMetricsStrategy implements MetricsStrategy {
   async getVolumeStats(filters: ReportFiltersDTO): Promise<VolumeStats> {
-    let baseFilter = "1=1";
+    let baseFilter = "attendant IS NULL OR attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -50,7 +50,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getCategoryRanking(filters: ReportFiltersDTO): Promise<CategoryRank[]> {
-    let baseFilter = "1=1";
+    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -96,7 +96,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getAttendantRanking(filters: ReportFiltersDTO): Promise<AttendantRank[]> {
-    let baseFilter = "m.attendant != 'Não Atribuído'";
+    let baseFilter = "m.attendant != 'Não Atribuído' AND m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -140,7 +140,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getCategoryAvgDuration(filters: ReportFiltersDTO): Promise<ChartPoint[]> {
-    let baseFilter = "1=1";
+    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -186,7 +186,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     const diffDays = (filters.startDate && filters.endDate) ? Math.ceil((filters.endDate.getTime() - filters.startDate.getTime()) / (1000 * 3600 * 24)) : 999;
     
     if (diffDays <= 2) {
-      let baseFilter = "1=1";
+      let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
       const params: QueryParam[] = [];
 
       if (filters.startDate && filters.endDate) {
@@ -245,7 +245,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
       dateFormat = "DD/MM";
     }
 
-    let baseFilter = "1=1";
+    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -294,7 +294,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getPeakHours(filters: ReportFiltersDTO): Promise<EvolutionPoint[]> {
-    let baseFilter = "1=1";
+    let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -342,7 +342,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getBusyDays(filters: ReportFiltersDTO): Promise<ChartPoint[]> {
-    let baseFilter = "1=1";
+    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {

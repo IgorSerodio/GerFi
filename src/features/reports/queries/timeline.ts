@@ -36,6 +36,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
     WHERE t.created_at >= $1::date 
       AND t.created_at < ($1::date + interval '1 day')
+      AND (t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin'))
   `;
   const params: QueryParam[] = [targetDate];
 
@@ -90,7 +91,7 @@ export interface AnalyticalTicket {
 }
 
 export async function getAnalyticalData(filters: ReportFiltersDTO, page: number = 1, limit: number = 50): Promise<{ data: AnalyticalTicket[], total: number }> {
-  let baseFilter = "1=1";
+  let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
   const params: QueryParam[] = [];
 
   if (filters.startDate && filters.endDate) {
