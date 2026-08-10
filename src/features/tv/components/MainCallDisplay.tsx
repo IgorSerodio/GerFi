@@ -214,31 +214,31 @@ export default function MainCallDisplay({
                 />
               </div>
 
-              <div className="flex items-center" style={{ gap: "6cqh" }}>
+              <div className="flex items-center" style={{ gap: "8cqh" }}>
                 <div className="flex flex-col items-center">
                   <span
                     className="font-black text-emerald-600/40 uppercase tracking-[0.3em]"
-                    style={{ fontSize: "1.8cqh", marginBottom: "0.6cqh" }}
+                    style={{ fontSize: "3.5cqh", marginBottom: "0.8cqh" }}
                   >
                     DIRIJA-SE AO
                   </span>
                   <div
                     className="flex items-baseline bg-emerald-950 text-white shadow-xl"
                     style={{
-                      gap: "1cqh",
-                      padding: "1.2cqh 4cqh",
-                      borderRadius: "3cqh",
+                      gap: "1.5cqh",
+                      padding: "2cqh 6cqh",
+                      borderRadius: "4cqh",
                     }}
                   >
                     <span
                       className="font-light tracking-widest opacity-60 uppercase"
-                      style={{ fontSize: "2.5cqh" }}
+                      style={{ fontSize: "4cqh" }}
                     >
                       {guicheLabel}
                     </span>
                     <span
                       className="font-black leading-none tracking-tighter uppercase whitespace-nowrap"
-                      style={{ fontSize: displayGuiche?.toLowerCase().includes("guichê") ? "9cqh" : "5cqh", maxWidth: "40cqw", overflow: "hidden", textOverflow: "ellipsis" }}
+                      style={{ fontSize: displayGuiche?.toLowerCase().includes("guichê") ? "14cqh" : "8cqh", maxWidth: "50cqw", overflow: "hidden", textOverflow: "ellipsis" }}
                     >
                       {displayGuiche?.toLowerCase().includes("guichê") 
                         ? (displayGuiche.split(" ")[1] || "01")

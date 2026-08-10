@@ -1,7 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import NextLink from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { formatTime } from "@/utils/dateFormatter";
 
 interface TvHeaderProps {
@@ -12,17 +10,20 @@ export default function TvHeader({ time }: TvHeaderProps) {
   return (
     <header className="flex justify-between items-stretch bg-white rounded-[2vw] pl-[2vw] pr-0 shadow-xl border border-emerald-50/50 h-[12vh] shrink-0">
       <div className="flex items-center gap-[1vw]">
-        <NextLink
-          href="/"
-          className="w-[6vh] h-[6vh] bg-emerald-50 hover:bg-emerald-100 text-sefaz-accent rounded-[1vw] flex items-center justify-center p-[1vh] shadow-inner hover:scale-105 transition-transform"
-        >
-          <ArrowLeft className="w-[3vh] h-[3vh]" />
-        </NextLink>
+        <div className="flex items-center justify-center mr-[1vw]">
+          <Image
+            src="https://upload.wikimedia.org/wikipedia/commons/0/09/Caruaru_brasao.svg"
+            alt="Brasão de Caruaru"
+            width={80}
+            height={80}
+            className="w-[8vh] h-[8vh] object-contain drop-shadow-sm"
+          />
+        </div>
         <div>
-          <h1 className="text-[3.5vh] font-black text-emerald-950 uppercase tracking-tight leading-none mb-[0.5vh]">
+          <h1 className="text-[6vh] font-black text-emerald-900 tracking-tighter leading-none mb-[0.5vh] uppercase">
             Prefeitura de Caruaru
           </h1>
-          <p className="text-emerald-600 font-bold uppercase tracking-[0.3em] text-[1.8vh] opacity-70">
+          <p className="text-[1.8vh] font-black uppercase tracking-widest text-emerald-500 opacity-70">
             Secretaria da Fazenda Municipal
           </p>
         </div>
