@@ -35,7 +35,7 @@ export function TvConfigList({ tvs, locations, filterLocationId, handleEdit, han
 
           <div className="flex-1 text-[10px] text-gray-500 mb-6 space-y-1">
             <p><strong>Local:</strong> {locations.find(l => l.id === tv.locationId)?.name || 'Principal'}</p>
-            <p><strong>Modo:</strong> {tv.mode === 'live' ? 'YouTube' : 'Mídias'}</p>
+            <p><strong>Modo:</strong> {tv.mode === 'channel' ? 'Canal YouTube' : (tv.mode === 'playlist' ? 'Playlist' : 'Slides')}</p>
             <p><strong>Serviços Exibidos:</strong> {tv.services.length === 0 ? 'Todos (Global)' : `${tv.services.length} serviços selecionados`}</p>
           </div>
 

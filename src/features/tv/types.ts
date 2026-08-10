@@ -8,7 +8,8 @@ export interface TvSettings {
   id: number;
   slug: string;
   name: string;
-  mode: "live" | "files";
+  mode: "channel" | "playlist" | "slides";
+  youtubeChannel?: string;
   videoUrl: YouTubeVideo[];
   uploadedFiles: string[];
   services: number[];

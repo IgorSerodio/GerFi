@@ -116,21 +116,39 @@ export default function TvVideoPlayer({
     }
   }, [handleVideoStart]);
 
-  const playerElement = React.useMemo(() => (
-    <ReactPlayer
-      ref={playerRef}
-      src={currentVideoUrl}
-      width="100%"
-      height="100%"
-      playing={true}
-      controls={true}
-      loop={false}
-      onError={handleVideoError}
-      onEnded={handleVideoEnd}
-      onStart={handleVideoStartWrapper}
-      onProgress={handleVideoProgress}
-    />
-  ), [currentVideoUrl, handleVideoError, handleVideoEnd, handleVideoStartWrapper, handleVideoProgress]);
+  const isLiveEmbed = currentVideoUrl.includes("embed/live_stream");
+
+  const playerElement = React.useMemo(() => {
+    if (isLiveEmbed) {
+      return (
+        <iframe
+          src={`${currentVideoUrl}&autoplay=1&mute=0`}
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          onError={handleVideoError}
+          onLoad={handleVideoStartWrapper}
+        />
+      );
+    }
+    return (
+      <ReactPlayer
+        ref={playerRef}
+        src={currentVideoUrl}
+        width="100%"
+        height="100%"
+        playing={true}
+        controls={true}
+        loop={false}
+        onError={handleVideoError}
+        onEnded={handleVideoEnd}
+        onStart={handleVideoStartWrapper}
+        onProgress={handleVideoProgress}
+      />
+    );
+  }, [currentVideoUrl, isLiveEmbed, handleVideoError, handleVideoEnd, handleVideoStartWrapper, handleVideoProgress]);
 
   return (
     <div className="w-full h-full">

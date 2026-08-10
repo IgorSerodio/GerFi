@@ -139,5 +139,5 @@ export function drawTable(
 
   // autoTable updates doc.lastAutoTable internally, but typescript might complain,
   // we can just return a safe estimation or cast
-  return (doc as any).lastAutoTable.finalY + 15;
+  return (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
 }

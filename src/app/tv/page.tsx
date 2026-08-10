@@ -20,7 +20,7 @@ export default async function TvPage() {
     id: 1,
     slug: "global",
     name: "TV Principal",
-    mode: "live" as const,
+    mode: "playlist" as const,
     videoUrl: [],
     uploadedFiles: [],
     services: [],

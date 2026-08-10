@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { TvSettings } from "@/features/tv/types";
+import { resolveYoutubeChannelAction } from "@/features/tv/actions";
+
+type PlaybackMode = "channel" | "channel-playlist" | "playlist" | "slides";
 
 export function useTvMedia(tvSettings: TvSettings) {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -8,12 +11,44 @@ export function useTvMedia(tvSettings: TvSettings) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
+  // Fallback State Machine
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>(
+    tvSettings.mode === "channel" ? "channel" : (tvSettings.mode === "playlist" ? "playlist" : "slides")
+  );
+  const [channelLiveUrl, setChannelLiveUrl] = useState<string>("");
+  const [channelPlaylistUrl, setChannelPlaylistUrl] = useState<string>("");
+  const [isResolvingChannel, setIsResolvingChannel] = useState(false);
+
   const tvSettingsRef = useRef(tvSettings);
   useEffect(() => {
     tvSettingsRef.current = tvSettings;
   }, [tvSettings]);
 
-  // Converte listas para strings para evitar cancelamento do timer por mudança de referência na API
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlaybackMode(tvSettings.mode === "channel" ? "channel" : (tvSettings.mode === "playlist" ? "playlist" : "slides"));
+    setConsecutiveErrors(0);
+  }, [tvSettings.mode]);
+
+  // Resolve Channel URL
+  useEffect(() => {
+    if (tvSettings.mode === "channel" && tvSettings.youtubeChannel) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsResolvingChannel(true);
+      resolveYoutubeChannelAction(tvSettings.youtubeChannel).then((res) => {
+        if (res.success && res.data) {
+          setChannelLiveUrl(res.data.liveUrl);
+          setChannelPlaylistUrl(`https://www.youtube.com/playlist?list=${res.data.playlistId}`);
+        } else {
+          // Se não encontrou o canal, pula direto pra playlist cadastrada
+          setPlaybackMode("playlist");
+        }
+        setIsResolvingChannel(false);
+      });
+    }
+  }, [tvSettings.mode, tvSettings.youtubeChannel]);
+
+  // Converte listas para strings para evitar cancelamento do timer por mudança de referência
   const uploadedFilesStr = (tvSettings.uploadedFiles || []).join(',');
   const slidesStr = (tvSettings.slides || []).map(s => s.title).join(',');
 
@@ -32,10 +67,8 @@ export function useTvMedia(tvSettings: TvSettings) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadedFilesStr, slidesStr]);
 
-  // Converte os IDs de vídeo para uma string para evitar re-renderizações por mudança de referência
   const videoIdsStr = (tvSettings.videoUrl || []).map(v => v.videoId).join(',');
 
-  // Se a lista real de vídeos mudar, reseta o índice e os erros
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentVideoIndex(0);
@@ -43,30 +76,56 @@ export function useTvMedia(tvSettings: TvSettings) {
   }, [videoIdsStr]);
 
   const handleVideoError = useCallback(() => {
-    setConsecutiveErrors(prev => prev + 1);
-    const videoUrl = tvSettingsRef.current.videoUrl;
-    if (videoUrl && videoUrl.length > 0) {
-      setCurrentVideoIndex(prev => (prev + 1) % videoUrl.length);
+    setPlaybackMode(prevMode => {
+      if (prevMode === "channel") return "channel-playlist";
+      if (prevMode === "channel-playlist") return "playlist";
+      return prevMode;
+    });
+
+    if (playbackMode === "playlist") {
+      setConsecutiveErrors(prev => prev + 1);
+      const videoUrl = tvSettingsRef.current.videoUrl;
+      if (videoUrl && videoUrl.length > 0) {
+        setCurrentVideoIndex(prev => (prev + 1) % videoUrl.length);
+      }
     }
-  }, []);
+  }, [playbackMode]);
 
   const handleVideoEnd = useCallback(() => {
-    const videoUrl = tvSettingsRef.current.videoUrl;
-    if (videoUrl && videoUrl.length > 0) {
-      setCurrentVideoIndex(prev => (prev + 1) % videoUrl.length);
+    if (playbackMode === "channel") {
+      setPlaybackMode("channel-playlist");
+    } else if (playbackMode === "channel-playlist") {
+      setPlaybackMode("playlist");
+    } else if (playbackMode === "playlist") {
+      const videoUrl = tvSettingsRef.current.videoUrl;
+      if (videoUrl && videoUrl.length > 0) {
+        setCurrentVideoIndex(prev => (prev + 1) % videoUrl.length);
+      }
     }
-  }, []);
+  }, [playbackMode]);
 
   const handleVideoStart = useCallback(() => {
     setConsecutiveErrors(0);
   }, []);
 
   const totalVideos = tvSettings.videoUrl?.length || 0;
-  const useSlidesFallback = totalVideos > 0 && consecutiveErrors >= totalVideos;
+  
+  let currentVideoUrl = "";
+  if (playbackMode === "channel" && channelLiveUrl) {
+    currentVideoUrl = channelLiveUrl;
+  } else if (playbackMode === "channel-playlist" && channelPlaylistUrl) {
+    currentVideoUrl = channelPlaylistUrl;
+  } else if (playbackMode === "playlist" && totalVideos > 0 && tvSettings.videoUrl[currentVideoIndex]) {
+    currentVideoUrl = `https://www.youtube.com/watch?v=${tvSettings.videoUrl[currentVideoIndex].videoId}`;
+  }
 
-  const currentVideoUrl = totalVideos > 0 && tvSettings.videoUrl[currentVideoIndex]
-    ? `https://www.youtube.com/watch?v=${tvSettings.videoUrl[currentVideoIndex].videoId}` 
-    : "";
+  const useSlidesFallback = 
+    playbackMode === "slides" || 
+    (playbackMode === "playlist" && (totalVideos === 0 || consecutiveErrors >= totalVideos)) ||
+    (playbackMode === "channel" && !tvSettings.youtubeChannel);
+
+  // Se está resolvendo, vamos considerar "hasVideos" true provisoriamente para não piscar os slides
+  const hasVideos = isResolvingChannel || currentVideoUrl !== "";
 
   return { 
     slideIndex, 
@@ -75,7 +134,7 @@ export function useTvMedia(tvSettings: TvSettings) {
     handleVideoError,
     handleVideoEnd,
     handleVideoStart,
-    useSlidesFallback,
-    hasVideos: totalVideos > 0
+    useSlidesFallback: useSlidesFallback && !isResolvingChannel,
+    hasVideos
   };
 }

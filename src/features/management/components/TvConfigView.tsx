@@ -61,7 +61,7 @@ export default function TvConfigView({ triggerSuccess }: TvConfigViewProps) {
       id: 0,
       slug: "",
       name: "",
-      mode: globalTv?.mode || "live",
+      mode: globalTv?.mode || "playlist",
       videoUrl: globalTv?.videoUrl ? [...globalTv.videoUrl] : [],
       uploadedFiles: globalTv?.uploadedFiles ? [...globalTv.uploadedFiles] : [],
       services: [],

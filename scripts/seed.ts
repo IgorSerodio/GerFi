@@ -30,8 +30,8 @@ async function main() {
     // 2. Seed TV Settings
     console.log("Seeding TV settings...");
     await client.query(`
-      INSERT INTO tv_settings (id, slug, name, mode, live_url, uploaded_files, location_id, marquee_messages, slides)
-      VALUES (1, 'global', 'TV Principal', 'live', 'https://www.youtube.com/embed/live_stream?channel=UC77X3Z_78d52S9T3Z_V5-0w', '[]'::jsonb, 1, $1::jsonb, $2::jsonb)
+      INSERT INTO tv_settings (id, slug, name, mode, youtube_channel, uploaded_files, location_id, marquee_messages, slides)
+      VALUES (1, 'global', 'TV Principal', 'channel', 'https://www.youtube.com/@preftvof', '[]'::jsonb, 1, $1::jsonb, $2::jsonb)
       ON CONFLICT (id) DO UPDATE SET
         marquee_messages = CASE WHEN tv_settings.marquee_messages = '[]'::jsonb OR tv_settings.marquee_messages IS NULL THEN EXCLUDED.marquee_messages ELSE tv_settings.marquee_messages END,
         slides = CASE WHEN tv_settings.slides = '[]'::jsonb OR tv_settings.slides IS NULL THEN EXCLUDED.slides ELSE tv_settings.slides END;
