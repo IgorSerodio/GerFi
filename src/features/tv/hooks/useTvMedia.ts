@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { TvSettings } from "@/features/tv/types";
-import { resolveYoutubeChannelAction } from "@/features/tv/actions";
+import { resolveYoutubeChannelAction, checkYoutubeLiveStatusAction } from "@/features/tv/actions";
 
 type PlaybackMode = "channel" | "channel-playlist" | "playlist" | "slides";
 
@@ -18,6 +18,9 @@ export function useTvMedia(tvSettings: TvSettings) {
   const [channelLiveUrl, setChannelLiveUrl] = useState<string>("");
   const [channelPlaylistUrl, setChannelPlaylistUrl] = useState<string>("");
   const [isResolvingChannel, setIsResolvingChannel] = useState(false);
+  
+  const [channelId, setChannelId] = useState<string>("");
+  const [channelIsLive, setChannelIsLive] = useState(false);
 
   const tvSettingsRef = useRef(tvSettings);
   useEffect(() => {
@@ -37,8 +40,9 @@ export function useTvMedia(tvSettings: TvSettings) {
       setIsResolvingChannel(true);
       resolveYoutubeChannelAction(tvSettings.youtubeChannel).then((res) => {
         if (res.success && res.data) {
+          setChannelId(res.data.channelId);
           setChannelLiveUrl(res.data.liveUrl);
-          setChannelPlaylistUrl(`https://www.youtube.com/playlist?list=${res.data.playlistId}`);
+          setChannelPlaylistUrl(`https://www.youtube.com/embed/videoseries?list=${res.data.playlistId}`);
         } else {
           // Se não encontrou o canal, pula direto pra playlist cadastrada
           setPlaybackMode("playlist");
@@ -47,6 +51,34 @@ export function useTvMedia(tvSettings: TvSettings) {
       });
     }
   }, [tvSettings.mode, tvSettings.youtubeChannel]);
+
+  // Polling para checar se a live começou (a cada 5 minutos)
+  useEffect(() => {
+    if (!channelId || tvSettings.mode !== "channel") return;
+
+    let isMounted = true;
+    const checkLive = async () => {
+      const res = await checkYoutubeLiveStatusAction(channelId);
+      if (!isMounted) return;
+      
+      if (res.success && res.isLive) {
+        setChannelIsLive(true);
+        setPlaybackMode(prev => prev !== "channel" ? "channel" : prev);
+      } else {
+        setChannelIsLive(false);
+        // Se não tem live, pula da tentativa de "channel" para "channel-playlist"
+        setPlaybackMode(prev => prev === "channel" ? "channel-playlist" : prev);
+      }
+    };
+
+    checkLive();
+    const poller = setInterval(checkLive, 300000); // 5 minutos
+
+    return () => {
+      isMounted = false;
+      clearInterval(poller);
+    };
+  }, [channelId, tvSettings.mode]);
 
   // Converte listas para strings para evitar cancelamento do timer por mudança de referência
   const uploadedFilesStr = (tvSettings.uploadedFiles || []).join(',');
@@ -111,9 +143,9 @@ export function useTvMedia(tvSettings: TvSettings) {
   const totalVideos = tvSettings.videoUrl?.length || 0;
   
   let currentVideoUrl = "";
-  if (playbackMode === "channel" && channelLiveUrl) {
+  if (playbackMode === "channel" && channelLiveUrl && channelIsLive) {
     currentVideoUrl = channelLiveUrl;
-  } else if (playbackMode === "channel-playlist" && channelPlaylistUrl) {
+  } else if ((playbackMode === "channel" || playbackMode === "channel-playlist") && channelPlaylistUrl) {
     currentVideoUrl = channelPlaylistUrl;
   } else if (playbackMode === "playlist" && totalVideos > 0 && tvSettings.videoUrl[currentVideoIndex]) {
     currentVideoUrl = `https://www.youtube.com/watch?v=${tvSettings.videoUrl[currentVideoIndex].videoId}`;

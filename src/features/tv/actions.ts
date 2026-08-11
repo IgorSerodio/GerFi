@@ -171,3 +171,20 @@ export async function resolveYoutubeChannelAction(channelUrl: string) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar canal.") };
   }
 }
+
+/**
+ * Checa se um canal do YouTube está genuinamente ao vivo neste momento.
+ */
+export async function checkYoutubeLiveStatusAction(channelId: string) {
+  try {
+    const res = await fetch(`https://www.youtube.com/channel/${channelId}/live`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+    });
+    const html = await res.text();
+    const isLiveNow = html.includes('"isLiveNow":true') || html.includes('isLiveBroadcast');
+    
+    return { success: true, isLive: isLiveNow };
+  } catch (error) {
+    return { success: false, isLive: false };
+  }
+}
