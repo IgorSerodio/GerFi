@@ -9,8 +9,9 @@ export async function getActiveQueue(locationId: number, services?: number[]): P
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
-    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
-     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+    `SELECT t.*, tw.alias as guiche_alias, u.name as attendant_name FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name AND tw.location_id = t.location_id
+     LEFT JOIN users u ON t.attendant_id = u.id
      WHERE t.status = 'pending' 
        AND t.location_id = $1
        AND t.created_at >= CURRENT_DATE
@@ -28,8 +29,9 @@ export async function getHistory(locationId: number, services?: number[]): Promi
   const servicesArray = services && services.length > 0 ? services : null;
 
   const { rows } = await pool.query(
-    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
-     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+    `SELECT t.*, tw.alias as guiche_alias, u.name as attendant_name FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name AND tw.location_id = t.location_id
+     LEFT JOIN users u ON t.attendant_id = u.id
      WHERE t.status IN ('calling', 'started', 'completed', 'no_show', 'forwarded') 
        AND t.location_id = $1
        AND t.created_at >= CURRENT_DATE
@@ -46,8 +48,9 @@ export async function getHistory(locationId: number, services?: number[]): Promi
  */
 export async function getTicketById(ticketId: string): Promise<Ticket | null> {
   const { rows } = await pool.query(
-    `SELECT t.*, tw.alias as guiche_alias FROM tickets t
-     LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+    `SELECT t.*, tw.alias as guiche_alias, u.name as attendant_name FROM tickets t
+     LEFT JOIN ticket_windows tw ON t.guiche = tw.name AND tw.location_id = t.location_id
+     LEFT JOIN users u ON t.attendant_id = u.id
      WHERE t.id = $1`,
     [ticketId]
   );

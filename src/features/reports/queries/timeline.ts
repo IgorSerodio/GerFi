@@ -33,7 +33,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
       (SELECT SUM(EXTRACT(EPOCH FROM (called_at - created_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_wait_seconds,
       (SELECT SUM(EXTRACT(EPOCH FROM (completed_at - started_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_service_seconds
     FROM tickets t
-    LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+    LEFT JOIN ticket_windows tw ON t.guiche = tw.name AND tw.location_id = t.location_id
     WHERE t.created_at >= $1::date 
       AND t.created_at < ($1::date + interval '1 day')
       AND (t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin'))
@@ -141,7 +141,7 @@ export async function getAnalyticalData(filters: ReportFiltersDTO, page: number 
       (SELECT MIN(started_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_started_at,
       (SELECT MAX(completed_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_completed_at
     FROM tickets t
-    LEFT JOIN ticket_windows tw ON t.guiche = tw.name
+    LEFT JOIN ticket_windows tw ON t.guiche = tw.name AND tw.location_id = t.location_id
     WHERE ${baseFilter}
     ORDER BY t.created_at DESC
     LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}

@@ -3,12 +3,14 @@ import { Session } from "next-auth";
 import { getMyProfileAction, updateMyGuicheAction } from "@/features/users/actions";
 
 export interface AttendantState {
+  id: number;
   name: string;
   guiche: string;
 }
 
 export function useAttendantSession(session: Session | null, initialServices: number[], initialGuiche: string) {
   const [currentAttendant, setCurrentAttendant] = useState<AttendantState>({
+    id: Number(session?.user?.id) || 0,
     name: session?.user?.name || "Atendente",
     guiche: initialGuiche,
   });

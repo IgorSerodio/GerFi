@@ -16,7 +16,7 @@ async function main() {
     const salt = bcrypt.genSaltSync(10);
     const passwordHash = bcrypt.hashSync("123456", salt);
     
-    const attendants = [
+    const attendants: { name: string, matricula: string, guiche: string, id?: number }[] = [
       { name: "João Silva (Mock)", matricula: "MOCK01", guiche: "Guichê 01" },
       { name: "Maria Souza (Mock)", matricula: "MOCK02", guiche: "Guichê 02" },
       { name: "Pedro Santos (Mock)", matricula: "MOCK03", guiche: "Guichê 03" },
@@ -33,10 +33,11 @@ async function main() {
     }
 
     for (const att of attendants) {
-      await client.query(`
+      const { rows } = await client.query(`
         INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked)
         VALUES ($1, 'Atendente', $2, $3, $4, $5, $6, $7, '{}', false)
-        ON CONFLICT (matricula) DO UPDATE SET name = EXCLUDED.name, guiche = EXCLUDED.guiche;
+        ON CONFLICT (matricula) DO UPDATE SET name = EXCLUDED.name, guiche = EXCLUDED.guiche
+        RETURNING id;
       `, [
         att.name,
         att.guiche,
@@ -46,6 +47,7 @@ async function main() {
         att.matricula.toLowerCase(),
         passwordHash
       ]);
+      att.id = rows[0].id;
     }
 
     // 2. Load Categories
@@ -120,7 +122,7 @@ async function main() {
         let finalCalledAt: Date | null = calledAt;
         let finalStartedAt: Date | null = startedAt;
         let finalCompletedAt: Date | null = completedAt;
-        const finalAttendant: string | null = attendant.name;
+        const finalAttendantId: number | null = attendant.id || null;
         const finalGuiche: string | null = attendant.guiche;
         let recallHistory: Date[] = [];
 
@@ -148,7 +150,7 @@ async function main() {
         await client.query(`
           INSERT INTO tickets (
             ticket_number, category_name, category_id, priority, status, 
-            created_at, called_at, started_at, completed_at, attendant, guiche, location_id, recall_history, forwarded_to
+            created_at, called_at, started_at, completed_at, attendant_id, guiche, location_id, recall_history, forwarded_to
           ) VALUES (
             $1, $2, $3, $4, $5, 
             $6, $7, $8, $9, $10, $11, $12, $13, $14
@@ -163,7 +165,7 @@ async function main() {
           finalCalledAt ? finalCalledAt.toISOString() : null,
           finalStartedAt ? finalStartedAt.toISOString() : null,
           finalCompletedAt ? finalCompletedAt.toISOString() : null,
-          finalAttendant,
+          finalAttendantId,
           finalGuiche,
           LOCATION_ID,
           recallHistory.length > 0 ? recallHistory.map(d => d.toISOString()) : '{}',

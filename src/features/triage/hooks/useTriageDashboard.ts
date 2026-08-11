@@ -119,7 +119,7 @@ export function useTriageDashboard() {
         status: historyItem.status as "calling" | "started" | "completed",
         guiche: historyItem.guiche,
         guicheAlias: historyItem.guicheAlias,
-        attendant: historyItem.attendant,
+        attendantName: historyItem.attendantName,
         ticket: historyItem,
       });
       return;

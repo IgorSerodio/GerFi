@@ -74,7 +74,7 @@ export async function issueTicketAction(payload: {
  */
 export async function callTicketAction(
   locationId: number,
-  attendant: string,
+  attendantId: number,
   guiche: string,
   allowedServices: number[],
   priorityType?: "Normal" | "Prioritário",
@@ -91,7 +91,7 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const ticket = await callNextTicket(locationId, attendant, guiche, allowedServices, priorityType, isForwardedCall);
+    const ticket = await callNextTicket(locationId, attendantId, guiche, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }

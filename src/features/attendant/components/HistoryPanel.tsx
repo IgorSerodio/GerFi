@@ -15,7 +15,7 @@ export default function HistoryPanel({
   setSelectedHistoryTicket,
 }: HistoryPanelProps) {
   const personalHistory = history
-    .filter((h) => h.attendant === attendantName && h.status !== "calling")
+    .filter((h) => h.attendantName === attendantName && h.status !== "calling")
     .slice(0, 5);
 
   return (

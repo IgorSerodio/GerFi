@@ -19,7 +19,7 @@ export function useAttendantDashboard({
   const queueData = useQueueData();
   const ticketActions = useTicketActions(
     queueData.locationId,
-    sessionData.currentAttendant.name,
+    sessionData.currentAttendant.id,
     sessionData.currentAttendant.guiche,
     sessionData.allowedServices,
     queueData.history

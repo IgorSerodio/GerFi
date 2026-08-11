@@ -11,7 +11,7 @@ import {
 
 export function useTicketActions(
   locationId: number | null,
-  currentAttendantName: string,
+  currentAttendantId: number,
   currentAttendantGuiche: string,
   allowedServices: number[],
   history: Ticket[]
@@ -25,14 +25,14 @@ export function useTicketActions(
   const [selectedHistoryTicket, setSelectedHistoryTicket] = useState<Ticket | null>(null);
 
   const currentCall = history.find(
-    (h) => h.attendant === currentAttendantName && (h.status === "calling" || h.status === "started")
+    (h) => h.attendantId === currentAttendantId && (h.status === "calling" || h.status === "started")
   );
 
   const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
     if (locationId === null) return;
     const res = await callTicketAction(
       locationId,
-      currentAttendantName,
+      currentAttendantId,
       currentAttendantGuiche,
       allowedServices,
       priorityType,
@@ -47,7 +47,7 @@ export function useTicketActions(
     if (locationId === null) return;
     const res = await callTicketAction(
       locationId,
-      currentAttendantName,
+      currentAttendantId,
       currentAttendantGuiche,
       allowedServices,
       undefined,

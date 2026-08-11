@@ -23,7 +23,7 @@ export type SearchResult =
       status: "calling" | "started" | "completed";
       guiche?: string;
       guicheAlias?: string;
-      attendant?: string;
+      attendantName?: string;
       ticket: TicketType;
     }
   | {

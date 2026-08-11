@@ -10,9 +10,10 @@ export async function registerTicketRecall(ticketId: string): Promise<Ticket | n
     `WITH updated AS (
        UPDATE tickets SET recall_history = array_append(recall_history, NOW()) WHERE id = $1 RETURNING *
      )
-     SELECT u.*, tw.alias AS guiche_alias
+     SELECT u.*, tw.alias AS guiche_alias, usr.name as attendant_name
      FROM updated u
-     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name
+     LEFT JOIN users usr ON u.attendant_id = usr.id`,
     [ticketId]
   );
   if (rows.length === 0) return null;
@@ -24,7 +25,7 @@ export async function registerTicketRecall(ticketId: string): Promise<Ticket | n
  */
 export async function callNextTicket(
   locationId: number,
-  attendant: string,
+  attendantId: number,
   guiche: string,
   allowedServices: number[],
   priorityParam?: "Normal" | "Prioritário",
@@ -35,14 +36,14 @@ export async function callNextTicket(
   let queryStr = `
     WITH updated AS (
       UPDATE tickets 
-      SET status = 'calling', called_at = NOW(), attendant = $2, guiche = $3
+      SET status = 'calling', called_at = NOW(), attendant_id = $2, guiche = $3
     WHERE id = (
       SELECT id FROM tickets 
       WHERE status = 'pending' 
         AND location_id = $4
         AND created_at >= CURRENT_DATE
   `;
-  const queryParams: unknown[] = [servicesArray, attendant, guiche, locationId];
+  const queryParams: unknown[] = [servicesArray, attendantId, guiche, locationId];
 
   if (isForwardedCall) {
     queryStr += ` AND forwarded_to = $3`;
@@ -63,9 +64,10 @@ export async function callNextTicket(
     )
     RETURNING *
   )
-  SELECT u.*, tw.alias AS guiche_alias
+  SELECT u.*, tw.alias AS guiche_alias, usr.name as attendant_name
   FROM updated u
-  LEFT JOIN ticket_windows tw ON u.guiche = tw.name`;
+  LEFT JOIN ticket_windows tw ON u.guiche = tw.name
+  LEFT JOIN users usr ON u.attendant_id = usr.id`;
 
   const { rows } = await pool.query(queryStr, queryParams);
 
@@ -85,9 +87,10 @@ export async function markAsNoShow(ticketId: string): Promise<Ticket | null> {
        WHERE id = $1
        RETURNING *
      )
-     SELECT u.*, tw.alias AS guiche_alias
+     SELECT u.*, tw.alias AS guiche_alias, usr.name as attendant_name
      FROM updated u
-     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name
+     LEFT JOIN users usr ON u.attendant_id = usr.id`,
     [ticketId]
   );
   if (rows.length === 0) return null;
@@ -108,9 +111,10 @@ export async function finishTicket(ticketId: string, observation?: string, resol
        WHERE id = $1
        RETURNING *
      )
-     SELECT u.*, tw.alias AS guiche_alias
+     SELECT u.*, tw.alias AS guiche_alias, usr.name as attendant_name
      FROM updated u
-     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name
+     LEFT JOIN users usr ON u.attendant_id = usr.id`,
     [ticketId, observation || null, JSON.stringify(resolutions || [])]
   );
   if (rows.length === 0) return null;
@@ -136,9 +140,10 @@ export async function startTicket(ticketId: string, code: string): Promise<{ suc
        WHERE id = $1
        RETURNING *
      )
-     SELECT u.*, tw.alias AS guiche_alias
+     SELECT u.*, tw.alias AS guiche_alias, usr.name as attendant_name
      FROM updated u
-     LEFT JOIN ticket_windows tw ON u.guiche = tw.name`,
+     LEFT JOIN ticket_windows tw ON u.guiche = tw.name
+     LEFT JOIN users usr ON u.attendant_id = usr.id`,
     [ticketId]
   );
   
@@ -178,9 +183,10 @@ export async function forwardTicket(
          VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
          RETURNING *
        )
-       SELECT i.*, tw.alias AS guiche_alias
+       SELECT i.*, tw.alias AS guiche_alias, usr.name as attendant_name
        FROM inserted i
-       LEFT JOIN ticket_windows tw ON i.guiche = tw.name`,
+       LEFT JOIN ticket_windows tw ON i.guiche = tw.name
+       LEFT JOIN users usr ON i.attendant_id = usr.id`,
       [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code, original.location_id]
     );
 

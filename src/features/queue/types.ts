@@ -8,7 +8,8 @@ export interface Ticket {
   createdAt: string;
   calledAt?: string;
   completedAt?: string;
-  attendant?: string;
+  attendantId?: number;
+  attendantName?: string;
   guiche?: string;
   guicheAlias?: string;
   observation?: string;

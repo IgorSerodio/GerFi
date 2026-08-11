@@ -62,7 +62,7 @@ export default function HistoryDetailModal({
                     Atendente / Guichê
                   </p>
                   <p className="text-lg font-black text-sefaz-dark leading-tight">
-                    {selectedHistoryTicket.attendant}<br/>
+                    {selectedHistoryTicket.attendantName || "N/A"}<br/>
                     <span className="text-sm font-bold text-sefaz-accent/70">{selectedHistoryTicket.guicheAlias || selectedHistoryTicket.guiche}</span>
                   </p>
                 </div>
