@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Trash2, X, PlayCircle, ListVideo, Presentation } from "lucide-react";
 import { TvSettings } from "@/features/tv/types";
-import { resolveYoutubeChannelAction } from "@/features/tv/actions";
+import { resolveYoutubeChannelAction } from "@/features/tv/services/youtube";
 
 interface TvMediaSettingsProps {
   editingTv: TvSettings;
