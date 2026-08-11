@@ -39,7 +39,7 @@ export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCal
 
       <div
         className={`relative leading-none font-black tracking-tighter ${getPriorityTextColorClass(currentCall.priority, "text-emerald-950")} ${currentCall.priority === "Prioritário" ? "drop-shadow-[0_20px_50px_rgba(220,38,38,0.3)]" : "drop-shadow-[0_20px_50px_rgba(6,78,59,0.3)]"}`}
-        style={{ fontSize: "min(28cqh, 16cqw)" }}
+        style={{ fontSize: "min(28cqh, 12cqw)" }}
       >
         {currentCall.ticketNumber}
       </div>
