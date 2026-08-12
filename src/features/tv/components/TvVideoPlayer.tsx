@@ -116,7 +116,7 @@ export default function TvVideoPlayer({
     if (isLiveEmbed) {
       return (
         <iframe
-          src={`${currentVideoUrl}&autoplay=1&mute=0`}
+          src={`${currentVideoUrl}&autoplay=1&mute=1`}
           width="100%"
           height="100%"
           frameBorder="0"
