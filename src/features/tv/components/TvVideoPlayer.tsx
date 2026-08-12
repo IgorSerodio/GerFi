@@ -17,9 +17,15 @@ interface YoutubeVideoElement extends HTMLElement {
   api?: {
     getVolume?: () => number;
     setVolume?: (vol: number) => void;
+    isMuted?: () => boolean;
+    mute?: () => void;
+    unMute?: () => void;
   };
   getVolume?: () => number;
   setVolume?: (vol: number) => void;
+  isMuted?: () => boolean;
+  mute?: () => void;
+  unMute?: () => void;
 }
 
 export default function TvVideoPlayer({
@@ -30,85 +36,80 @@ export default function TvVideoPlayer({
   handleVideoStart,
 }: TvVideoPlayerProps) {
   const playerRef = React.useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = React.useState(true);
+  const [volume, setVolume] = React.useState(1.0);
+  const syncGracePeriodRef = React.useRef(true);
 
-  // Removed imperative play/pause effect to prevent conflicts with playing prop
+  React.useEffect(() => {
+    syncGracePeriodRef.current = true;
+    const savedMuted = localStorage.getItem("tv_video_muted");
+    if (savedMuted === "false") {
+      setIsMuted(false);
+    } else if (savedMuted === null) {
+      localStorage.setItem("tv_video_muted", "true");
+    }
+
+    const savedVolStr = localStorage.getItem("tv_video_volume");
+    if (savedVolStr !== null) {
+      const vol = parseFloat(savedVolStr);
+      if (!isNaN(vol) && vol > 0) {
+        setVolume(vol);
+      }
+    }
+  }, []);
 
   const handleVideoProgress = React.useCallback(() => {
+    if (syncGracePeriodRef.current) return;
     try {
       if (!playerRef.current) return;
-      const player = (playerRef.current as unknown) as ReactPlayerInstance | HTMLVideoElement;
+      const player = (playerRef.current as unknown) as ReactPlayerInstance;
       
       const internalPlayer = (
         'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
           ? player.getInternalPlayer()
           : player
       ) as YoutubeVideoElement | HTMLMediaElement | null;
+      
       if (!internalPlayer) return;
 
       let currentVolNormalized: number | null = null;
+      let isCurrentlyMuted: boolean | null = null;
 
-      // Safely access volume without triggering youtube-video-element's buggy getter
       if ('api' in internalPlayer && internalPlayer.api) {
         if (typeof internalPlayer.api.getVolume === 'function') {
           currentVolNormalized = internalPlayer.api.getVolume() / 100;
         }
+        if (typeof internalPlayer.api.isMuted === 'function') {
+          isCurrentlyMuted = internalPlayer.api.isMuted();
+        }
       } else if ('getVolume' in internalPlayer && typeof internalPlayer.getVolume === 'function') {
         currentVolNormalized = internalPlayer.getVolume() / 100;
+        if ('isMuted' in internalPlayer && typeof (internalPlayer as any).isMuted === 'function') {
+          isCurrentlyMuted = (internalPlayer as any).isMuted();
+        }
       } else if (internalPlayer instanceof HTMLMediaElement) {
         currentVolNormalized = internalPlayer.volume;
+        isCurrentlyMuted = internalPlayer.muted;
       }
 
-      if (currentVolNormalized !== null) {
-        const savedVol = localStorage.getItem("tv_video_volume");
-        if (savedVol !== currentVolNormalized.toString()) {
-          localStorage.setItem("tv_video_volume", currentVolNormalized.toString());
-        }
+      if (isCurrentlyMuted !== null && isCurrentlyMuted !== isMuted) {
+        setIsMuted(isCurrentlyMuted);
+        localStorage.setItem("tv_video_muted", isCurrentlyMuted ? "true" : "false");
+      }
+
+      if (currentVolNormalized !== null && currentVolNormalized !== volume && currentVolNormalized > 0) {
+        setVolume(currentVolNormalized);
+        localStorage.setItem("tv_video_volume", currentVolNormalized.toString());
       }
     } catch {
-      // Silently catch any progress errors to prevent React crashes
     }
+  }, [isMuted, volume]);
+
+  const handleReady = React.useCallback(() => {
+    setTimeout(() => {
+      syncGracePeriodRef.current = false;
+    }, 2000);
   }, []);
-
-  const handleVideoStartWrapper = React.useCallback(() => {
-    handleVideoStart();
-    
-    try {
-      const savedVolStr = localStorage.getItem("tv_video_volume");
-      const vol = savedVolStr !== null ? parseFloat(savedVolStr) : 0;
-      
-      if (isNaN(vol)) return;
-
-      // Delay volume setting slightly to ensure internal API is fully populated
-      setTimeout(() => {
-        try {
-          if (!playerRef.current) return;
-          const player = (playerRef.current as unknown) as ReactPlayerInstance | HTMLVideoElement;
-          const internalPlayer = (
-            'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
-              ? player.getInternalPlayer()
-              : player
-          ) as YoutubeVideoElement | HTMLMediaElement | null;
-          
-          if (!internalPlayer) return;
-
-          // Safely set volume without triggering youtube-video-element's buggy setter
-          if ('api' in internalPlayer && internalPlayer.api) {
-            if (typeof internalPlayer.api.setVolume === 'function') {
-              internalPlayer.api.setVolume(vol * 100);
-            }
-          } else if ('setVolume' in internalPlayer && typeof internalPlayer.setVolume === 'function') {
-            internalPlayer.setVolume(vol * 100);
-          } else if (internalPlayer instanceof HTMLMediaElement) {
-            internalPlayer.volume = vol;
-          }
-        } catch (e) {
-          console.warn("Error setting volume after delay", e);
-        }
-      }, 1000); // Increased delay to 1s to ensure API is ready
-    } catch (error) {
-      console.warn("Could not set initial video volume:", error);
-    }
-  }, [handleVideoStart]);
 
   const isLiveEmbed = currentVideoUrl.includes("embed/live_stream");
 
@@ -123,27 +124,30 @@ export default function TvVideoPlayer({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           onError={handleVideoError}
-          onLoad={handleVideoStartWrapper}
+          onLoad={handleVideoStart}
         />
       );
     }
     return (
       <ReactPlayer
         key={currentVideoUrl}
-        ref={playerRef}
+        ref={playerRef as any}
         src={currentVideoUrl}
         width="100%"
         height="100%"
         playing={isIdle}
+        muted={isMuted}
+        volume={volume}
         controls={true}
         loop={false}
         onError={handleVideoError}
         onEnded={handleVideoEnd}
-        onStart={handleVideoStartWrapper}
+        onStart={handleVideoStart}
+        onReady={handleReady}
         onProgress={handleVideoProgress}
       />
     );
-  }, [currentVideoUrl, isLiveEmbed, handleVideoError, handleVideoEnd, handleVideoStartWrapper, handleVideoProgress]);
+  }, [currentVideoUrl, isLiveEmbed, isIdle, isMuted, volume, handleVideoError, handleVideoEnd, handleVideoStart, handleReady, handleVideoProgress]);
 
   return (
     <div className="w-full h-full">
