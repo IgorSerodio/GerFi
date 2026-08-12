@@ -41,6 +41,9 @@ export function useYoutubePoller(tvSettings: TvSettings) {
       if (!isMounted) return;
       
       if (res.success && res.isLive) {
+        if (res.liveVideoId) {
+          setChannelLiveUrl(`https://www.youtube.com/watch?v=${res.liveVideoId}`);
+        }
         setChannelIsLive(true);
       } else {
         setChannelIsLive(false);

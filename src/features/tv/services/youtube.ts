@@ -55,7 +55,15 @@ export async function checkYoutubeLiveStatusAction(channelId: string) {
     const html = await res.text();
     const isLiveNow = html.includes('"isLiveNow":true') || html.includes('isLiveBroadcast');
     
-    return { success: true, isLive: isLiveNow };
+    let liveVideoId;
+    if (isLiveNow) {
+      const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+      if (match) {
+        liveVideoId = match[1];
+      }
+    }
+    
+    return { success: true, isLive: isLiveNow, liveVideoId };
   } catch (error) {
     return { success: false, isLive: false };
   }
