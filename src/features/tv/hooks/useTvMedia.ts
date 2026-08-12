@@ -24,6 +24,7 @@ export function useTvMedia(tvSettings: TvSettings) {
   const { 
     currentVideoIndex, 
     consecutiveErrors, 
+    playCycle,
     nextVideo, 
     addError, 
     resetErrors,
@@ -98,7 +99,7 @@ export function useTvMedia(tvSettings: TvSettings) {
   } else if ((playbackMode === "channel" || playbackMode === "channel-playlist") && channelPlaylistUrl) {
     currentVideoUrl = channelPlaylistUrl;
   } else if (playbackMode === "playlist" && totalVideos > 0 && tvSettings.videoUrl[currentVideoIndex]) {
-    currentVideoUrl = `https://www.youtube.com/watch?v=${tvSettings.videoUrl[currentVideoIndex].videoId}`;
+    currentVideoUrl = `https://www.youtube.com/watch?v=${tvSettings.videoUrl[currentVideoIndex].videoId}&cycle=${playCycle}`;
   }
 
   const useSlidesFallback = 

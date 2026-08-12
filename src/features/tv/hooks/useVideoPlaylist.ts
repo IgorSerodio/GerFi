@@ -4,6 +4,7 @@ import { TvSettings } from "@/features/tv/types";
 export function useVideoPlaylist(tvSettings: TvSettings) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
+  const [playCycle, setPlayCycle] = useState(0);
 
   const tvSettingsRef = useRef(tvSettings);
   useEffect(() => {
@@ -17,12 +18,14 @@ export function useVideoPlaylist(tvSettings: TvSettings) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentVideoIndex(0);
     setConsecutiveErrors(0);
+    setPlayCycle(0);
   }, [videoIdsStr]);
 
   const nextVideo = useCallback(() => {
     const videoUrl = tvSettingsRef.current.videoUrl;
     if (videoUrl && videoUrl.length > 0) {
       setCurrentVideoIndex(prev => (prev + 1) % videoUrl.length);
+      setPlayCycle(prev => prev + 1);
     }
   }, []);
 
@@ -38,6 +41,7 @@ export function useVideoPlaylist(tvSettings: TvSettings) {
   return {
     currentVideoIndex,
     consecutiveErrors,
+    playCycle,
     nextVideo,
     addError,
     resetErrors,

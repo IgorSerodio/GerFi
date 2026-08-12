@@ -129,6 +129,7 @@ export default function TvVideoPlayer({
     }
     return (
       <ReactPlayer
+        key={currentVideoUrl}
         ref={playerRef}
         src={currentVideoUrl}
         width="100%"

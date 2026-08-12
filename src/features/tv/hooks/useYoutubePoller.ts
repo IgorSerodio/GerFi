@@ -22,7 +22,7 @@ export function useYoutubePoller(tvSettings: TvSettings) {
         if (res.success && res.data) {
           setChannelId(res.data.channelId);
           setChannelLiveUrl(res.data.liveUrl);
-          setChannelPlaylistUrl(`https://www.youtube.com/embed/videoseries?list=${res.data.playlistId}`);
+          setChannelPlaylistUrl(`https://www.youtube.com/playlist?list=${res.data.playlistId}`);
         } else {
           setChannelResolveError(true);
         }
