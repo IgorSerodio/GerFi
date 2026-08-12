@@ -44,6 +44,7 @@ export default function TvVideoPlayer({
     syncGracePeriodRef.current = true;
     const savedMuted = localStorage.getItem("tv_video_muted");
     if (savedMuted === "false") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsMuted(false);
     } else if (savedMuted === null) {
       localStorage.setItem("tv_video_muted", "true");
@@ -84,8 +85,8 @@ export default function TvVideoPlayer({
         }
       } else if ('getVolume' in internalPlayer && typeof internalPlayer.getVolume === 'function') {
         currentVolNormalized = internalPlayer.getVolume() / 100;
-        if ('isMuted' in internalPlayer && typeof (internalPlayer as any).isMuted === 'function') {
-          isCurrentlyMuted = (internalPlayer as any).isMuted();
+        if ('isMuted' in internalPlayer && typeof internalPlayer.isMuted === 'function') {
+          isCurrentlyMuted = internalPlayer.isMuted();
         }
       } else if (internalPlayer instanceof HTMLMediaElement) {
         currentVolNormalized = internalPlayer.volume;
@@ -131,7 +132,7 @@ export default function TvVideoPlayer({
     return (
       <ReactPlayer
         key={currentVideoUrl}
-        ref={playerRef as any}
+        ref={playerRef}
         src={currentVideoUrl}
         width="100%"
         height="100%"
