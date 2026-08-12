@@ -108,7 +108,7 @@ export default function TvVideoPlayer({
   const handleReady = React.useCallback(() => {
     setTimeout(() => {
       syncGracePeriodRef.current = false;
-    }, 2000);
+    }, 500);
   }, []);
 
   const isLiveEmbed = currentVideoUrl.includes("embed/live_stream");
