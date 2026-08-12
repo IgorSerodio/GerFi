@@ -10,7 +10,16 @@ interface TvVideoPlayerProps {
 }
 
 interface ReactPlayerInstance {
-  getInternalPlayer: () => Record<string, unknown> | HTMLVideoElement | null;
+  getInternalPlayer: () => YoutubeVideoElement | HTMLMediaElement | null;
+}
+
+interface YoutubeVideoElement extends HTMLElement {
+  api?: {
+    getVolume?: () => number;
+    setVolume?: (vol: number) => void;
+  };
+  getVolume?: () => number;
+  setVolume?: (vol: number) => void;
 }
 
 export default function TvVideoPlayer({
@@ -22,38 +31,7 @@ export default function TvVideoPlayer({
 }: TvVideoPlayerProps) {
   const playerRef = React.useRef<HTMLVideoElement>(null);
 
-  React.useEffect(() => {
-    if (!playerRef.current) return;
-    
-    try {
-      const player = (playerRef.current as unknown) as ReactPlayerInstance | HTMLVideoElement;
-      const internal = (
-        'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
-          ? player.getInternalPlayer()
-          : player
-      ) as Record<string, unknown> | HTMLVideoElement | null;
-      
-      if (isIdle) {
-        if (internal) {
-          if ('playVideo' in internal && typeof internal.playVideo === 'function') {
-            internal.playVideo(); // Youtube
-          } else if ('play' in internal && typeof internal.play === 'function') {
-            internal.play(); // HTML5
-          }
-        }
-      } else {
-        if (internal) {
-          if ('pauseVideo' in internal && typeof internal.pauseVideo === 'function') {
-            internal.pauseVideo(); // Youtube
-          } else if ('pause' in internal && typeof internal.pause === 'function') {
-            internal.pause(); // HTML5
-          }
-        }
-      }
-    } catch (error) {
-      console.warn("Could not imperatively control video player:", error);
-    }
-  }, [isIdle]);
+  // Removed imperative play/pause effect to prevent conflicts with playing prop
 
   const handleVideoProgress = React.useCallback(() => {
     try {
@@ -64,15 +42,19 @@ export default function TvVideoPlayer({
         'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
           ? player.getInternalPlayer()
           : player
-      ) as Record<string, unknown> | HTMLVideoElement | null;
+      ) as YoutubeVideoElement | HTMLMediaElement | null;
       if (!internalPlayer) return;
 
       let currentVolNormalized: number | null = null;
 
-      if ('getVolume' in internalPlayer && typeof internalPlayer.getVolume === 'function') {
-        currentVolNormalized = (internalPlayer.getVolume() as number) / 100;
-      } 
-      else if ('volume' in internalPlayer && typeof internalPlayer.volume === 'number') {
+      // Safely access volume without triggering youtube-video-element's buggy getter
+      if ('api' in internalPlayer && internalPlayer.api) {
+        if (typeof internalPlayer.api.getVolume === 'function') {
+          currentVolNormalized = internalPlayer.api.getVolume() / 100;
+        }
+      } else if ('getVolume' in internalPlayer && typeof internalPlayer.getVolume === 'function') {
+        currentVolNormalized = internalPlayer.getVolume() / 100;
+      } else if (internalPlayer instanceof HTMLMediaElement) {
         currentVolNormalized = internalPlayer.volume;
       }
 
@@ -83,6 +65,7 @@ export default function TvVideoPlayer({
         }
       }
     } catch {
+      // Silently catch any progress errors to prevent React crashes
     }
   }, []);
 
@@ -95,22 +78,33 @@ export default function TvVideoPlayer({
       
       if (isNaN(vol)) return;
 
-      if (!playerRef.current) return;
-      const player = (playerRef.current as unknown) as ReactPlayerInstance | HTMLVideoElement;
+      // Delay volume setting slightly to ensure internal API is fully populated
+      setTimeout(() => {
+        try {
+          if (!playerRef.current) return;
+          const player = (playerRef.current as unknown) as ReactPlayerInstance | HTMLVideoElement;
+          const internalPlayer = (
+            'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
+              ? player.getInternalPlayer()
+              : player
+          ) as YoutubeVideoElement | HTMLMediaElement | null;
+          
+          if (!internalPlayer) return;
 
-      const internalPlayer = (
-        'getInternalPlayer' in player && typeof player.getInternalPlayer === 'function'
-          ? player.getInternalPlayer()
-          : player
-      ) as Record<string, unknown> | HTMLVideoElement | null;
-      if (!internalPlayer) return;
-
-      if ('setVolume' in internalPlayer && typeof internalPlayer.setVolume === 'function') {
-        internalPlayer.setVolume(vol * 100);
-      } 
-      else if ('volume' in internalPlayer) {
-        Reflect.set(internalPlayer, 'volume', vol);
-      }
+          // Safely set volume without triggering youtube-video-element's buggy setter
+          if ('api' in internalPlayer && internalPlayer.api) {
+            if (typeof internalPlayer.api.setVolume === 'function') {
+              internalPlayer.api.setVolume(vol * 100);
+            }
+          } else if ('setVolume' in internalPlayer && typeof internalPlayer.setVolume === 'function') {
+            internalPlayer.setVolume(vol * 100);
+          } else if (internalPlayer instanceof HTMLMediaElement) {
+            internalPlayer.volume = vol;
+          }
+        } catch (e) {
+          console.warn("Error setting volume after delay", e);
+        }
+      }, 1000); // Increased delay to 1s to ensure API is ready
     } catch (error) {
       console.warn("Could not set initial video volume:", error);
     }
@@ -139,7 +133,7 @@ export default function TvVideoPlayer({
         src={currentVideoUrl}
         width="100%"
         height="100%"
-        playing={true}
+        playing={isIdle}
         controls={true}
         loop={false}
         onError={handleVideoError}
@@ -152,7 +146,7 @@ export default function TvVideoPlayer({
 
   return (
     <div className="w-full h-full">
-      {playerElement}
+      {currentVideoUrl ? playerElement : null}
     </div>
   );
 }
