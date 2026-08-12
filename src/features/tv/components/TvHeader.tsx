@@ -3,7 +3,7 @@ import Image from "next/image";
 import { formatTime } from "@/utils/dateFormatter";
 
 interface TvHeaderProps {
-  time: Date;
+  time: Date | null;
 }
 
 export default function TvHeader({ time }: TvHeaderProps) {

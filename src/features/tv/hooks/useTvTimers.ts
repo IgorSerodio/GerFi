@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 export function useTvTimers() {
-  const [time, setTime] = useState<Date>(new Date());
+  const [time, setTime] = useState<Date | null>(null);
   const [isIdle, setIsIdle] = useState(true);
   const [showControls, setShowControls] = useState(true);
   
@@ -9,6 +9,7 @@ export function useTvTimers() {
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    setTime(new Date());
     const clockTimer = setInterval(() => {
       setTime(new Date());
     }, 1000);
