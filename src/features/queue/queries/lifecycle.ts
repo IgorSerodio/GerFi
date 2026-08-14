@@ -46,7 +46,11 @@ export async function callNextTicket(
   const queryParams: unknown[] = [servicesArray, attendantId, guiche, locationId];
 
   if (isForwardedCall) {
-    queryStr += ` AND forwarded_to = $3`;
+    queryStr += ` AND (
+      (forward_type = 'single' AND forwarded_to = $3)
+      OR 
+      (forward_type = 'group' AND forwarded_to = (SELECT group_name FROM ticket_windows WHERE name = $3 AND location_id = $4 LIMIT 1))
+    )`;
     queryStr += ` AND ($1::integer[] IS NULL OR $1::integer[] IS NOT NULL)`;
   } else {
     queryStr += ` AND forwarded_to IS NULL`;
@@ -155,7 +159,8 @@ export async function startTicket(ticketId: string, code: string): Promise<{ suc
  */
 export async function forwardTicket(
   ticketId: string,
-  targetGuiche: string
+  targetGuiche: string,
+  targetType: "single" | "group" = "single"
 ): Promise<Ticket | null> {
   const client = await pool.connect();
   try {
@@ -174,20 +179,20 @@ export async function forwardTicket(
            completed_at = NOW(), 
            observation = $2 
        WHERE id = $1`,
-      [ticketId, `Encaminhado para ${targetGuiche}`]
+      [ticketId, targetType === 'group' ? `Encaminhado para o grupo ${targetGuiche}` : `Encaminhado para ${targetGuiche}`]
     );
 
     const newRes = await client.query(
       `WITH inserted AS (
-         INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, security_code, location_id)
-         VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7)
+         INSERT INTO tickets (ticket_number, category_id, category_name, priority, status, forwarded_to, forward_type, security_code, location_id)
+         VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7, $8)
          RETURNING *
        )
        SELECT i.*, tw.alias AS guiche_alias, usr.name as attendant_name
        FROM inserted i
        LEFT JOIN ticket_windows tw ON i.guiche = tw.name
        LEFT JOIN users usr ON i.attendant_id = usr.id`,
-      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, original.security_code, original.location_id]
+      [original.ticket_number, original.category_id, original.category_name, original.priority, targetGuiche, targetType, original.security_code, original.location_id]
     );
 
     await client.query("COMMIT");

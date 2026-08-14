@@ -20,6 +20,7 @@ export interface DbTicketRow {
   resolutions?: string[];
   recall_history?: Date[] | null;
   forwarded_to?: string | null;
+  forward_type?: "single" | "group";
   location_id: number;
 }
 
@@ -44,6 +45,7 @@ export function mapTicketRow(row: DbTicketRow): Ticket {
     resolutions: row.resolutions || [],
     recallHistory: row.recall_history?.map((d) => d.toISOString()) || [],
     forwardedTo: row.forwarded_to || undefined,
+    forwardType: row.forward_type || "single",
     locationId: row.location_id,
   };
 }

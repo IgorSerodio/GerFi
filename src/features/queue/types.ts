@@ -19,6 +19,7 @@ export interface Ticket {
   resolutions?: string[];
   recallHistory?: string[];
   forwardedTo?: string;
+  forwardType?: "single" | "group";
 }
 
 export interface QueueState {

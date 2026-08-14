@@ -48,6 +48,7 @@ export function TicketWindowsList({
               <tr>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">ID</th>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Nome</th>
+                <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Grupo</th>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase">Apelido</th>
                 <th className="px-4 py-3 text-[10px] font-black text-sefaz-accent uppercase text-right">Ações</th>
               </tr>
@@ -57,6 +58,13 @@ export function TicketWindowsList({
                 <tr key={tw.id} className="hover:bg-emerald-50/50 transition-colors">
                   <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">#{tw.id}</td>
                   <td className="px-4 py-3 text-xs font-black text-sefaz-dark">{tw.name}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">
+                    {tw.groupName ? (
+                      <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md text-[10px] uppercase font-black tracking-widest">{tw.groupName}</span>
+                    ) : (
+                      <span className="text-emerald-600/50">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs font-bold text-sefaz-accent">{tw.alias || "-"}</td>
                   <td className="px-4 py-3 text-right">
                     <button onClick={() => onEditTicketWindow(tw)} className="p-2 text-sefaz-accent hover:bg-emerald-50 rounded-lg cursor-pointer mr-2">

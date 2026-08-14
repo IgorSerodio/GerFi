@@ -27,6 +27,9 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
   const [editingTw, setEditingTw] = useState<DbTicketWindow | null>(null);
   const [twAlias, setTwAlias] = useState("");
   const [twLabel, setTwLabel] = useState("");
+  const [twGroup, setTwGroup] = useState("");
+
+  const availableGroups = Array.from(new Set(ticketWindows.map(tw => tw.groupName).filter(Boolean))) as string[];
 
   const loadLocations = React.useCallback(async () => {
     const res = await getLocationsAction();
@@ -133,13 +136,24 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
     setEditingTw(tw);
     setTwAlias(tw.alias || "");
     setTwLabel(tw.label || "");
+    setTwGroup(tw.groupName || "");
     setShowTwModal(true);
   };
 
   const handleSaveTicketWindow = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTw) return;
-    const res = await updateTicketWindowDetailsAction(editingTw.id, twAlias || null, twLabel || null);
+    
+    let finalGroup: string | null = twGroup;
+    if (twGroup === "NEW_GROUP") {
+      finalGroup = null; // Cannot save empty new group
+    } else if (twGroup.startsWith("NEW_GROUP_VALUE:")) {
+      finalGroup = twGroup.replace("NEW_GROUP_VALUE:", "");
+    } else if (twGroup === "") {
+      finalGroup = null;
+    }
+
+    const res = await updateTicketWindowDetailsAction(editingTw.id, twAlias || null, twLabel || null, finalGroup);
     if (res.success) {
       triggerSuccess("Apelido atualizado!");
       setShowTwModal(false);
@@ -208,6 +222,9 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
         onTicketWindowAliasChange={setTwAlias}
         ticketWindowLabel={twLabel}
         onTicketWindowLabelChange={setTwLabel}
+        ticketWindowGroup={twGroup}
+        onTicketWindowGroupChange={setTwGroup}
+        availableGroups={availableGroups}
         onSubmit={handleSaveTicketWindow}
         originalName={editingTw?.name || ""}
       />

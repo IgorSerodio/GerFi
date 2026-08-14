@@ -200,16 +200,17 @@ export async function noShowTicketAction(ticketId: string) {
  */
 export async function forwardTicketAction(
   ticketId: string,
-  targetGuiche: string
+  targetGuiche: string,
+  targetType?: "single" | "group"
 ) {
-  const result = ForwardTicketSchema.safeParse({ ticketId, targetGuiche });
+  const result = ForwardTicketSchema.safeParse({ ticketId, targetGuiche, targetType });
   if (!result.success) {
     return { success: false, error: result.error.issues[0].message };
   }
 
   try {
     await requirePermission("OPERATE_QUEUE");
-    const ticket = await forwardTicket(ticketId, targetGuiche);
+    const ticket = await forwardTicket(ticketId, targetGuiche, targetType);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
     }

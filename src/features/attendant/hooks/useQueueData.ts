@@ -61,6 +61,8 @@ export function useQueueData() {
     const active = activeGuiches.find((a) => a.guiche === tw.name);
     return {
       guiche: tw.name,
+      alias: tw.alias,
+      groupName: tw.groupName,
       attendantName: active?.attendantName,
     };
   });

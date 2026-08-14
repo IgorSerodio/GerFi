@@ -112,10 +112,10 @@ export async function deleteTicketWindowAction(id: number) {
   }
 }
 
-export async function updateTicketWindowDetailsAction(id: number, alias: string | null, label: string | null) {
+export async function updateTicketWindowDetailsAction(id: number, alias: string | null, label: string | null, groupName: string | null = null) {
   try {
     await requirePermission("MANAGE_CONFIGS");
-    const window = await updateTicketWindowDetails(id, alias, label);
+    const window = await updateTicketWindowDetails(id, alias, label, groupName);
     triggerRealTimeUpdate();
     return { success: true, data: window };
   } catch (error) {

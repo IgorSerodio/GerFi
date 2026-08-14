@@ -15,5 +15,6 @@ export const FinishTicketSchema = z.object({
 export const ForwardTicketSchema = z.object({
   ticketId: z.string().min(1, "O ID do ticket é obrigatório"),
   targetGuiche: z.string().min(1, "O guichê de destino é obrigatório"),
+  targetType: z.enum(["single", "group"]).optional(),
 });
 

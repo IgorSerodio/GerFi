@@ -14,6 +14,7 @@ export interface TimelineTicket {
   completedAt: string | null;
   recallHistory: string[];
   forwardedTo: string | null;
+  forwardType: "single" | "group";
   originalCreatedAt: string | null;
   originalCalledAt: string | null;
   globalWaitSeconds: number;
@@ -27,7 +28,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
     SELECT 
       t.id, u.name as attendant, t.guiche, tw.alias as guiche_alias, t.priority, t.status, t.ticket_number,
       t.created_at, t.called_at, t.started_at, t.completed_at,
-      t.recall_history, t.forwarded_to,
+      t.recall_history, t.forwarded_to, t.forward_type,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
       (SELECT MIN(called_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_called_at,
       (SELECT SUM(EXTRACT(EPOCH FROM (called_at - created_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_wait_seconds,
@@ -71,6 +72,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
     completedAt: row.completed_at ? row.completed_at.toISOString() : null,
     recallHistory: row.recall_history ? row.recall_history.map((d: Date) => d.toISOString()) : [],
     forwardedTo: row.forwarded_to || null,
+    forwardType: row.forward_type || "single",
     originalCreatedAt: row.original_created_at ? row.original_created_at.toISOString() : null,
     originalCalledAt: row.original_called_at ? row.original_called_at.toISOString() : null,
     globalWaitSeconds: parseFloat(row.global_wait_seconds) || 0,

@@ -8,6 +8,9 @@ interface TicketWindowFormModalProps {
   onTicketWindowAliasChange: (alias: string) => void;
   ticketWindowLabel: string;
   onTicketWindowLabelChange: (label: string) => void;
+  ticketWindowGroup: string;
+  onTicketWindowGroupChange: (group: string) => void;
+  availableGroups: string[];
   onSubmit: (e: React.FormEvent) => void;
   originalName: string;
 }
@@ -19,6 +22,9 @@ export function TicketWindowFormModal({
   onTicketWindowAliasChange,
   ticketWindowLabel,
   onTicketWindowLabelChange,
+  ticketWindowGroup,
+  onTicketWindowGroupChange,
+  availableGroups,
   onSubmit,
   originalName,
 }: TicketWindowFormModalProps) {
@@ -57,6 +63,31 @@ export function TicketWindowFormModal({
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
               placeholder="Ex: Sala Médica"
             />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
+              Grupo de Encaminhamento
+            </label>
+            <select
+              value={ticketWindowGroup === "NEW_GROUP" ? "NEW_GROUP" : (ticketWindowGroup || "")}
+              onChange={(e) => onTicketWindowGroupChange(e.target.value)}
+              className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
+            >
+              <option value="">Sem grupo</option>
+              {availableGroups.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+              <option value="NEW_GROUP">+ Novo Grupo</option>
+            </select>
+            {ticketWindowGroup === "NEW_GROUP" && (
+              <input
+                type="text"
+                autoFocus
+                onChange={(e) => onTicketWindowGroupChange(e.target.value ? `NEW_GROUP_VALUE:${e.target.value}` : "NEW_GROUP")}
+                className="w-full p-3 mt-2 bg-emerald-50/50 rounded-xl border border-emerald-500 outline-none text-sm font-bold shadow-inner"
+                placeholder="Digite o nome do novo grupo"
+              />
+            )}
           </div>
         </div>
         <div className="flex gap-4">

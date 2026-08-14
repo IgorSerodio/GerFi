@@ -20,7 +20,7 @@ interface AttendantModalsProps {
     showStartModal: boolean;
     currentCall: Ticket | undefined;
     showForwardModal: boolean;
-    attendants: { guiche: string; attendantName: string | undefined }[];
+    attendants: { guiche: string; alias?: string | null; groupName?: string | null; attendantName: string | undefined }[];
     currentAttendant: { name: string; guiche: string };
     showFinishModal: boolean;
     ticketToFinish: string | null;
@@ -36,7 +36,7 @@ interface AttendantModalsProps {
     setShowStartModal: (v: boolean) => void;
     confirmStart: (code: string) => Promise<void>;
     setShowForwardModal: (v: boolean) => void;
-    handleForward: (id: string, guiche: string) => Promise<void>;
+    handleForward: (id: string, guiche: string, type?: "single" | "group") => Promise<void>;
     setObservation: (v: string) => void;
     setSelectedResolutions: (v: string[] | ((prev: string[]) => string[])) => void;
     setShowFinishModal: (v: boolean) => void;
