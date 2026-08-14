@@ -15,7 +15,7 @@ export async function getMonthlyEvolution(
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND u.name = ANY($${params.length})`;
   }
 
   const { rows } = await pool.query(
@@ -66,7 +66,7 @@ export async function getYearlyEvolution(
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND u.name = ANY($${params.length})`;
   }
 
   const { rows } = await pool.query(

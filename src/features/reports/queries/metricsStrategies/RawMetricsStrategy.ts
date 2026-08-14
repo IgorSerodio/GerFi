@@ -6,7 +6,7 @@ import { CategoryRank, AttendantRank } from "../ranking";
 
 export class RawMetricsStrategy implements MetricsStrategy {
   private getBaseFilter(filters: ReportFiltersDTO, params: QueryParam[], tableAlias = 't'): string {
-    let baseFilter = `${tableAlias}.attendant IS NULL OR ${tableAlias}.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')`;
+    let baseFilter = `(${tableAlias}.attendant_id IS NULL OR ${tableAlias}.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))`;
 
     if (filters.startDate && filters.endDate) {
       params.push(filters.startDate, filters.endDate);
@@ -29,7 +29,7 @@ export class RawMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND ${tableAlias}.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
     if (filters.subcategories && filters.subcategories.length > 0) {
       params.push(filters.subcategories);
@@ -69,13 +69,14 @@ export class RawMetricsStrategy implements MetricsStrategy {
     const baseFilter = this.getBaseFilter(filters, params, 't');
 
     const finalQuery = `
-      WITH total_tickets AS (SELECT COUNT(id) as total FROM tickets t WHERE ${baseFilter})
+      WITH total_tickets AS (SELECT COUNT(id) as total FROM tickets t LEFT JOIN users u ON t.attendant_id = u.id WHERE ${baseFilter})
       SELECT 
         c.name,
         COUNT(t.id) as count,
         COALESCE((COUNT(t.id) * 100.0) / NULLIF((SELECT total FROM total_tickets), 0), 0) as percentage
       FROM tickets t
       JOIN categories c ON t.category_id = c.id
+      LEFT JOIN users u ON t.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY c.name
       ORDER BY count DESC
@@ -97,12 +98,13 @@ export class RawMetricsStrategy implements MetricsStrategy {
     const queryStr = `
       WITH ${getFilteredTicketsCTE(baseFilter)}
       SELECT 
-        attendant as name,
-        COUNT(id) as count,
-        COALESCE(AVG(chain_service_seconds) / 60, 0) as avg_duration
-      FROM filtered_tickets
-      WHERE effective_status = 'completed' AND attendant IS NOT NULL AND attendant != 'Não Atribuído'
-      GROUP BY attendant
+        u.name as name,
+        COUNT(f.id) as count,
+        COALESCE(AVG(f.chain_service_seconds) / 60, 0) as avg_duration
+      FROM filtered_tickets f
+      LEFT JOIN users u ON f.attendant_id = u.id
+      WHERE f.effective_status = 'completed' AND f.attendant_id IS NOT NULL
+      GROUP BY u.name
       ORDER BY count DESC
     `;
 
@@ -213,6 +215,7 @@ export class RawMetricsStrategy implements MetricsStrategy {
         EXTRACT(ISODOW FROM t.created_at) as dow,
         COUNT(t.id) as total_count
       FROM tickets t
+      LEFT JOIN users u ON t.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY EXTRACT(ISODOW FROM t.created_at)
       ORDER BY EXTRACT(ISODOW FROM t.created_at)

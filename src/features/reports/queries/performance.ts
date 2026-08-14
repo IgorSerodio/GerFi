@@ -16,7 +16,7 @@ export interface PerformanceRow {
  * e o tempo médio de espera, chamada e atendimento para cada atendente.
  */
 export async function getPerformanceData(filters: ReportFiltersDTO): Promise<PerformanceRow[]> {
-  let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+  let baseFilter = "(t.attendant_id IS NULL OR t.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
   const params: QueryParam[] = [];
 
   if (filters.startDate && filters.endDate) {
@@ -40,7 +40,7 @@ export async function getPerformanceData(filters: ReportFiltersDTO): Promise<Per
   }
   if (filters.attendants && filters.attendants.length > 0) {
     params.push(filters.attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND u.name = ANY($${params.length})`;
   }
   if (filters.subcategories && filters.subcategories.length > 0) {
     params.push(filters.subcategories);
@@ -49,15 +49,16 @@ export async function getPerformanceData(filters: ReportFiltersDTO): Promise<Per
 
   const queryStr = `
     SELECT 
-      t.attendant as name,
+      u.name as name,
       COUNT(t.id) as tickets_answered,
       COALESCE(AVG(EXTRACT(EPOCH FROM (t.called_at - t.created_at))), 0) as avg_wait_seconds,
       COALESCE(AVG(EXTRACT(EPOCH FROM (t.started_at - t.called_at))), 0) as avg_call_seconds,
       COALESCE(AVG(EXTRACT(EPOCH FROM (t.completed_at - t.started_at))), 0) as avg_service_seconds
     FROM tickets t
-    WHERE t.status IN ('completed', 'forwarded') AND t.attendant IS NOT NULL
+    LEFT JOIN users u ON t.attendant_id = u.id
+    WHERE t.status IN ('completed', 'forwarded') AND t.attendant_id IS NOT NULL
       AND ${baseFilter}
-    GROUP BY t.attendant
+    GROUP BY u.name
     ORDER BY tickets_answered DESC
   `;
 

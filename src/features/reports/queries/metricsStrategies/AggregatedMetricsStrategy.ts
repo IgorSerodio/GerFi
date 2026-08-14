@@ -6,7 +6,7 @@ import { CategoryRank, AttendantRank } from "../ranking";
 
 export class AggregatedMetricsStrategy implements MetricsStrategy {
   async getVolumeStats(filters: ReportFiltersDTO): Promise<VolumeStats> {
-    let baseFilter = "attendant IS NULL OR attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(attendant_id IS NULL OR attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -26,7 +26,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
@@ -36,6 +36,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
         COALESCE(SUM(sum_service_seconds) / NULLIF(SUM(total_completed), 0) / 60, 0) as avg_service_min,
         COALESCE((SUM(total_completed) * 100.0) / NULLIF((SUM(total_generated) - SUM(total_no_show)), 0), 0) as efficiency
       FROM daily_ticket_metrics
+      LEFT JOIN users u ON attendant_id = u.id
       WHERE ${baseFilter}
     `;
 
@@ -50,7 +51,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getCategoryRanking(filters: ReportFiltersDTO): Promise<CategoryRank[]> {
-    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(m.attendant_id IS NULL OR m.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -70,17 +71,18 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND m.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const finalQuery = `
-      WITH total_tickets AS (SELECT COALESCE(SUM(total_generated), 0) as total FROM daily_ticket_metrics m WHERE ${baseFilter})
+      WITH total_tickets AS (SELECT COALESCE(SUM(total_generated), 0) as total FROM daily_ticket_metrics m LEFT JOIN users u ON m.attendant_id = u.id WHERE ${baseFilter})
       SELECT 
         c.name,
         SUM(m.total_generated) as count,
         COALESCE((SUM(m.total_generated) * 100.0) / NULLIF((SELECT total FROM total_tickets), 0), 0) as percentage
       FROM daily_ticket_metrics m
       JOIN categories c ON m.category_id = c.id
+      LEFT JOIN users u ON m.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY c.name
       ORDER BY count DESC
@@ -96,7 +98,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getAttendantRanking(filters: ReportFiltersDTO): Promise<AttendantRank[]> {
-    let baseFilter = "m.attendant != 'Não Atribuído' AND m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "m.attendant_id IS NOT NULL AND m.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin')";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -116,17 +118,18 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND m.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
       SELECT 
-        m.attendant as name,
+        u.name as name,
         SUM(m.total_completed) as count,
         COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration
       FROM daily_ticket_metrics m
+      LEFT JOIN users u ON m.attendant_id = u.id
       WHERE ${baseFilter}
-      GROUP BY m.attendant
+      GROUP BY u.name
       ORDER BY count DESC
     `;
 
@@ -140,7 +143,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getCategoryAvgDuration(filters: ReportFiltersDTO): Promise<ChartPoint[]> {
-    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(m.attendant_id IS NULL OR m.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -160,7 +163,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND m.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
@@ -169,6 +172,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
         COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration
       FROM daily_ticket_metrics m
       JOIN categories c ON m.category_id = c.id
+      LEFT JOIN users u ON m.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY c.name
       ORDER BY avg_duration DESC
@@ -186,7 +190,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     const diffDays = (filters.startDate && filters.endDate) ? Math.ceil((filters.endDate.getTime() - filters.startDate.getTime()) / (1000 * 3600 * 24)) : 999;
     
     if (diffDays <= 2) {
-      let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+      let baseFilter = "(t.attendant_id IS NULL OR t.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
       const params: QueryParam[] = [];
 
       if (filters.startDate && filters.endDate) {
@@ -210,7 +214,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
       }
       if (filters.attendants && filters.attendants.length > 0) {
         params.push(filters.attendants);
-        baseFilter += ` AND t.attendant = ANY($${params.length})`;
+        baseFilter += ` AND u.name = ANY($${params.length})`;
       }
 
       const queryStr = `
@@ -245,7 +249,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
       dateFormat = "DD/MM";
     }
 
-    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(m.attendant_id IS NULL OR m.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -269,7 +273,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND m.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
@@ -279,6 +283,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
         COALESCE(SUM(m.sum_service_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_duration,
         COALESCE(SUM(m.sum_wait_seconds) / NULLIF(SUM(m.total_completed), 0) / 60, 0) as avg_wait
       FROM daily_ticket_metrics m
+      LEFT JOIN users u ON m.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY ${groupBy}
       ORDER BY ${groupBy}
@@ -294,7 +299,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getPeakHours(filters: ReportFiltersDTO): Promise<EvolutionPoint[]> {
-    let baseFilter = "t.attendant IS NULL OR t.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(t.attendant_id IS NULL OR t.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -318,7 +323,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND t.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
@@ -342,7 +347,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
   }
 
   async getBusyDays(filters: ReportFiltersDTO): Promise<ChartPoint[]> {
-    let baseFilter = "m.attendant IS NULL OR m.attendant NOT IN (SELECT name FROM users WHERE role = 'admin')";
+    let baseFilter = "(m.attendant_id IS NULL OR m.attendant_id NOT IN (SELECT id FROM users WHERE role = 'Admin'))";
     const params: QueryParam[] = [];
 
     if (filters.startDate && filters.endDate) {
@@ -366,7 +371,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
     }
     if (filters.attendants && filters.attendants.length > 0) {
       params.push(filters.attendants);
-      baseFilter += ` AND m.attendant = ANY($${params.length})`;
+      baseFilter += ` AND u.name = ANY($${params.length})`;
     }
 
     const queryStr = `
@@ -374,6 +379,7 @@ export class AggregatedMetricsStrategy implements MetricsStrategy {
         EXTRACT(ISODOW FROM m.date) as dow,
         SUM(m.total_generated) as total_count
       FROM daily_ticket_metrics m
+      LEFT JOIN users u ON m.attendant_id = u.id
       WHERE ${baseFilter}
       GROUP BY EXTRACT(ISODOW FROM m.date)
       ORDER BY EXTRACT(ISODOW FROM m.date)

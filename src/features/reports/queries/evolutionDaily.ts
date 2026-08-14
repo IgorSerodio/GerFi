@@ -15,7 +15,7 @@ export async function getHourlyEvolutionToday(
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND u.name = ANY($${params.length})`;
   }
 
   const { rows } = await pool.query(
@@ -68,7 +68,7 @@ export async function getWeeklyEvolution(
   }
   if (attendants && attendants.length > 0) {
     params.push(attendants);
-    baseFilter += ` AND t.attendant = ANY($${params.length})`;
+    baseFilter += ` AND u.name = ANY($${params.length})`;
   }
 
   const { rows } = await pool.query(

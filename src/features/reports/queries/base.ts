@@ -23,6 +23,7 @@ export function getFilteredTicketsCTE(baseFilter: string): string {
     base_filtered AS (
       SELECT t.*
       FROM tickets t
+      LEFT JOIN users u ON t.attendant_id = u.id
       WHERE ${baseFilter}
     ),
     filtered_tickets AS (
