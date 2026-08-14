@@ -54,27 +54,29 @@ export default function ForwardModal({
               </button>
             </div>
 
-            <div className="p-8 grid grid-cols-2 gap-4">
-              {activeAttendants.length === 0 ? (
-                <div className="col-span-2 text-center py-6">
-                  <p className="text-sefaz-accent/60 font-medium">Nenhum outro guichê disponível.</p>
-                </div>
-              ) : (
-                activeAttendants.map(({ guiche, attendantName }) => (
-                  <button
-                    key={guiche}
-                    onClick={() => onForward(currentCall.id, guiche)}
-                    className="p-4 bg-emerald-50/50 hover:bg-emerald-100/50 border-2 border-emerald-100 rounded-3xl text-left transition-all group cursor-pointer flex flex-col"
-                  >
-                    <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest mb-1">
-                      {guiche}
-                    </p>
-                    <p className="text-sm font-black text-sefaz-dark group-hover:text-sefaz-accent transition-colors truncate w-full" title={attendantName}>
-                      {attendantName}
-                    </p>
-                  </button>
-                ))
-              )}
+            <div className="p-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                {activeAttendants.length === 0 ? (
+                  <div className="col-span-2 sm:col-span-3 text-center py-6">
+                    <p className="text-sefaz-accent/60 font-medium">Nenhum outro guichê disponível.</p>
+                  </div>
+                ) : (
+                  activeAttendants.map(({ guiche, attendantName }) => (
+                    <button
+                      key={guiche}
+                      onClick={() => onForward(currentCall.id, guiche)}
+                      className="p-4 bg-emerald-50/50 hover:bg-emerald-100/50 border-2 border-emerald-100 rounded-2xl text-left transition-all group cursor-pointer flex flex-col"
+                    >
+                      <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest mb-1">
+                        {guiche}
+                      </p>
+                      <p className="text-sm font-black text-sefaz-dark group-hover:text-sefaz-accent transition-colors truncate w-full" title={attendantName}>
+                        {attendantName}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
         </>
       )}
