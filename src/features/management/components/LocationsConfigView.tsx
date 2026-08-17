@@ -25,9 +25,6 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
 
   const [showTwModal, setShowTwModal] = useState(false);
   const [editingTw, setEditingTw] = useState<DbTicketWindow | null>(null);
-  const [twAlias, setTwAlias] = useState("");
-  const [twLabel, setTwLabel] = useState("");
-  const [twGroup, setTwGroup] = useState("");
 
   const availableGroups = Array.from(new Set(ticketWindows.map(tw => tw.groupName).filter(Boolean))) as string[];
 
@@ -134,32 +131,19 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
 
   const handleEditTicketWindow = (tw: DbTicketWindow) => {
     setEditingTw(tw);
-    setTwAlias(tw.alias || "");
-    setTwLabel(tw.label || "");
-    setTwGroup(tw.groupName || "");
     setShowTwModal(true);
   };
 
-  const handleSaveTicketWindow = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveTicketWindow = async (data: { alias: string | null; label: string | null; groupName: string | null }) => {
     if (!editingTw) return;
-    
-    let finalGroup: string | null = twGroup;
-    if (twGroup === "NEW_GROUP") {
-      finalGroup = null; // Cannot save empty new group
-    } else if (twGroup.startsWith("NEW_GROUP_VALUE:")) {
-      finalGroup = twGroup.replace("NEW_GROUP_VALUE:", "");
-    } else if (twGroup === "") {
-      finalGroup = null;
-    }
 
-    const res = await updateTicketWindowDetailsAction(editingTw.id, twAlias || null, twLabel || null, finalGroup);
+    const res = await updateTicketWindowDetailsAction(editingTw.id, data.alias, data.label, data.groupName);
     if (res.success) {
-      triggerSuccess("Apelido atualizado!");
+      triggerSuccess("Guichê atualizado!");
       setShowTwModal(false);
       loadWindows();
     } else {
-      alert(res.error || "Erro ao atualizar apelido");
+      alert(res.error || "Erro ao atualizar guichê");
     }
   };
 
@@ -218,15 +202,9 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
       <TicketWindowFormModal
         isOpen={showTwModal}
         onClose={() => setShowTwModal(false)}
-        ticketWindowAlias={twAlias}
-        onTicketWindowAliasChange={setTwAlias}
-        ticketWindowLabel={twLabel}
-        onTicketWindowLabelChange={setTwLabel}
-        ticketWindowGroup={twGroup}
-        onTicketWindowGroupChange={setTwGroup}
+        editingTw={editingTw}
         availableGroups={availableGroups}
         onSubmit={handleSaveTicketWindow}
-        originalName={editingTw?.name || ""}
       />
     </motion.div>
   );

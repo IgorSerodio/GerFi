@@ -1,33 +1,54 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { DbTicketWindow } from "@/features/management/types";
 
 interface TicketWindowFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ticketWindowAlias: string;
-  onTicketWindowAliasChange: (alias: string) => void;
-  ticketWindowLabel: string;
-  onTicketWindowLabelChange: (label: string) => void;
-  ticketWindowGroup: string;
-  onTicketWindowGroupChange: (group: string) => void;
+  editingTw: DbTicketWindow | null;
   availableGroups: string[];
-  onSubmit: (e: React.FormEvent) => void;
-  originalName: string;
+  onSubmit: (data: { alias: string | null; label: string | null; groupName: string | null }) => Promise<void> | void;
 }
 
 export function TicketWindowFormModal({
   isOpen,
   onClose,
-  ticketWindowAlias,
-  onTicketWindowAliasChange,
-  ticketWindowLabel,
-  onTicketWindowLabelChange,
-  ticketWindowGroup,
-  onTicketWindowGroupChange,
+  editingTw,
   availableGroups,
   onSubmit,
-  originalName,
 }: TicketWindowFormModalProps) {
+  const [label, setLabel] = useState("");
+  const [alias, setAlias] = useState("");
+  const [selectedGroupOption, setSelectedGroupOption] = useState("");
+  const [customGroupName, setCustomGroupName] = useState("");
+
+  useEffect(() => {
+    if (editingTw && isOpen) {
+      setLabel(editingTw.label || "");
+      setAlias(editingTw.alias || "");
+      setSelectedGroupOption(editingTw.groupName || "");
+      setCustomGroupName("");
+    }
+  }, [editingTw, isOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let finalGroup: string | null = null;
+    if (selectedGroupOption === "__NEW__") {
+      finalGroup = customGroupName.trim() || null;
+    } else if (selectedGroupOption) {
+      finalGroup = selectedGroupOption;
+    }
+
+    onSubmit({
+      label: label.trim() || null,
+      alias: alias.trim() || null,
+      groupName: finalGroup,
+    });
+  };
+
+  const isCreatingNewGroup = selectedGroupOption === "__NEW__";
+
   return (
     <Modal 
       isOpen={isOpen} 
@@ -37,8 +58,10 @@ export function TicketWindowFormModal({
       <h3 className="text-2xl font-black text-sefaz-dark uppercase tracking-tight mb-6">
         Editar Guichê
       </h3>
-      <p className="text-sm text-emerald-800 mb-6 font-semibold">Você está editando: {originalName}</p>
-      <form onSubmit={onSubmit} className="space-y-6">
+      <p className="text-sm text-emerald-800 mb-6 font-semibold">
+        Você está editando: {editingTw?.name || ""}
+      </p>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-[9px] font-black text-sefaz-accent uppercase tracking-widest pl-2">
@@ -46,8 +69,8 @@ export function TicketWindowFormModal({
             </label>
             <input
               type="text"
-              value={ticketWindowLabel}
-              onChange={(e) => onTicketWindowLabelChange(e.target.value)}
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
               placeholder="Ex: Box, Local"
             />
@@ -58,8 +81,8 @@ export function TicketWindowFormModal({
             </label>
             <input
               type="text"
-              value={ticketWindowAlias}
-              onChange={(e) => onTicketWindowAliasChange(e.target.value)}
+              value={alias}
+              onChange={(e) => setAlias(e.target.value)}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
               placeholder="Ex: Sala Médica"
             />
@@ -69,21 +92,22 @@ export function TicketWindowFormModal({
               Grupo de Encaminhamento
             </label>
             <select
-              value={ticketWindowGroup === "NEW_GROUP" ? "NEW_GROUP" : (ticketWindowGroup || "")}
-              onChange={(e) => onTicketWindowGroupChange(e.target.value)}
+              value={selectedGroupOption}
+              onChange={(e) => setSelectedGroupOption(e.target.value)}
               className="w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-sm font-bold"
             >
               <option value="">Sem grupo</option>
               {availableGroups.map((g) => (
                 <option key={g} value={g}>{g}</option>
               ))}
-              <option value="NEW_GROUP">+ Novo Grupo</option>
+              <option value="__NEW__">+ Novo Grupo</option>
             </select>
-            {ticketWindowGroup === "NEW_GROUP" && (
+            {isCreatingNewGroup && (
               <input
                 type="text"
                 autoFocus
-                onChange={(e) => onTicketWindowGroupChange(e.target.value ? `NEW_GROUP_VALUE:${e.target.value}` : "NEW_GROUP")}
+                value={customGroupName}
+                onChange={(e) => setCustomGroupName(e.target.value)}
                 className="w-full p-3 mt-2 bg-emerald-50/50 rounded-xl border border-emerald-500 outline-none text-sm font-bold shadow-inner"
                 placeholder="Digite o nome do novo grupo"
               />
