@@ -15,6 +15,57 @@ interface ForwardModalProps {
   onForward: (ticketId: string, target: string, type: "single" | "group") => void;
 }
 
+function SlidingGroupDetails({ 
+  items, 
+  currentGuiche 
+}: { 
+  items: { guiche: string; alias?: string | null; attendantName?: string }[];
+  currentGuiche: string;
+}) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const measureRef = React.useRef<HTMLSpanElement>(null);
+  const [isOverflowing, setIsOverflowing] = React.useState(false);
+
+  const formattedText = items
+    .map((a) => {
+      const isSelf = a.guiche === currentGuiche;
+      const label = a.alias || a.guiche;
+      if (isSelf) return `${label} (Você)`;
+      return `${label}${a.attendantName ? ` (${a.attendantName})` : ""}`;
+    })
+    .join("  •  ");
+
+  React.useEffect(() => {
+    const checkOverflow = () => {
+      if (containerRef.current && measureRef.current) {
+        setIsOverflowing(measureRef.current.offsetWidth > containerRef.current.clientWidth);
+      }
+    };
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [items, currentGuiche]);
+
+  return (
+    <div ref={containerRef} className="w-full overflow-hidden relative text-xs font-medium text-emerald-100">
+      <span ref={measureRef} className="absolute invisible whitespace-nowrap pointer-events-none left-0 top-0">
+        {formattedText}
+      </span>
+
+      {isOverflowing ? (
+        <div className="flex w-max animate-marquee-continuous whitespace-nowrap">
+          <span className="pr-8">{formattedText}</span>
+          <span className="pr-8">{formattedText}</span>
+        </div>
+      ) : (
+        <div className="truncate w-full">
+          {formattedText}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ForwardModal({
   show,
   currentCall,
@@ -32,22 +83,22 @@ export default function ForwardModal({
     }
   }, [show]);
 
-  // Only show active guiches (occupied by an attendant) and not the current one
+  // Only show active guiches (occupied by an attendant) and not the current one for individual target tab
   const activeAttendants = attendants.filter(
     (a) => a.guiche !== currentGuiche && !!a.attendantName
   );
 
-  // Group attendants by groupName
+  // Group attendants by groupName (including the current user if active in the group)
   const groupedAttendants = React.useMemo(() => {
-    const groups: Record<string, typeof activeAttendants> = {};
-    activeAttendants.forEach(a => {
+    const groups: Record<string, typeof attendants> = {};
+    attendants.filter((a) => !!a.attendantName).forEach(a => {
       if (a.groupName) {
         if (!groups[a.groupName]) groups[a.groupName] = [];
         groups[a.groupName].push(a);
       }
     });
     return groups;
-  }, [activeAttendants]);
+  }, [attendants]);
 
   return (
     <Modal 
@@ -137,13 +188,11 @@ export default function ForwardModal({
                           <p className="text-sm font-black uppercase tracking-widest truncate w-full">
                             Grupo: {groupName}
                           </p>
-                          <span className="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-bold">
+                          <span className="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 ml-2">
                             {groupAttendants.length} {groupAttendants.length === 1 ? "Guichê" : "Guichês"}
                           </span>
                         </div>
-                        <p className="text-xs font-medium text-emerald-100 truncate w-full">
-                          {groupAttendants.map(a => a.alias || a.guiche).join(", ")}
-                        </p>
+                        <SlidingGroupDetails items={groupAttendants} currentGuiche={currentGuiche} />
                       </button>
                     ))
                   )
