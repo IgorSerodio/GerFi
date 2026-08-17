@@ -29,7 +29,9 @@ export function getTicketTooltipText(ticket: TimelineTicket): string {
   let durationFinalText = durationStr === 'Em andamento' ? `Duração: ${durationStr}` : `Duração: ${durationStr} min`;
 
   if (isForwarded) {
-    header = `Ticket: Encaminhamento de ${ticket.ticketNumber}`;
+    header = ticket.forwardType === 'group' 
+      ? `Ticket: Encaminhamento (Grupo) de ${ticket.ticketNumber}` 
+      : `Ticket: Encaminhamento de ${ticket.ticketNumber}`;
     const origArrived = formatTime(ticket.originalCreatedAt);
     const origCalled = formatTime(ticket.originalCalledAt);
     const globalWait = Math.round((ticket.globalWaitSeconds || 0) / 60);

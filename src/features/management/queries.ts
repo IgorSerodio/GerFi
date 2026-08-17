@@ -6,13 +6,13 @@ export async function getCategories(): Promise<DbCategory[]> {
   return rows;
 }
 
-export async function getTicketWindows(locationId?: number): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; locationId: number }[]> {
+export async function getTicketWindows(locationId?: number): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; groupName?: string | null; locationId: number }[]> {
   if (locationId === undefined) {
-    const { rows } = await pool.query('SELECT id, name, alias, label, location_id as "locationId" FROM ticket_windows ORDER BY name ASC');
+    const { rows } = await pool.query('SELECT id, name, alias, label, group_name as "groupName", location_id as "locationId" FROM ticket_windows ORDER BY name ASC');
     return rows;
   }
   const { rows } = await pool.query(
-    'SELECT id, name, alias, label, location_id as "locationId" FROM ticket_windows WHERE location_id = $1 ORDER BY name ASC',
+    'SELECT id, name, alias, label, group_name as "groupName", location_id as "locationId" FROM ticket_windows WHERE location_id = $1 ORDER BY name ASC',
     [locationId]
   );
   return rows;
@@ -58,7 +58,7 @@ export async function deleteCategory(id: number): Promise<boolean> {
   }
 }
 
-export async function createNextTicketWindow(locationId: number): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; locationId: number }> {
+export async function createNextTicketWindow(locationId: number): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; groupName?: string | null; locationId: number }> {
   const { rows } = await pool.query(
     `INSERT INTO ticket_windows (name, location_id)
      VALUES (
@@ -72,16 +72,16 @@ export async function createNextTicketWindow(locationId: number): Promise<{ id: 
        ),
        $1
      )
-     RETURNING id, name, alias, label, location_id as "locationId"`,
+     RETURNING id, name, alias, label, group_name as "groupName", location_id as "locationId"`,
      [locationId]
   );
   return rows[0];
 }
 
-export async function updateTicketWindowDetails(id: number, alias: string | null, label: string | null): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; locationId: number }> {
+export async function updateTicketWindowDetails(id: number, alias: string | null, label: string | null, groupName: string | null): Promise<{ id: number; name: string; alias?: string | null; label?: string | null; groupName?: string | null; locationId: number }> {
   const { rows } = await pool.query(
-    `UPDATE ticket_windows SET alias = $1, label = $2 WHERE id = $3 RETURNING id, name, alias, label, location_id as "locationId"`,
-    [alias, label, id]
+    `UPDATE ticket_windows SET alias = $1, label = $2, group_name = $3 WHERE id = $4 RETURNING id, name, alias, label, group_name as "groupName", location_id as "locationId"`,
+    [alias, label, groupName, id]
   );
   return rows[0];
 }

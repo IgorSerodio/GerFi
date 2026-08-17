@@ -49,9 +49,15 @@ export default function AttendantDashboard({
 
   const availableNormal = availableTickets.filter((t) => t.priority === "Normal" && !t.forwardedTo);
   const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário" && !t.forwardedTo);
-  const forwardedCount = state.queue.filter((t) => t.status === "pending" && t.forwardedTo === state.currentAttendant.guiche).length;
-
   const currentWindow = state.ticketWindows.find(w => w.name === state.currentAttendant.guiche);
+
+  const forwardedCount = state.queue.filter((t) => {
+    if (t.status !== "pending") return false;
+    if (t.forwardType === "group") {
+      return currentWindow?.groupName ? t.forwardedTo === currentWindow.groupName : false;
+    }
+    return t.forwardedTo === state.currentAttendant.guiche;
+  }).length;
   const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guiche;
 
   return (

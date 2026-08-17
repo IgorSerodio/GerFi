@@ -25,8 +25,8 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
 
   const [showTwModal, setShowTwModal] = useState(false);
   const [editingTw, setEditingTw] = useState<DbTicketWindow | null>(null);
-  const [twAlias, setTwAlias] = useState("");
-  const [twLabel, setTwLabel] = useState("");
+
+  const availableGroups = Array.from(new Set(ticketWindows.map(tw => tw.groupName).filter(Boolean))) as string[];
 
   const loadLocations = React.useCallback(async () => {
     const res = await getLocationsAction();
@@ -131,21 +131,19 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
 
   const handleEditTicketWindow = (tw: DbTicketWindow) => {
     setEditingTw(tw);
-    setTwAlias(tw.alias || "");
-    setTwLabel(tw.label || "");
     setShowTwModal(true);
   };
 
-  const handleSaveTicketWindow = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveTicketWindow = async (data: { alias: string | null; label: string | null; groupName: string | null }) => {
     if (!editingTw) return;
-    const res = await updateTicketWindowDetailsAction(editingTw.id, twAlias || null, twLabel || null);
+
+    const res = await updateTicketWindowDetailsAction(editingTw.id, data.alias, data.label, data.groupName);
     if (res.success) {
-      triggerSuccess("Apelido atualizado!");
+      triggerSuccess("Guichê atualizado!");
       setShowTwModal(false);
       loadWindows();
     } else {
-      alert(res.error || "Erro ao atualizar apelido");
+      alert(res.error || "Erro ao atualizar guichê");
     }
   };
 
@@ -204,12 +202,9 @@ export default function LocationsConfigView({ triggerSuccess }: LocationsConfigV
       <TicketWindowFormModal
         isOpen={showTwModal}
         onClose={() => setShowTwModal(false)}
-        ticketWindowAlias={twAlias}
-        onTicketWindowAliasChange={setTwAlias}
-        ticketWindowLabel={twLabel}
-        onTicketWindowLabelChange={setTwLabel}
+        editingTw={editingTw}
+        availableGroups={availableGroups}
         onSubmit={handleSaveTicketWindow}
-        originalName={editingTw?.name || ""}
       />
     </motion.div>
   );

@@ -104,8 +104,8 @@ export function useTicketActions(
     }
   };
 
-  const handleForward = async (ticketId: string, targetGuiche: string) => {
-    const res = await forwardTicketAction(ticketId, targetGuiche);
+  const handleForward = async (ticketId: string, targetGuiche: string, targetType: "single" | "group" = "single") => {
+    const res = await forwardTicketAction(ticketId, targetGuiche, targetType);
     if (res.success) {
       setShowForwardModal(false);
     } else {

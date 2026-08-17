@@ -17,6 +17,7 @@ export interface DbTicketWindow {
   name: string;
   alias?: string | null;
   label?: string | null;
+  groupName?: string | null;
   locationId: number;
 }
 
