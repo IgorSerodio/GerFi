@@ -23,13 +23,15 @@ export function useTicketActions(
   const [selectedResolutions, setSelectedResolutions] = useState<string[]>([]);
   const [ticketToFinish, setTicketToFinish] = useState<string | null>(null);
   const [selectedHistoryTicket, setSelectedHistoryTicket] = useState<Ticket | null>(null);
+  const [isCalling, setIsCalling] = useState(false);
 
   const currentCall = history.find(
     (h) => h.attendantId === currentAttendantId && (h.status === "calling" || h.status === "started")
   );
 
   const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
-    if (locationId === null) return;
+    if (locationId === null || isCalling || currentCall) return;
+    setIsCalling(true);
     const res = await callTicketAction(
       locationId,
       currentAttendantId,
@@ -38,13 +40,15 @@ export function useTicketActions(
       priorityType,
       false // isForwardedCall
     );
+    setIsCalling(false);
     if (!res.success) {
       alert(res.error || "Erro ao chamar senha");
     }
   };
 
   const handleCallForwarded = async () => {
-    if (locationId === null) return;
+    if (locationId === null || isCalling || currentCall) return;
+    setIsCalling(true);
     const res = await callTicketAction(
       locationId,
       currentAttendantId,
@@ -53,6 +57,7 @@ export function useTicketActions(
       undefined,
       true // isForwardedCall
     );
+    setIsCalling(false);
     if (!res.success) {
       alert(res.error || "Erro ao chamar senha encaminhada");
     }
@@ -137,5 +142,6 @@ export function useTicketActions(
     handleFinish,
     confirmFinish,
     handleForward,
+    isCalling,
   };
 }

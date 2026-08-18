@@ -95,6 +95,10 @@ export async function callTicketAction(
     triggerRealTimeUpdate();
     return { success: true, data: ticket };
   } catch (error) {
+    const err = error as { code?: string; constraint?: string };
+    if (err && err.code === '23505' && err.constraint === 'idx_unique_active_ticket_per_attendant') {
+      return { success: false, error: "Você já possui um atendimento em andamento." };
+    }
     return { success: false, error: getErrorMessage(error, "Erro ao chamar senha.") };
   }
 }

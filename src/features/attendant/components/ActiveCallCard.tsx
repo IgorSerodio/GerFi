@@ -5,6 +5,7 @@ import { NextCallSelector } from "./NextCallSelector";
 
 interface ActiveCallCardProps {
   currentCall?: Ticket;
+  isCalling: boolean;
   allowedServicesCount: number;
   availableNormalCount: number;
   availablePriorityCount: number;
@@ -36,6 +37,7 @@ export default function ActiveCallCard(props: ActiveCallCardProps) {
         />
       ) : (
         <NextCallSelector 
+          isCalling={props.isCalling}
           allowedServicesCount={props.allowedServicesCount}
           availableNormalCount={props.availableNormalCount}
           availablePriorityCount={props.availablePriorityCount}

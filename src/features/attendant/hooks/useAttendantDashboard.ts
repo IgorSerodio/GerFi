@@ -56,6 +56,7 @@ export function useAttendantDashboard({
       ticketToFinish: ticketActions.ticketToFinish,
       selectedHistoryTicket: ticketActions.selectedHistoryTicket,
       currentCall: ticketActions.currentCall,
+      isCalling: ticketActions.isCalling,
     },
     actions: {
       setCurrentAttendant: sessionData.setCurrentAttendant,

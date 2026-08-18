@@ -110,6 +110,7 @@ export default function AttendantDashboard({
                 <>
                   <ActiveCallCard
                     currentCall={state.currentCall}
+                    isCalling={state.isCalling}
                     categories={categories}
                     allowedServicesCount={state.allowedServices.length}
                     availableNormalCount={availableNormal.length}

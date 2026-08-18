@@ -93,6 +93,22 @@ describe("Queue Actions (Integration)", () => {
     expect(result.data?.id).toBe(ticketIdMain);
   });
 
+  it("Fluxo 2.1: Impede chamar nova senha se já existe atendimento ativo", async () => {
+    // Emitir uma segunda senha para ter algo na fila
+    await issueTicketAction({ categoryId, categoryName, priority: "Normal", locationId });
+
+    // O Atendente 1 já chamou uma senha no Fluxo 2 (status calling)
+    // Tentar chamar novamente deve acionar o catch (error) corrigido
+    const attendantId = 1;
+    const guiche = "Guichê 1";
+    const allowedServices = [categoryId];
+    
+    const result = await callTicketAction(locationId, attendantId, guiche, allowedServices, "Normal");
+    
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Você já possui um atendimento em andamento.");
+  });
+
   it("Fluxo 3: Atendente inicia o atendimento com código de segurança (startTicketAction)", async () => {
     // Validar com código incorreto
     const badResult = await startTicketAction(ticketIdMain, "0000");

@@ -10,10 +10,10 @@ interface NextCallSelectorProps {
   forwardedCount: number;
   handleCall: (priorityType?: "Normal" | "Prioritário") => void;
   handleCallForwarded: () => void;
+  isCalling: boolean;
 }
 
 export function NextCallSelector({
-  allowedServicesCount,
   availableNormalCount,
   availablePriorityCount,
   canCallNormal,
@@ -21,6 +21,7 @@ export function NextCallSelector({
   forwardedCount,
   handleCall,
   handleCallForwarded,
+  isCalling,
 }: NextCallSelectorProps) {
   return (
     <div className="text-center space-y-2 py-2">
@@ -39,16 +40,17 @@ export function NextCallSelector({
         {forwardedCount > 0 ? (
           <button
             onClick={handleCallForwarded}
-            className="flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer"
+            disabled={isCalling}
+            className="flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 bg-amber-400 hover:bg-amber-500 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="whitespace-nowrap">CHAMAR ENCAMINHADO</span>
+            <span className="whitespace-nowrap">{isCalling ? "CHAMANDO..." : "CHAMAR ENCAMINHADO"}</span>
             <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{forwardedCount} na fila</span>
           </button>
         ) : (
           <>
             <button
               onClick={() => handleCall("Prioritário")}
-              disabled={availablePriorityCount === 0 || !canCallPriority}
+              disabled={availablePriorityCount === 0 || !canCallPriority || isCalling}
               className={`flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallPriority
                   ? "bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 shadow-xl shadow-amber-900/20 cursor-pointer disabled:grayscale disabled:opacity-50"
@@ -56,12 +58,12 @@ export function NextCallSelector({
               }`}
               title={!canCallPriority ? "Você não tem permissão para chamar esta fila." : undefined}
             >
-              <span className="whitespace-nowrap">CHAMAR PRIORIDADE</span>
+              <span className="whitespace-nowrap">{isCalling ? "CHAMANDO..." : "CHAMAR PRIORIDADE"}</span>
               <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{availablePriorityCount} na fila</span>
             </button>
             <button
               onClick={() => handleCall("Normal")}
-              disabled={availableNormalCount === 0 || !canCallNormal}
+              disabled={availableNormalCount === 0 || !canCallNormal || isCalling}
               className={`flex-1 px-4 py-2 min-h-[3rem] lg:min-h-[4rem] text-white rounded-xl font-black text-[clamp(0.875rem,1.2vw,1.25rem)] transition-all flex flex-col items-center justify-center gap-1 ${
                 canCallNormal
                   ? "bg-sefaz-accent hover:scale-105 active:scale-95 shadow-xl shadow-emerald-950/30 cursor-pointer disabled:grayscale disabled:opacity-50"
@@ -69,7 +71,7 @@ export function NextCallSelector({
               }`}
               title={!canCallNormal ? "Você não tem permissão para chamar esta fila." : undefined}
             >
-              <span className="whitespace-nowrap">CHAMAR NORMAL</span>
+              <span className="whitespace-nowrap">{isCalling ? "CHAMANDO..." : "CHAMAR NORMAL"}</span>
               <span className="text-[clamp(0.75rem,1.2vw,1.25rem)] font-bold opacity-80">{availableNormalCount} na fila</span>
             </button>
           </>
