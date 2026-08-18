@@ -12,7 +12,9 @@
     "mock": "tsx --env-file=.env scripts/mock.ts",
     "unmock": "tsx --env-file=.env scripts/unmock.ts",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:setup": "tsx --env-file=.env scripts/test-db-setup.ts",
+    "test:int": "tsx --env-file=.env scripts/test-int.ts"
   },
   "dependencies": {
     "@types/dom-to-image": "^2.6.7",
