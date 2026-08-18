@@ -17,11 +17,8 @@ import { IssueTicketSchema, FinishTicketSchema, ForwardTicketSchema } from "./sc
 import { requirePermission } from "@/features/auth/actions";
 import { getUserById } from "@/features/users/queries";
 import { queueEmitter } from "@/infra/events";
-import { getTicketWindows } from "@/features/management/queries";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from "@/lib/errors";
 
 /**
  * Dispara notificação em tempo real

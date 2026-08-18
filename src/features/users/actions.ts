@@ -17,9 +17,7 @@ import { User, UserRole } from "./types";
 import bcrypt from "bcryptjs";
 import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from "@/lib/errors";
 
 /**
  * Busca todos os usuários

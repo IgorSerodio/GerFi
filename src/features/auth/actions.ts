@@ -9,9 +9,7 @@ import { User, UserRole } from "@/features/users/types";
 import { sendPasswordRecoveryEmail } from "./email";
 import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage, AppError } from "@/lib/errors";
 
 /**
  * Valida a sessão e a permissão do usuário de forma rigorosa.
@@ -21,11 +19,11 @@ export async function requirePermission(action: ActionName) {
   const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {
-    throw new Error("Não autenticado. Você precisa fazer login para realizar esta ação.");
+    throw new AppError("Não autenticado. Você precisa fazer login para realizar esta ação.");
   }
   
   if (!hasPermission(action, session.user.role)) {
-    throw new Error("Acesso negado. Você não tem permissão para realizar esta ação.");
+    throw new AppError("Acesso negado. Você não tem permissão para realizar esta ação.");
   }
   
   return session;

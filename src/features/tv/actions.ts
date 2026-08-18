@@ -11,9 +11,7 @@ import { requirePermission } from "@/features/auth/actions";
 import { queueEmitter } from "@/infra/events";
 import { YouTubeVideo } from "./types";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from "@/lib/errors";
 
 function triggerRealTimeUpdate() {
   queueEmitter.emit("update");

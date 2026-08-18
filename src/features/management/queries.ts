@@ -1,4 +1,5 @@
 import { pool } from "@/infra/database";
+import { AppError } from "@/lib/errors";
 import { DbCategory } from "./types";
 
 export async function getCategories(): Promise<DbCategory[]> {
@@ -52,7 +53,7 @@ export async function deleteCategory(id: number): Promise<boolean> {
     return (rowCount ?? 0) > 0;
   } catch (error: unknown) {
     if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23503') {
-      throw new Error("Não é possível excluir o serviço pois existem senhas vinculadas a ele.");
+      throw new AppError("Não é possível excluir o serviço pois existem senhas vinculadas a ele.");
     }
     throw error;
   }
@@ -113,13 +114,13 @@ export async function updateLocation(id: number, name: string, isActive: boolean
 }
 
 export async function deleteLocation(id: number) {
-  if (id === 0) throw new Error("Não é possível excluir o local principal.");
+  if (id === 0) throw new AppError("Não é possível excluir o local principal.");
   try {
     const { rowCount } = await pool.query("DELETE FROM locations WHERE id = $1", [id]);
     return (rowCount ?? 0) > 0;
   } catch (error: unknown) {
     if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === '23503') {
-      throw new Error("Não é possível excluir o local pois existem guichês, tickets ou TVs vinculados a ele.");
+      throw new AppError("Não é possível excluir o local pois existem guichês, tickets ou TVs vinculados a ele.");
     }
     throw error;
   }

@@ -1,8 +1,6 @@
 "use server";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from "@/lib/errors";
 
 /**
  * Resolve a URL do canal do YouTube (ex: @NomeDoCanal) para obter IDs de playlist e live
@@ -64,7 +62,7 @@ export async function checkYoutubeLiveStatusAction(channelId: string) {
     }
     
     return { success: true, isLive: isLiveNow, liveVideoId };
-  } catch (error) {
+  } catch {
     return { success: false, isLive: false };
   }
 }

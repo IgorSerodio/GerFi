@@ -19,9 +19,7 @@ import {
 } from "./queries";
 import { getActiveGuiches } from "@/features/users/queries";
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from "@/lib/errors";
 
 function triggerRealTimeUpdate() {
   queueEmitter.emit("update");

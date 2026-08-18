@@ -1,4 +1,5 @@
 import { pool } from "@/infra/database";
+import { AppError } from "@/lib/errors";
 import { TvSettings, YouTubeVideo } from "./types";
 
 interface DbTvSettingsRow {
@@ -77,7 +78,7 @@ export async function getTvSettings(slug: string = "global"): Promise<TvSettings
     if (slug === "global") {
       return { id: 1, slug: "global", name: "TV Principal", mode: "playlist", videoUrl: [], uploadedFiles: [], services: [], locationId: 1, marqueeMessages: [], slides: [] };
     }
-    throw new Error("TV não encontrada.");
+    throw new AppError("TV não encontrada.");
   }
   return mapTvSettingsRow(rows[0]);
 }
@@ -154,7 +155,7 @@ export async function updateTvSettings(
  */
 export async function deleteTvSettings(id: number): Promise<boolean> {
   // Não permitir exclusão da TV global
-  if (id === 1) throw new Error("A TV Principal não pode ser excluída.");
+  if (id === 1) throw new AppError("A TV Principal não pode ser excluída.");
   const { rowCount } = await pool.query("DELETE FROM tv_settings WHERE id = $1", [id]);
   return (rowCount ?? 0) > 0;
 }
