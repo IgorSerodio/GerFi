@@ -5,7 +5,7 @@ try {
   execSync("npx tsx scripts/test-db-setup.ts", { stdio: "inherit", env: process.env });
 
   console.log("2. Executando testes de integração...");
-  execSync("npx vitest run", { stdio: "inherit", env: process.env });
+  execSync("npx vitest run --fileParallelism=false", { stdio: "inherit", env: process.env });
 } catch (error) {
   process.exit(1);
 }
