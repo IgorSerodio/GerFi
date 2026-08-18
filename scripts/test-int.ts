@@ -6,6 +6,6 @@ try {
 
   console.log("2. Executando testes de integração...");
   execSync("npx vitest run tests/integration --fileParallelism=false", { stdio: "inherit", env: process.env });
-} catch (error) {
+} catch {
   process.exit(1);
 }

@@ -12,7 +12,7 @@
     "mock": "tsx --env-file=.env scripts/mock.ts",
     "unmock": "tsx --env-file=.env scripts/unmock.ts",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "npm run test:unit && npm run test:int",
     "test:unit": "vitest run tests/unit",
     "test:setup": "tsx --env-file=.env scripts/test-db-setup.ts",
     "test:int": "tsx --env-file=.env scripts/test-int.ts"
