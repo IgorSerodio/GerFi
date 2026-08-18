@@ -5,7 +5,7 @@ import {
   getTvSettingsAction,
   getAllTvSettingsAction,
   deleteTvSettingsAction
-} from "../actions";
+} from '@/features/tv/actions';
 import { pool } from "@/infra/database";
 
 describe("TV Actions (Integration)", () => {

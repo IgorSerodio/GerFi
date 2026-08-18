@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createUserAction, getUsersAction, updateUserAction, deleteUserAction } from "../actions";
+import { createUserAction, getUsersAction, updateUserAction, deleteUserAction } from '@/features/users/actions';
 import { pool } from "@/infra/database";
 
 describe("Users Actions (Integration)", () => {

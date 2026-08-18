@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isValidEmail, isValidCpf, isValidMatricula } from "../validators";
+import { isValidEmail, isValidCpf, isValidMatricula } from '@/lib/validators';
 
 describe("Validators", () => {
   describe("isValidEmail", () => {

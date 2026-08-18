@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { resolveYoutubeChannelAction, checkYoutubeLiveStatusAction } from "../services/youtube";
+import { resolveYoutubeChannelAction, checkYoutubeLiveStatusAction } from '@/features/tv/services/youtube';
 
 // Mock do global.fetch
 const fetchMock = vi.fn();

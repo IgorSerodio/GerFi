@@ -11,7 +11,7 @@ import {
   createLocationAction,
   getLocationsAction,
   deleteLocationAction
-} from "../actions";
+} from '@/features/management/actions';
 import { pool } from "@/infra/database";
 
 describe("Management Actions (Integration)", () => {

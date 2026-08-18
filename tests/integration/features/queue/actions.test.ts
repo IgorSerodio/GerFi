@@ -7,7 +7,7 @@ import {
   noShowTicketAction, 
   forwardTicketAction,
   recallTicketAction
-} from "../actions";
+} from '@/features/queue/actions';
 import { pool } from "@/infra/database";
 
 describe("Queue Actions (Integration)", () => {

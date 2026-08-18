@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { registerUserAction, requestPasswordResetAction, resetPasswordWithPinAction } from "../actions";
+import { registerUserAction, requestPasswordResetAction, resetPasswordWithPinAction } from '@/features/auth/actions';
 import { pool } from "@/infra/database";
 
 // Mock para simular o envio de e-mail e não tentar bater num servidor SMTP real

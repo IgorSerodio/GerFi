@@ -4,7 +4,7 @@ import {
   getLogisticsDashboardDataAction,
   getReportsDataAction,
   getTimelineAction,
-} from "../actions";
+} from '@/features/reports/actions';
 import { pool } from "@/infra/database";
 import { issueTicketAction } from "@/features/queue/actions";
 import { createCategoryAction, createLocationAction } from "@/features/management/actions";

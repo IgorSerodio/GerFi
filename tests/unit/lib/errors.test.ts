@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { AppError, getErrorMessage } from "../errors";
+import { AppError, getErrorMessage } from '@/lib/errors';
 
 describe("Errors module", () => {
   describe("AppError", () => {
