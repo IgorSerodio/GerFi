@@ -114,13 +114,27 @@ export async function getUserByEmail(email: string) {
 }
 
 /**
- * Define um PIN de recuperação e sua data de expiração para um usuário
+ * Define o PIN de recuperação de senha e sua validade
  */
 export async function setUserResetPin(id: number, pin: string, expiresAt: Date): Promise<void> {
   await pool.query(
-    "UPDATE users SET reset_pin = $1, reset_pin_expires = $2 WHERE id = $3",
-    [pin, expiresAt, id]
+    `UPDATE users SET reset_pin = $2, reset_pin_expires = NOW() + INTERVAL '5 minutes' WHERE id = $1`,
+    [id, pin]
   );
+}
+
+/**
+ * Verifica se um PIN é válido e não expirado via SQL para evitar problemas de fuso horário Node x PG
+ */
+export async function isResetPinValid(email: string, pin: string): Promise<boolean> {
+  const { rows } = await pool.query(
+    `SELECT id FROM users 
+     WHERE email = $1 
+     AND reset_pin = $2 
+     AND reset_pin_expires > NOW()`,
+    [email, pin]
+  );
+  return rows.length > 0;
 }
 
 /**

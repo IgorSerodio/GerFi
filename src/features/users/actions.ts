@@ -117,7 +117,7 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
       return { success: false, error: "A matrícula deve conter exatamente 6 dígitos numéricos." };
     }
 
-    const updatedData = { ...userData };
+    const updatedData = { ...targetUser, ...userData };
     if (userData.password) {
       updatedData.password = bcrypt.hashSync(userData.password, 10);
     }

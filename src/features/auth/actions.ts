@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActionName, hasPermission } from "./permissions";
-import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword } from "@/features/users/queries";
+import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword, isResetPinValid } from "@/features/users/queries";
 import { User, UserRole } from "@/features/users/types";
 import { sendPasswordRecoveryEmail } from "./email";
 import { isValidEmail, isValidCpf, isValidMatricula } from "@/lib/validators";
@@ -117,12 +117,9 @@ export async function resetPasswordWithPinAction(email: string, pin: string, new
       return { success: false, error: "E-mail ou PIN inválidos." };
     }
 
-    if (!user.reset_pin || user.reset_pin !== pin) {
-      return { success: false, error: "E-mail ou PIN inválidos." };
-    }
-
-    if (user.reset_pin_expires && new Date(user.reset_pin_expires) < new Date()) {
-      return { success: false, error: "O PIN de recuperação expirou. Solicite um novo." };
+    const isValid = await isResetPinValid(email, pin);
+    if (!isValid) {
+      return { success: false, error: "O PIN de recuperação é inválido ou expirou." };
     }
 
     // PIN válido, atualiza senha e limpa PIN
