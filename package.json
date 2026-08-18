@@ -10,7 +10,9 @@
     "migrate": "tsx --env-file=.env scripts/migrate.ts",
     "seed": "tsx --env-file=.env scripts/seed.ts",
     "mock": "tsx --env-file=.env scripts/mock.ts",
-    "unmock": "tsx --env-file=.env scripts/unmock.ts"
+    "unmock": "tsx --env-file=.env scripts/unmock.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@types/dom-to-image": "^2.6.7",
@@ -44,6 +46,7 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }
