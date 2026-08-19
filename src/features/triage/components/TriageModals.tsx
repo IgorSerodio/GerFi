@@ -3,6 +3,7 @@ import PriorityModal from "./modals/PriorityModal";
 import PrinterTestModal from "./modals/PrinterTestModal";
 import TicketReceiptModal from "./modals/TicketReceiptModal";
 import PrinterConfigModal from "./modals/PrinterConfigModal";
+import TicketDetailModal from "@/components/modals/TicketDetailModal";
 
 import { Category } from "./types";
 import { Ticket as TicketType } from "@/features/queue/types";
@@ -16,6 +17,7 @@ interface TriageModalsProps {
     printerStatus: "idle" | "testing" | "success" | "error";
     issuedTicket: TicketType | null;
     printing: boolean;
+    selectedDetailTicket?: TicketType | null;
   };
   actions: {
     setSelectedCategory: (v: Category | null) => void;
@@ -23,6 +25,7 @@ interface TriageModalsProps {
     setShowPrinterTest: (v: boolean) => void;
     setShowPrinterConfig?: (v: boolean) => void;
     setIssuedTicket: (t: TicketType | null) => void;
+    setSelectedDetailTicket?: (t: TicketType | null) => void;
   };
 }
 
@@ -51,6 +54,13 @@ export default function TriageModals({ state, actions, locationName }: TriageMod
         <PrinterConfigModal
           isOpen={state.showPrinterConfig || false}
           onClose={() => actions.setShowPrinterConfig!(false)}
+        />
+      )}
+
+      {actions.setSelectedDetailTicket && (
+        <TicketDetailModal
+          selectedHistoryTicket={state.selectedDetailTicket || null}
+          onClose={() => actions.setSelectedDetailTicket!(null)}
         />
       )}
     </>

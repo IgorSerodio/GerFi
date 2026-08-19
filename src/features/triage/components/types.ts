@@ -20,7 +20,7 @@ export type SearchResult =
     }
   | {
       id: string;
-      status: "calling" | "started" | "completed";
+      status: "calling" | "started" | "completed" | "no_show" | "forwarded";
       guiche?: string;
       guicheAlias?: string;
       attendantName?: string;

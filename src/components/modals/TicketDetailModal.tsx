@@ -6,15 +6,15 @@ import { getTicketStatusLabel, getTicketStatusColorClass } from "@/utils/ticketS
 import { formatTime } from "@/utils/dateFormatter";
 import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 
-interface HistoryDetailModalProps {
+interface TicketDetailModalProps {
   selectedHistoryTicket: Ticket | null;
   onClose: () => void;
 }
 
-export default function HistoryDetailModal({
+export default function TicketDetailModal({
   selectedHistoryTicket,
   onClose,
-}: HistoryDetailModalProps) {
+}: TicketDetailModalProps) {
   const statusInfo = selectedHistoryTicket ? {
     label: getTicketStatusLabel(selectedHistoryTicket.status),
     classes: getTicketStatusColorClass(selectedHistoryTicket.status)
@@ -32,7 +32,7 @@ export default function HistoryDetailModal({
           <div className="p-8 border-b border-emerald-50 flex justify-between items-center bg-emerald-50/30">
               <div>
                 <h3 className={`text-2xl font-black uppercase tracking-tight ${getPriorityTextColorClass(selectedHistoryTicket.priority)}`}>
-                  CUPOM: {selectedHistoryTicket.ticketNumber}
+                  SENHA: {selectedHistoryTicket.ticketNumber}
                 </h3>
                 <p className="text-xs font-bold text-sefaz-accent/60 uppercase tracking-widest">
                   Detalhes do Atendimento

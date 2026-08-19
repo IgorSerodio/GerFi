@@ -18,6 +18,7 @@ export function useTriageDashboard() {
   const [showPrinterConfig, setShowPrinterConfig] = useState(false);
   const [printerStatus, setPrinterStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedDetailTicket, setSelectedDetailTicket] = useState<TicketType | null>(null);
   
   const [locationId, setLocationId] = useState<number | null>(null);
 
@@ -116,7 +117,7 @@ export function useTriageDashboard() {
     if (historyItem) {
       setSearchResult({
         id: query,
-        status: historyItem.status as "calling" | "started" | "completed",
+        status: historyItem.status as "calling" | "started" | "completed" | "no_show" | "forwarded",
         guiche: historyItem.guiche,
         guicheAlias: historyItem.guicheAlias,
         attendantName: historyItem.attendantName,
@@ -158,6 +159,7 @@ export function useTriageDashboard() {
       printerStatus,
       isSidebarOpen,
       locationId,
+      selectedDetailTicket,
     },
     actions: {
       setIssuedTicket,
@@ -174,6 +176,7 @@ export function useTriageDashboard() {
       handleIssue,
       handleSearch,
       handleTestPrinter,
+      setSelectedDetailTicket,
     },
   };
 }

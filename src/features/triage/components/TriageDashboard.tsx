@@ -54,6 +54,7 @@ export default function TriageDashboard({
           setSearchResult={actions.setSearchResult}
           recentIssues={state.recentIssues}
           setIssuedTicket={actions.setIssuedTicket}
+          setSelectedDetailTicket={actions.setSelectedDetailTicket}
           session={session}
         />
 

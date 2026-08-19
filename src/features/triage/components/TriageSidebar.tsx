@@ -1,7 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, Clock, Info, History, Printer, X } from "lucide-react";
+import { Users, History, Printer, X } from "lucide-react";
 import { SearchResult } from "./types";
+import SearchResultCard from "./SearchResultCard";
 import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 import { Ticket as TicketType } from "@/features/queue/types";;;
 import { Session } from "next-auth";
@@ -16,6 +17,7 @@ interface TriageSidebarProps {
   setSearchResult: (result: SearchResult | null) => void;
   recentIssues: TicketType[];
   setIssuedTicket: (ticket: TicketType) => void;
+  setSelectedDetailTicket?: (ticket: TicketType | null) => void;
   session: Session | null;
 }
 
@@ -29,6 +31,7 @@ export default function TriageSidebar({
   setSearchResult,
   recentIssues,
   setIssuedTicket,
+  setSelectedDetailTicket,
   session,
 }: TriageSidebarProps) {
   return (
@@ -74,79 +77,12 @@ export default function TriageSidebar({
             </button>
           </form>
 
-          <AnimatePresence>
-            {searchResult && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mt-4 overflow-hidden"
-              >
-                <div className="p-4 bg-sefaz-dark rounded-2xl text-white relative">
-                  <button
-                    onClick={() => setSearchResult(null)}
-                    className="absolute top-2 right-2 text-white/40 hover:text-white"
-                  >
-                    ✕
-                  </button>
-                  <div className="mb-2">
-                    <span className="text-2xl font-black">{searchResult.id}</span>
-                    <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">
-                      {searchResult.status !== "not_found"
-                        ? searchResult.ticket.categoryName
-                        : "Senha não encontrada"}
-                    </p>
-                  </div>
-
-                  {searchResult.status === "pending" && (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-emerald-400">
-                        <Clock size={12} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
-                          Aguardando
-                        </span>
-                      </div>
-                      <p className="text-xs font-bold">
-                        {searchResult.ahead === 0
-                          ? "Você é o próximo!"
-                          : `Existem ${searchResult.ahead} senhas na sua frente.`}
-                      </p>
-                      {searchResult.ahead > 0 && (
-                        <p className="text-[10px] text-emerald-400 opacity-80 mt-1">
-                          ({searchResult.priorityAhead} prioritárias, {searchResult.normalAhead} normais)
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {(searchResult.status === "calling" ||
-                    searchResult.status === "started" ||
-                    searchResult.status === "completed") && (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-amber-400">
-                        <Info size={12} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
-                          Já Chamada
-                        </span>
-                      </div>
-                      <p className="text-xs font-bold leading-tight">
-                        Dirija-se ao{" "}
-                        <span className="text-amber-400">
-                          {searchResult.guicheAlias || searchResult.guiche}
-                        </span>
-                      </p>
-                    </div>
-                  )}
-
-                  {searchResult.status === "not_found" && (
-                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">
-                      Senha não encontrada
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <SearchResultCard
+            searchResult={searchResult}
+            setSearchResult={setSearchResult}
+            setIssuedTicket={setIssuedTicket}
+            setSelectedDetailTicket={setSelectedDetailTicket}
+          />
         </div>
 
         <div className="flex items-center gap-3 mb-4">

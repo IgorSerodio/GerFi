@@ -3,7 +3,7 @@ import ForwardModal from "./modals/ForwardModal";
 import FinishModal from "./modals/FinishModal";
 import StartModal from "./modals/StartModal";
 import GuicheModal from "./modals/GuicheModal";
-import HistoryDetailModal from "./modals/HistoryDetailModal";
+import TicketDetailModal from "@/components/modals/TicketDetailModal";
 
 import { Ticket } from "@/features/queue/types";
 
@@ -96,7 +96,7 @@ export default function AttendantModals({
         onVacate={actions.handleVacateGuiche}
       />
 
-      <HistoryDetailModal
+      <TicketDetailModal
         selectedHistoryTicket={state.selectedHistoryTicket}
         onClose={() => actions.setSelectedHistoryTicket(null)}
       />
