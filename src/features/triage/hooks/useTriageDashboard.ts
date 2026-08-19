@@ -117,7 +117,7 @@ export function useTriageDashboard() {
     if (historyItem) {
       setSearchResult({
         id: query,
-        status: historyItem.status as TicketStatus,
+        status: historyItem.status as Exclude<TicketStatus, "pending">,
         guiche: historyItem.guiche,
         guicheAlias: historyItem.guicheAlias,
         attendantName: historyItem.attendantName,
