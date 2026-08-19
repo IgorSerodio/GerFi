@@ -1,5 +1,5 @@
 import React from "react";
-import { Ticket as TicketType } from "@/features/queue/types";;;
+import { Ticket as TicketType, TicketStatus } from "@/features/queue/types";
 
 export interface Category {
   id: number;
@@ -20,7 +20,7 @@ export type SearchResult =
     }
   | {
       id: string;
-      status: "calling" | "started" | "completed" | "no_show" | "forwarded";
+      status: Exclude<TicketStatus, "pending">;
       guiche?: string;
       guicheAlias?: string;
       attendantName?: string;

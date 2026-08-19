@@ -1,10 +1,12 @@
+export type TicketStatus = "pending" | "calling" | "started" | "completed" | "no_show" | "forwarded";
+
 export interface Ticket {
   id: string;
   ticketNumber: string;
   categoryId: number;
   categoryName: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "started" | "completed" | "no_show" | "forwarded";
+  status: TicketStatus;
   createdAt: string;
   calledAt?: string;
   completedAt?: string;

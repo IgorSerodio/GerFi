@@ -1,4 +1,4 @@
-import { Ticket } from "../types";
+import { Ticket, TicketStatus } from "../types";
 
 export interface DbTicketRow {
   id: string;
@@ -6,7 +6,7 @@ export interface DbTicketRow {
   category_id: number;
   category_name: string;
   priority: "Normal" | "Prioritário";
-  status: "pending" | "calling" | "started" | "completed" | "no_show" | "forwarded";
+  status: TicketStatus;
   created_at: Date;
   called_at?: Date | null;
   completed_at?: Date | null;

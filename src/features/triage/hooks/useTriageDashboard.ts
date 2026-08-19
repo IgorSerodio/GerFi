@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getQueueStateAction, issueTicketAction } from "@/features/queue/actions";
-import { Ticket as TicketType } from "@/features/queue/types";
+import { Ticket as TicketType, TicketStatus } from "@/features/queue/types";
 import { Category, SearchResult } from "../components/types";
 import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
 
@@ -117,7 +117,7 @@ export function useTriageDashboard() {
     if (historyItem) {
       setSearchResult({
         id: query,
-        status: historyItem.status as "calling" | "started" | "completed" | "no_show" | "forwarded",
+        status: historyItem.status as TicketStatus,
         guiche: historyItem.guiche,
         guicheAlias: historyItem.guicheAlias,
         attendantName: historyItem.attendantName,
