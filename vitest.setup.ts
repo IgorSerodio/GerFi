@@ -15,17 +15,7 @@ if (defaultUrl) {
   process.env.DATABASE_URL = testUrl.toString();
 }
 
+import { mockUserSession } from "./tests/utils/auth.mock";
+
 // Mock global para a função getServerSession do next-auth
-vi.mock("next-auth", () => ({
-  default: vi.fn(),
-  getServerSession: vi.fn().mockResolvedValue({
-    user: {
-      id: 1,
-      name: "Admin de Testes",
-      email: "admin.testes@gerfi.com",
-      role: "Admin",
-      canCallNormal: true,
-      canCallPriority: true
-    },
-  }),
-}));
+mockUserSession("Admin");

@@ -9,6 +9,7 @@ import {
   recallTicketAction
 } from '@/features/queue/actions';
 import { pool } from "@/infra/database";
+import { cleanTestDatabase } from "../../../utils/database";
 
 describe("Queue Actions (Integration)", () => {
   let categoryId: number;
@@ -19,6 +20,8 @@ describe("Queue Actions (Integration)", () => {
   let ticketSecurityCodeMain: string;
 
   beforeAll(async () => {
+    await cleanTestDatabase();
+
     // 1. Garantir que temos um serviço/categoria para testar
     const { rows: categories } = await pool.query(`SELECT id, name FROM categories LIMIT 1`);
     
@@ -50,8 +53,6 @@ describe("Queue Actions (Integration)", () => {
   });
 
   afterAll(async () => {
-    // Limpar as senhas emitidas durante os testes
-    await pool.query(`DELETE FROM tickets WHERE category_id = $1`, [categoryId]);
     await pool.end();
   });
 

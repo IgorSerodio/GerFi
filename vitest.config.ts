@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: "node",
       setupFiles: ["./vitest.setup.ts"],
+      fileParallelism: false,
     },
     resolve: {
       alias: {

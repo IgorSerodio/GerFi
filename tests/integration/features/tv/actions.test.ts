@@ -7,31 +7,23 @@ import {
   deleteTvSettingsAction
 } from '@/features/tv/actions';
 import { pool } from "@/infra/database";
+import { cleanTestDatabase } from "../../../utils/database";
+import { buildTvPayload } from "../../../factories/tv.factory";
 
 describe("TV Actions (Integration)", () => {
   let createdTvId: number;
 
   beforeAll(async () => {
-    await pool.query("DELETE FROM tv_settings WHERE slug = 'tv_teste_integracao'");
+    await cleanTestDatabase();
+    await pool.query(`INSERT INTO locations (id, name) VALUES (1, 'Sede Teste') ON CONFLICT (id) DO NOTHING`);
   });
 
   afterAll(async () => {
-    if (createdTvId) {
-      await pool.query("DELETE FROM tv_settings WHERE id = $1", [createdTvId]);
-    }
     await pool.end();
   });
 
   it("Deve criar uma configuração de TV (createTvSettingsAction)", async () => {
-    const payload = {
-      slug: "tv_teste_integracao",
-      name: "TV Recepção Teste",
-      mode: "channel" as any,
-      youtubeChannel: "@GerFiChannel",
-      videoUrl: [],
-      locationId: 1, // Assumindo que Location 1 existe ou nullable bypass
-      marqueeMessages: ["Bem-vindo ao sistema", "Aguarde ser chamado"],
-    };
+    const payload = buildTvPayload({ slug: "tv_teste_integracao" });
 
     const result = await createTvSettingsAction(payload);
     expect(result.success).toBe(true);
@@ -63,12 +55,13 @@ describe("TV Actions (Integration)", () => {
   it("Deve atualizar a TV (updateTvSettingsAction)", async () => {
     const updatePayload = {
       id: createdTvId,
-      slug: "tv_teste_integracao",
-      name: "TV Recepção Teste Atualizada",
-      mode: "playlist" as any,
-      videoUrl: [{ url: "https://youtube.com/watch?v=123", videoId: "123", title: "Test Video" }],
-      locationId: 1,
-      marqueeMessages: ["Mensagem Atualizada"],
+      ...buildTvPayload({
+        slug: "tv_teste_integracao",
+        name: "TV Recepção Teste Atualizada",
+        mode: "playlist" as any,
+        videoUrl: [{ url: "https://youtube.com/watch?v=123", videoId: "123", title: "Test Video" }],
+        marqueeMessages: ["Mensagem Atualizada"],
+      }),
     };
 
     const result = await updateTvSettingsAction(updatePayload);
