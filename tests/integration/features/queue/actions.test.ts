@@ -143,20 +143,21 @@ describe("Queue Actions (Integration)", () => {
   });
 
   it("Fluxo Alternativo: Não Comparecimento (noShowTicketAction) e Rechamada", async () => {
-    vi.useFakeTimers();
-    
+    // Limpar a fila de testes anteriores (inclusive tickets presos com atendentes) para garantir ambiente limpo
+    await pool.query("UPDATE tickets SET status = 'completed' WHERE status IN ('pending', 'calling', 'started')");
+
     const issueRes = await issueTicketAction({ categoryId, categoryName, priority: "Normal", locationId });
     const noShowTicketId = issueRes.data?.id as string;
-    
-    await callTicketAction(locationId, 1, "Guichê 1", [categoryId], "Normal"); 
-    
+    const callRes = await callTicketAction(locationId, 1, "Guichê 1", [categoryId], "Normal");
+    expect(callRes.success).toBe(true);
+    expect(callRes.data?.id).toBe(noShowTicketId);
     // Tentar rechamar imediatamente deve falhar (cooldown)
     const earlyRecall = await recallTicketAction(noShowTicketId);
     expect(earlyRecall.success).toBe(false);
     expect(earlyRecall.error).toContain("cooldown");
 
-    // Avançar tempo em 31 segundos
-    vi.advanceTimersByTime(31000);
+    // Simular avanço de tempo alterando a data de chamada diretamente no banco
+    await pool.query("UPDATE tickets SET called_at = NOW() - INTERVAL '30 seconds' WHERE id = $1", [noShowTicketId]);
 
     // Agora deve permitir rechamada
     const lateRecall = await recallTicketAction(noShowTicketId);
@@ -167,7 +168,5 @@ describe("Queue Actions (Integration)", () => {
     const noShowResult = await noShowTicketAction(noShowTicketId);
     expect(noShowResult.success).toBe(true);
     expect(noShowResult.data?.status).toBe("no_show");
-    
-    vi.useRealTimers();
   });
 });

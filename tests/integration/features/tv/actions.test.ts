@@ -11,6 +11,10 @@ import { pool } from "@/infra/database";
 describe("TV Actions (Integration)", () => {
   let createdTvId: number;
 
+  beforeAll(async () => {
+    await pool.query("DELETE FROM tv_settings WHERE slug = 'tv_teste_integracao'");
+  });
+
   afterAll(async () => {
     if (createdTvId) {
       await pool.query("DELETE FROM tv_settings WHERE id = $1", [createdTvId]);
@@ -62,7 +66,7 @@ describe("TV Actions (Integration)", () => {
       slug: "tv_teste_integracao",
       name: "TV Recepção Teste Atualizada",
       mode: "playlist" as any,
-      videoUrl: [{ url: "https://youtube.com/watch?v=123", isLive: false, channelUrl: "" }],
+      videoUrl: [{ url: "https://youtube.com/watch?v=123", videoId: "123", title: "Test Video" }],
       locationId: 1,
       marqueeMessages: ["Mensagem Atualizada"],
     };
