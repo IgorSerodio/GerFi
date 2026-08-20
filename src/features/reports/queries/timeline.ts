@@ -26,7 +26,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
 
   let queryStr = `
     SELECT 
-      t.id, u.name as attendant, tw.name as guiche, tw.alias as guiche_alias, t.priority, t.status, t.ticket_number,
+      t.id, u.name as attendant, tw.name as guiche, tw.alias as guiche_alias, l.name as location_name, t.priority, t.status, t.ticket_number,
       t.created_at, t.called_at, t.started_at, t.completed_at,
       t.recall_history, t.forwarded_to, t.forward_type,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
@@ -35,6 +35,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
       (SELECT SUM(EXTRACT(EPOCH FROM (completed_at - started_at))) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as global_service_seconds
     FROM tickets t
     LEFT JOIN ticket_windows tw ON t.ticket_window_id = tw.id
+    LEFT JOIN locations l ON t.location_id = l.id
     LEFT JOIN users u ON t.attendant_id = u.id
     WHERE t.created_at >= $1::date 
       AND t.created_at < ($1::date + interval '1 day')
@@ -62,7 +63,7 @@ export async function getTimelineData(filters: ReportFiltersDTO): Promise<Timeli
   return rows.map((row) => ({
     id: row.id,
     attendant: row.attendant || "Desconhecido",
-    guiche: row.guiche_alias || row.guiche || "-",
+    guiche: (row.guiche_alias || row.guiche) ? (row.location_name ? `${row.location_name} - ${row.guiche_alias || row.guiche}` : (row.guiche_alias || row.guiche)) : "-",
     priority: row.priority,
     status: row.status,
     ticketNumber: row.ticket_number,
@@ -139,12 +140,13 @@ export async function getAnalyticalData(filters: ReportFiltersDTO, page: number 
 
   const queryStr = `
     SELECT 
-      t.*, u.name as attendant, tw.name as guiche, tw.alias as guiche_alias,
+      t.*, u.name as attendant, tw.name as guiche, tw.alias as guiche_alias, l.name as location_name,
       (SELECT MIN(created_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_created_at,
       (SELECT MIN(started_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_started_at,
       (SELECT MAX(completed_at) FROM tickets f WHERE f.ticket_number = t.ticket_number AND f.created_at::date = t.created_at::date) as original_completed_at
     FROM tickets t
     LEFT JOIN ticket_windows tw ON t.ticket_window_id = tw.id
+    LEFT JOIN locations l ON t.location_id = l.id
     LEFT JOIN users u ON t.attendant_id = u.id
     WHERE ${baseFilter}
     ORDER BY t.created_at DESC
@@ -157,7 +159,7 @@ export async function getAnalyticalData(filters: ReportFiltersDTO, page: number 
     total,
     data: rows.map((row) => ({
       ticketNumber: row.ticket_number,
-      guiche: row.guiche_alias || row.guiche,
+      guiche: (row.guiche_alias || row.guiche) ? (row.location_name ? `${row.location_name} - ${row.guiche_alias || row.guiche}` : (row.guiche_alias || row.guiche)) : null,
       attendant: row.attendant,
       status: row.status,
       createdAt: row.created_at,
