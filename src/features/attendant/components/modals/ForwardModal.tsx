@@ -9,18 +9,18 @@ import { getPriorityTextColorClass } from "@/utils/priorityVisuals";
 interface ForwardModalProps {
   show: boolean;
   currentCall?: Ticket;
-  attendants: { guiche: string; alias?: string | null; groupName?: string | null; attendantName?: string }[];
-  currentGuiche: string;
+  attendants: { ticketWindowId: number; guiche: string; alias?: string | null; groupName?: string | null; attendantName?: string }[];
+  currentTicketWindowId: number | null;
   onClose: () => void;
-  onForward: (ticketId: string, target: string, type: "single" | "group") => void;
+  onForward: (ticketId: string, target: string | number, type: "single" | "group") => void;
 }
 
 function SlidingGroupDetails({ 
   items, 
-  currentGuiche 
+  currentTicketWindowId 
 }: { 
-  items: { guiche: string; alias?: string | null; attendantName?: string }[];
-  currentGuiche: string;
+  items: { ticketWindowId: number; guiche: string; alias?: string | null; attendantName?: string }[];
+  currentTicketWindowId: number | null;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const measureRef = React.useRef<HTMLSpanElement>(null);
@@ -28,7 +28,7 @@ function SlidingGroupDetails({
 
   const formattedText = items
     .map((a) => {
-      const isSelf = a.guiche === currentGuiche;
+      const isSelf = a.ticketWindowId === currentTicketWindowId;
       const label = a.alias || a.guiche;
       if (isSelf) return `${label} (Você)`;
       return `${label}${a.attendantName ? ` (${a.attendantName})` : ""}`;
@@ -44,7 +44,7 @@ function SlidingGroupDetails({
     checkOverflow();
     window.addEventListener("resize", checkOverflow);
     return () => window.removeEventListener("resize", checkOverflow);
-  }, [items, currentGuiche]);
+  }, [items, currentTicketWindowId]);
 
   return (
     <div ref={containerRef} className="w-full overflow-hidden relative text-xs font-medium text-emerald-100">
@@ -70,7 +70,7 @@ export default function ForwardModal({
   show,
   currentCall,
   attendants,
-  currentGuiche,
+  currentTicketWindowId,
   onClose,
   onForward,
 }: ForwardModalProps) {
@@ -85,7 +85,7 @@ export default function ForwardModal({
 
   // Only show active guiches (occupied by an attendant) and not the current one for individual target tab
   const activeAttendants = attendants.filter(
-    (a) => a.guiche !== currentGuiche && !!a.attendantName
+    (a) => a.ticketWindowId !== currentTicketWindowId && !!a.attendantName
   );
 
   // Group attendants by groupName (including the current user if active in the group)
@@ -157,10 +157,10 @@ export default function ForwardModal({
                       <p className="text-sefaz-accent/60 font-medium">Nenhum outro guichê disponível.</p>
                     </div>
                   ) : (
-                    activeAttendants.map(({ guiche, alias, attendantName }) => (
+                    activeAttendants.map(({ ticketWindowId, guiche, alias, attendantName }) => (
                       <button
-                        key={guiche}
-                        onClick={() => onForward(currentCall.id, guiche, "single")}
+                        key={ticketWindowId}
+                        onClick={() => onForward(currentCall.id, ticketWindowId, "single")}
                         className="p-4 bg-emerald-50/50 hover:bg-emerald-100/50 border-2 border-emerald-100 rounded-2xl text-left transition-all group cursor-pointer flex flex-col"
                       >
                         <p className="text-[10px] font-black text-sefaz-accent/40 uppercase tracking-widest mb-1 truncate w-full" title={guiche}>
@@ -192,7 +192,7 @@ export default function ForwardModal({
                             {groupAttendants.length} {groupAttendants.length === 1 ? "Guichê" : "Guichês"}
                           </span>
                         </div>
-                        <SlidingGroupDetails items={groupAttendants} currentGuiche={currentGuiche} />
+                        <SlidingGroupDetails items={groupAttendants} currentTicketWindowId={currentTicketWindowId} />
                       </button>
                     ))
                   )

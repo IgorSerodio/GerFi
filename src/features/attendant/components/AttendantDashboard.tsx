@@ -18,7 +18,8 @@ interface AttendantDashboardProps {
   initialCategories: DbCategory[];
   initialLocations: Location[];
   initialServices: number[];
-  initialGuiche: string;
+  initialTicketWindowId: number | null;
+  initialGuicheName: string;
 }
 
 export default function AttendantDashboard({
@@ -26,12 +27,14 @@ export default function AttendantDashboard({
   initialCategories,
   initialLocations,
   initialServices,
-  initialGuiche,
+  initialTicketWindowId,
+  initialGuicheName,
 }: AttendantDashboardProps) {
   const { state, actions } = useAttendantDashboard({
     session,
     initialServices,
-    initialGuiche,
+    initialTicketWindowId,
+    initialGuicheName,
   });
 
   const categories = initialCategories.map((c) => ({
@@ -49,22 +52,22 @@ export default function AttendantDashboard({
 
   const availableNormal = availableTickets.filter((t) => t.priority === "Normal" && !t.forwardedTo);
   const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário" && !t.forwardedTo);
-  const currentWindow = state.ticketWindows.find(w => w.name === state.currentAttendant.guiche);
+  const currentWindow = state.ticketWindows.find(w => w.id === state.currentAttendant.ticketWindowId);
 
   const forwardedCount = state.queue.filter((t) => {
     if (t.status !== "pending") return false;
     if (t.forwardType === "group") {
       return currentWindow?.groupName ? t.forwardedTo === currentWindow.groupName : false;
     }
-    return t.forwardedTo === state.currentAttendant.guiche;
+    return t.forwardedTo === String(state.currentAttendant.ticketWindowId);
   }).length;
-  const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guiche;
+  const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guicheName;
 
   return (
     <div className="w-full bg-sefaz-light p-2 md:p-4 font-sans">
       <div className="grid lg:grid-cols-[16rem_1fr] rounded-[32px] shadow-2xl border border-emerald-100 bg-white min-h-[calc(100dvh-2rem)]">
         <AttendantSidebar
-          currentAttendant={{ ...state.currentAttendant, guiche: currentGuicheDisplay }}
+          currentAttendant={{ ...state.currentAttendant, guicheName: currentGuicheDisplay }}
           showServiceConfig={state.showServiceConfig}
           setShowServiceConfig={actions.setShowServiceConfig}
           setShowGuicheModal={actions.setShowGuicheModal}
@@ -92,7 +95,7 @@ export default function AttendantDashboard({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
             <div className="lg:col-span-2 space-y-4 min-w-0">
-              {!state.currentAttendant.guiche ? (
+              {!state.currentAttendant.ticketWindowId ? (
                 <div className="bg-white rounded-[40px] shadow-sm border-2 border-amber-100 p-10 flex flex-col items-center justify-center min-h-[400px] text-center">
                   <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mb-6 text-amber-500 animate-pulse">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="15" y1="9" y2="9"/><line x1="9" x2="15" y1="15" y2="15"/></svg>

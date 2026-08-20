@@ -20,29 +20,29 @@ interface AttendantModalsProps {
     showStartModal: boolean;
     currentCall: Ticket | undefined;
     showForwardModal: boolean;
-    attendants: { guiche: string; alias?: string | null; groupName?: string | null; attendantName: string | undefined }[];
-    currentAttendant: { name: string; guiche: string };
+    attendants: { ticketWindowId: number; guiche: string; alias?: string | null; groupName?: string | null; attendantName: string | undefined }[];
+    currentAttendant: { name: string; ticketWindowId: number | null; guicheName: string };
     showFinishModal: boolean;
     ticketToFinish: string | null;
     history: Ticket[];
     observation: string;
     selectedResolutions: string[];
     showGuicheModal: boolean;
-    ticketWindows: { name: string; alias?: string | null }[];
-    activeGuiches: { guiche: string; attendantName: string }[];
+    ticketWindows: { id: number; name: string; alias?: string | null }[];
+    activeGuiches: { ticketWindowId: number; guicheName: string; attendantName: string }[];
     selectedHistoryTicket: Ticket | null;
   };
   actions: {
     setShowStartModal: (v: boolean) => void;
     confirmStart: (code: string) => Promise<void>;
     setShowForwardModal: (v: boolean) => void;
-    handleForward: (id: string, guiche: string, type?: "single" | "group") => Promise<void>;
+    handleForward: (id: string, targetValue: string | number, type?: "single" | "group") => Promise<void>;
     setObservation: (v: string) => void;
     setSelectedResolutions: (v: string[] | ((prev: string[]) => string[])) => void;
     setShowFinishModal: (v: boolean) => void;
     confirmFinish: () => Promise<void>;
     setShowGuicheModal: (v: boolean) => void;
-    handleSaveGuiche: (guiche: string) => Promise<void>;
+    handleSaveGuiche: (ticketWindowId: number, guicheName: string) => Promise<void>;
     handleVacateGuiche: () => Promise<void>;
     setSelectedHistoryTicket: (t: Ticket | null) => void;
   };
@@ -67,7 +67,7 @@ export default function AttendantModals({
         show={state.showForwardModal}
         currentCall={state.currentCall}
         attendants={state.attendants}
-        currentGuiche={state.currentAttendant.guiche}
+        currentTicketWindowId={state.currentAttendant.ticketWindowId}
         onClose={() => actions.setShowForwardModal(false)}
         onForward={actions.handleForward}
       />
@@ -88,7 +88,7 @@ export default function AttendantModals({
 
       <GuicheModal
         show={state.showGuicheModal}
-        currentGuiche={state.currentAttendant.guiche}
+        currentTicketWindowId={state.currentAttendant.ticketWindowId}
         ticketWindows={state.ticketWindows}
         activeGuiches={state.activeGuiches}
         onClose={() => actions.setShowGuicheModal(false)}

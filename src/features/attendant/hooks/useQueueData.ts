@@ -8,7 +8,7 @@ import { useQueueStream } from "@/features/queue/hooks/useQueueStream";
 export function useQueueData() {
   const [queue, setQueue] = useState<Ticket[]>([]);
   const [history, setHistory] = useState<Ticket[]>([]);
-  const [activeGuiches, setActiveGuiches] = useState<{ guiche: string; attendantName: string }[]>([]);
+  const [activeGuiches, setActiveGuiches] = useState<{ ticketWindowId: number; guicheName: string; guicheAlias: string | null; attendantName: string }[]>([]);
   const [ticketWindows, setTicketWindows] = useState<DbTicketWindow[]>([]);
   const [locationId, setLocationId] = useState<number | null>(null);
 
@@ -30,7 +30,7 @@ export function useQueueData() {
       setQueue(res.data.tickets);
       setHistory(res.data.history);
     }
-    const activeRes = await getActiveGuichesAction();
+    const activeRes = await getActiveGuichesAction(locationId);
     if (activeRes.success && activeRes.data) {
       setActiveGuiches(activeRes.data);
     }
@@ -58,8 +58,9 @@ export function useQueueData() {
   useQueueStream(() => refreshStateRef.current());
 
   const attendants = ticketWindows.map((tw) => {
-    const active = activeGuiches.find((a) => a.guiche === tw.name);
+    const active = activeGuiches.find((a) => a.ticketWindowId === tw.id);
     return {
+      ticketWindowId: tw.id,
       guiche: tw.name,
       alias: tw.alias,
       groupName: tw.groupName,

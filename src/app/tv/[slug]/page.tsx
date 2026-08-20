@@ -4,7 +4,7 @@ import { getTvSettingsAction } from "@/features/tv/actions";
 import { getTicketWindowsAction } from "@/features/management/actions";
 import TvDashboard from "@/features/tv/components/TvDashboard";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/features/auth/permissions";
 

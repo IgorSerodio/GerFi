@@ -12,7 +12,8 @@ export interface DbTicketRow {
   completed_at?: Date | null;
   attendant_id?: number | null;
   attendant_name?: string | null;
-  guiche?: string | null;
+  ticket_window_id?: number | null;
+  guiche_name?: string | null;
   guiche_alias?: string | null;
   observation?: string | null;
   security_code?: string;
@@ -37,7 +38,8 @@ export function mapTicketRow(row: DbTicketRow): Ticket {
     completedAt: row.completed_at?.toISOString() || undefined,
     attendantId: row.attendant_id || undefined,
     attendantName: row.attendant_name || undefined,
-    guiche: row.guiche || undefined,
+    ticketWindowId: row.ticket_window_id || undefined,
+    guicheName: row.guiche_name || undefined,
     guicheAlias: row.guiche_alias || undefined,
     observation: row.observation || undefined,
     securityCode: row.security_code || undefined,

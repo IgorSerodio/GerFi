@@ -1,6 +1,6 @@
 import React from "react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCategoriesAction, getLocationsAction } from "@/features/management/actions";;
 import { getUserById } from "@/features/users/queries";
@@ -28,7 +28,8 @@ export default async function AttendantPage() {
       initialCategories={initialCategories as DbCategory[]}
       initialLocations={initialLocations as Location[]}
       initialServices={userProfile?.services || []}
-      initialGuiche={userProfile?.guiche || ""}
+      initialTicketWindowId={userProfile?.ticketWindowId || null}
+      initialGuicheName={userProfile?.guicheName || ""}
     />
   );
 }

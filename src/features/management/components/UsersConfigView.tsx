@@ -35,7 +35,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
   const [newUser, setNewUser] = useState<NewUserFormData>({
     name: "",
     role: UserRole.Atendente,
-    guiche: "",
+    ticketWindowId: null as number | null,
+    guicheName: "",
     matricula: "",
     cpf: "",
     email: "",
@@ -72,7 +73,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     e.preventDefault();
     const payload = {
       ...newUser,
-      guiche: newUser.guiche === "" ? null : newUser.guiche,
+      ticketWindowId: newUser.ticketWindowId || null,
+      guicheName: newUser.guicheName || undefined,
     };
 
     if (isEditingUser && editingUserId !== null) {
@@ -91,7 +93,8 @@ export default function UsersConfigView({ triggerSuccess }: UsersConfigViewProps
     setNewUser({
       name: user.name,
       role: user.role,
-      guiche: user.guiche || "",
+      ticketWindowId: user.ticketWindowId || null,
+      guicheName: user.guicheName || "",
       matricula: user.matricula,
       cpf: user.cpf,
       email: user.email,

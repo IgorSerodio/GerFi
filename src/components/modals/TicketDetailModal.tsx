@@ -63,7 +63,7 @@ export default function TicketDetailModal({
                   </p>
                   <p className="text-lg font-black text-sefaz-dark leading-tight">
                     {selectedHistoryTicket.attendantName || "N/A"}<br/>
-                    <span className="text-sm font-bold text-sefaz-accent/70">{selectedHistoryTicket.guicheAlias || selectedHistoryTicket.guiche}</span>
+                    <span className="font-bold text-sefaz-dark">{selectedHistoryTicket.guicheAlias || selectedHistoryTicket.guicheName}</span>
                   </p>
                 </div>
                 

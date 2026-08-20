@@ -12,7 +12,7 @@ import {
 export function useTicketActions(
   locationId: number | null,
   currentAttendantId: number,
-  currentAttendantGuiche: string,
+  currentAttendantTicketWindowId: number | null,
   allowedServices: number[],
   history: Ticket[]
 ) {
@@ -30,12 +30,12 @@ export function useTicketActions(
   );
 
   const handleCall = async (priorityType?: "Normal" | "Prioritário") => {
-    if (locationId === null || isCalling || currentCall) return;
+    if (locationId === null || currentAttendantTicketWindowId === null || isCalling || currentCall) return;
     setIsCalling(true);
     const res = await callTicketAction(
       locationId,
       currentAttendantId,
-      currentAttendantGuiche,
+      currentAttendantTicketWindowId,
       allowedServices,
       priorityType,
       false // isForwardedCall
@@ -47,12 +47,12 @@ export function useTicketActions(
   };
 
   const handleCallForwarded = async () => {
-    if (locationId === null || isCalling || currentCall) return;
+    if (locationId === null || currentAttendantTicketWindowId === null || isCalling || currentCall) return;
     setIsCalling(true);
     const res = await callTicketAction(
       locationId,
       currentAttendantId,
-      currentAttendantGuiche,
+      currentAttendantTicketWindowId,
       allowedServices,
       undefined,
       true // isForwardedCall
@@ -109,8 +109,8 @@ export function useTicketActions(
     }
   };
 
-  const handleForward = async (ticketId: string, targetGuiche: string, targetType: "single" | "group" = "single") => {
-    const res = await forwardTicketAction(ticketId, targetGuiche, targetType);
+  const handleForward = async (ticketId: string, targetValue: string | number, targetType: "single" | "group" = "single") => {
+    const res = await forwardTicketAction(ticketId, targetValue, targetType);
     if (res.success) {
       setShowForwardModal(false);
     } else {

@@ -116,11 +116,11 @@ export function useTriageDashboard() {
     const historyItem = history.find((t) => t.ticketNumber === query);
     if (historyItem) {
       setSearchResult({
-        id: query,
+        id: historyItem.id,
         status: historyItem.status as Exclude<TicketStatus, "pending">,
-        guiche: historyItem.guiche,
+        guiche: historyItem.guicheName,
         guicheAlias: historyItem.guicheAlias,
-        attendantName: historyItem.attendantName,
+        attendantName: historyItem.attendantName || undefined,
         ticket: historyItem,
       });
       return;

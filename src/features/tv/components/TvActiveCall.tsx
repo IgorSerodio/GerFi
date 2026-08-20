@@ -9,8 +9,8 @@ interface TvActiveCallProps {
 }
 
 export default function TvActiveCall({ currentCall, ticketWindows }: TvActiveCallProps) {
-  const currentWindow = ticketWindows?.find(w => w.name === currentCall.guiche);
-  const displayGuiche = currentCall.guicheAlias || currentCall.guiche;
+  const currentWindow = ticketWindows?.find(w => w.name === currentCall.guicheName);
+  const displayGuiche = currentCall.guicheAlias || currentCall.guicheName;
   const guicheLabel = currentWindow?.label || (displayGuiche?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL");
 
   return (

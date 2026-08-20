@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 

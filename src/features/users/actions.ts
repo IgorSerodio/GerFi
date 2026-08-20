@@ -97,7 +97,7 @@ export async function updateUserAction(id: number, userData: Partial<User>) {
         // Self-edit without full permissions: preserve sensitive data
         userData.name = targetUser.name;
         userData.role = targetUser.role;
-        userData.guiche = targetUser.guiche;
+        userData.ticketWindowId = targetUser.ticketWindowId;
         userData.matricula = targetUser.matricula;
         userData.cpf = targetUser.cpf;
         userData.email = targetUser.email;
@@ -201,10 +201,10 @@ export async function updateMyServicesAction(services: number[]) {
 /**
  * Atualiza o guichê do usuário logado
  */
-export async function updateMyGuicheAction(guiche: string | null) {
+export async function updateMyGuicheAction(ticketWindowId: number | null) {
   try {
     const session = await requirePermission("ACCESS_ATTENDANCE");
-    const user = await updateUserGuiche(Number(session.user.id), guiche);
+    const user = await updateUserGuiche(Number(session.user.id), ticketWindowId);
     queueEmitter.emit("update");
     return { success: true, data: user };
   } catch (error) {

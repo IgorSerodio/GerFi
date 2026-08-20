@@ -35,7 +35,7 @@ export default function QueuePreview({ availableTickets, categories }: QueuePrev
             <div className="flex justify-center">
               <WaitTimer
                 createdAt={t.createdAt}
-                calledAt={t.calledAt}
+                calledAt={t.calledAt || undefined}
                 expectedTimeNormal={categories.find(c => c.id === String(t.categoryId))?.expectedTimeNormal || 30}
                 expectedTimePriority={categories.find(c => c.id === String(t.categoryId))?.expectedTimePriority || 30}
                 priority={t.priority}

@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { ActionName, hasPermission } from "./permissions";
 import { createUser, getUserByEmail, setUserResetPin, clearUserResetPinAndUpdatePassword, isResetPinValid } from "@/features/users/queries";
 import { User, UserRole } from "@/features/users/types";

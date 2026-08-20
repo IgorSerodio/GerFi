@@ -18,6 +18,8 @@ describe("Queue Actions (Integration)", () => {
 
   let ticketIdMain: string;
   let ticketSecurityCodeMain: string;
+  let testTicketWindowId: number;
+  let testTicketWindowId2: number;
 
   beforeAll(async () => {
     await cleanTestDatabase();
@@ -48,6 +50,23 @@ describe("Queue Actions (Integration)", () => {
       ON CONFLICT (id) DO NOTHING
     `);
     
+    // 4. Inserir guichês de teste para usar nas actions
+    const twRes = await pool.query(`
+      INSERT INTO ticket_windows (name, alias, location_id) 
+      VALUES ('Guichê 1', 'G1', 1) 
+      ON CONFLICT (name, location_id) DO UPDATE SET alias = EXCLUDED.alias 
+      RETURNING id
+    `);
+    testTicketWindowId = twRes.rows[0].id;
+
+    const twRes2 = await pool.query(`
+      INSERT INTO ticket_windows (name, alias, location_id) 
+      VALUES ('Guichê 2', 'G2', 1) 
+      ON CONFLICT (name, location_id) DO UPDATE SET alias = EXCLUDED.alias 
+      RETURNING id
+    `);
+    testTicketWindowId2 = twRes2.rows[0].id;
+
     // Sincronizar a sequence do Postgres após inserção manual para não quebrar outros testes
     await pool.query(`SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))`);
   });
@@ -81,16 +100,15 @@ describe("Queue Actions (Integration)", () => {
 
   it("Fluxo 2: Atendente chama a próxima senha disponível (callTicketAction)", async () => {
     const attendantId = 1; // Id mockado na vitest.setup.ts
-    const guiche = "Guichê 1";
     const allowedServices = [categoryId];
 
-    const result = await callTicketAction(locationId, attendantId, guiche, allowedServices, "Normal");
+    const result = await callTicketAction(locationId, attendantId, testTicketWindowId, allowedServices, "Normal");
 
     expect(result.success).toBe(true);
     expect(result.data).toBeDefined();
     expect(result.data?.status).toBe("calling");
     expect(result.data?.attendantId).toBe(attendantId);
-    expect(result.data?.guiche).toBe(guiche);
+    expect(result.data?.ticketWindowId).toBe(testTicketWindowId);
     expect(result.data?.id).toBe(ticketIdMain);
   });
 
@@ -101,10 +119,9 @@ describe("Queue Actions (Integration)", () => {
     // O Atendente 1 já chamou uma senha no Fluxo 2 (status calling)
     // Tentar chamar novamente deve acionar o catch (error) corrigido
     const attendantId = 1;
-    const guiche = "Guichê 1";
     const allowedServices = [categoryId];
     
-    const result = await callTicketAction(locationId, attendantId, guiche, allowedServices, "Normal");
+    const result = await callTicketAction(locationId, attendantId, testTicketWindowId, allowedServices, "Normal");
     
     expect(result.success).toBe(false);
     expect(result.error).toBe("Você já possui um atendimento em andamento.");
@@ -133,14 +150,14 @@ describe("Queue Actions (Integration)", () => {
     const issueRes = await issueTicketAction({ categoryId, categoryName, priority: "Normal", locationId });
     const fwTicketId = issueRes.data?.id as string;
     
-    await callTicketAction(locationId, 1, "Guichê 1", [categoryId], "Normal"); // Chamada inicial
+    await callTicketAction(locationId, 1, testTicketWindowId, [categoryId], "Normal"); // Chamada inicial
 
-    const fwResult = await forwardTicketAction(fwTicketId, "Guichê 2", "single");
+    const fwResult = await forwardTicketAction(fwTicketId, testTicketWindowId2, "single");
     expect(fwResult.success).toBe(true);
     
     // O forwardTicket retorna a NOVA senha inserida na fila, cujo status inicial é pending
     expect(fwResult.data?.status).toBe("pending");
-    expect(fwResult.data?.forwardedTo).toBe("Guichê 2");
+    expect(fwResult.data?.forwardedTo).toBe(String(testTicketWindowId2));
   });
 
   it("Fluxo Alternativo: Não Comparecimento (noShowTicketAction) e Rechamada", async () => {
@@ -149,7 +166,7 @@ describe("Queue Actions (Integration)", () => {
 
     const issueRes = await issueTicketAction({ categoryId, categoryName, priority: "Normal", locationId });
     const noShowTicketId = issueRes.data?.id as string;
-    const callRes = await callTicketAction(locationId, 1, "Guichê 1", [categoryId], "Normal");
+    const callRes = await callTicketAction(locationId, 1, testTicketWindowId, [categoryId], "Normal");
     expect(callRes.success).toBe(true);
     expect(callRes.data?.id).toBe(noShowTicketId);
     // Tentar rechamar imediatamente deve falhar (cooldown)

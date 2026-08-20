@@ -6,9 +6,10 @@ import { User } from "./types";
  */
 export async function getUsers(): Promise<User[]> {
   const { rows } = await pool.query<User>(
-    `SELECT id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority" 
-     FROM users 
-     ORDER BY name ASC`
+    `SELECT u.id, u.name, u.role, u.ticket_window_id as "ticketWindowId", tw.name as "guicheName", tw.alias as "guicheAlias", u.matricula, u.cpf, u.email, u.username, u.services, u.blocked, u.can_call_normal as "canCallNormal", u.can_call_priority as "canCallPriority" 
+     FROM users u
+     LEFT JOIN ticket_windows tw ON u.ticket_window_id = tw.id
+     ORDER BY u.name ASC`
   );
   return rows.map(row => ({
     ...row,
@@ -19,9 +20,22 @@ export async function getUsers(): Promise<User[]> {
 /**
  * Retorna os guichês que estão atualmente ocupados por algum atendente.
  */
-export async function getActiveGuiches(): Promise<{ guiche: string, attendantName: string }[]> {
+export async function getActiveGuiches(locationId?: number): Promise<{ ticketWindowId: number, guicheName: string, guicheAlias: string | null, attendantName: string }[]> {
+  if (locationId !== undefined) {
+    const { rows } = await pool.query(
+      `SELECT u.ticket_window_id as "ticketWindowId", u.name as "attendantName", tw.name as "guicheName", tw.alias as "guicheAlias" 
+       FROM users u 
+       JOIN ticket_windows tw ON u.ticket_window_id = tw.id 
+       WHERE u.ticket_window_id IS NOT NULL AND tw.location_id = $1`,
+      [locationId]
+    );
+    return rows;
+  }
   const { rows } = await pool.query(
-    `SELECT guiche, name as "attendantName" FROM users WHERE guiche IS NOT NULL AND guiche != ''`
+    `SELECT u.ticket_window_id as "ticketWindowId", u.name as "attendantName", tw.name as "guicheName", tw.alias as "guicheAlias" 
+     FROM users u 
+     JOIN ticket_windows tw ON u.ticket_window_id = tw.id 
+     WHERE u.ticket_window_id IS NOT NULL`
   );
   return rows;
 }
@@ -30,49 +44,49 @@ export async function getActiveGuiches(): Promise<{ guiche: string, attendantNam
  * Cria um novo servidor no banco
  */
 export async function createUser(userData: Omit<User, "id">): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, password, services, blocked, canCallNormal, canCallPriority } = userData;
-  const { rows } = await pool.query<User>(
-    `INSERT INTO users (name, role, guiche, matricula, cpf, email, username, password, services, blocked, can_call_normal, can_call_priority)
+  const { name, role, ticketWindowId, matricula, cpf, email, username, password, services, blocked, canCallNormal, canCallPriority } = userData as any;
+  const { rows } = await pool.query(
+    `INSERT INTO users (name, role, ticket_window_id, matricula, cpf, email, username, password, services, blocked, can_call_normal, can_call_priority)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-     RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
-    [name, role, guiche, matricula, cpf, email, username, password, services || [], blocked ?? false, canCallNormal ?? true, canCallPriority ?? true]
+     RETURNING id, name, role, ticket_window_id as "ticketWindowId", matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+    [name, role, ticketWindowId, matricula, cpf, email, username, password, services || [], blocked ?? false, canCallNormal ?? true, canCallPriority ?? true]
   );
   return {
     ...rows[0],
     services: (rows[0].services || []).map(Number)
-  };
+  } as User;
 }
 
 /**
  * Atualiza um servidor existente
  */
 export async function updateUser(id: number, userData: Partial<User>): Promise<User> {
-  const { name, role, guiche, matricula, cpf, email, username, services, password, canCallNormal, canCallPriority } = userData;
+  const { name, role, ticketWindowId, matricula, cpf, email, username, services, password, canCallNormal, canCallPriority } = userData as any;
   
   if (password) {
-    const { rows } = await pool.query<User>(
+    const { rows } = await pool.query(
       `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9, can_call_normal = COALESCE($10, can_call_normal), can_call_priority = COALESCE($11, can_call_priority)
+       SET name = $1, role = $2, ticket_window_id = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, password = $9, can_call_normal = COALESCE($10, can_call_normal), can_call_priority = COALESCE($11, can_call_priority)
        WHERE id = $12
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], password, canCallNormal, canCallPriority, id]
+       RETURNING id, name, role, ticket_window_id as "ticketWindowId", matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+      [name, role, ticketWindowId, matricula, cpf, email, username, services || [], password, canCallNormal, canCallPriority, id]
     );
     return {
       ...rows[0],
       services: (rows[0].services || []).map(Number)
-    };
+    } as User;
   } else {
-    const { rows } = await pool.query<User>(
+    const { rows } = await pool.query(
       `UPDATE users
-       SET name = $1, role = $2, guiche = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, can_call_normal = COALESCE($9, can_call_normal), can_call_priority = COALESCE($10, can_call_priority)
+       SET name = $1, role = $2, ticket_window_id = $3, matricula = $4, cpf = $5, email = $6, username = $7, services = $8, can_call_normal = COALESCE($9, can_call_normal), can_call_priority = COALESCE($10, can_call_priority)
        WHERE id = $11
-       RETURNING id, name, role, guiche, matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
-      [name, role, guiche, matricula, cpf, email, username, services || [], canCallNormal, canCallPriority, id]
+       RETURNING id, name, role, ticket_window_id as "ticketWindowId", matricula, cpf, email, username, services, blocked, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority"`,
+      [name, role, ticketWindowId, matricula, cpf, email, username, services || [], canCallNormal, canCallPriority, id]
     );
     return {
       ...rows[0],
       services: (rows[0].services || []).map(Number)
-    };
+    } as User;
   }
 }
 
@@ -151,7 +165,7 @@ export async function clearUserResetPinAndUpdatePassword(id: number, hashedPassw
  * Busca um usuário pelo ID
  */
 export async function getUserById(id: number) {
-  const { rows } = await pool.query('SELECT *, can_call_normal as "canCallNormal", can_call_priority as "canCallPriority" FROM users WHERE id = $1 LIMIT 1', [id]);
+  const { rows } = await pool.query('SELECT u.*, u.ticket_window_id as "ticketWindowId", tw.name as "guicheName", u.can_call_normal as "canCallNormal", u.can_call_priority as "canCallPriority" FROM users u LEFT JOIN ticket_windows tw ON u.ticket_window_id = tw.id WHERE u.id = $1 LIMIT 1', [id]);
   if (rows.length === 0) return null;
   return {
     ...rows[0],
@@ -176,29 +190,28 @@ export async function updateUserServices(id: number, services: number[]) {
 /**
  * Atualiza apenas o guichê de um usuário
  */
-export async function updateUserGuiche(id: number, guiche: string | null) {
+export async function updateUserGuiche(id: number, ticketWindowId: number | null) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    // Se o usuário selecionou um guichê (não null/vazio), remover esse guichê de qualquer outro usuário
-    if (guiche) {
+    if (ticketWindowId) {
       await client.query(
-        "UPDATE users SET guiche = NULL WHERE guiche = $1 AND id != $2",
-        [guiche, id]
+        "UPDATE users SET ticket_window_id = NULL WHERE ticket_window_id = $1 AND id != $2",
+        [ticketWindowId, id]
       );
     }
 
-    // Atualizar o guichê do usuário solicitante
     const { rows } = await client.query(
-      "UPDATE users SET guiche = $1 WHERE id = $2 RETURNING *",
-      [guiche, id]
+      "UPDATE users SET ticket_window_id = $1 WHERE id = $2 RETURNING *",
+      [ticketWindowId, id]
     );
 
     await client.query("COMMIT");
 
     return {
       ...rows[0],
+      ticketWindowId: rows[0].ticket_window_id,
       services: (rows[0].services || []).map(Number)
     };
   } catch (error) {

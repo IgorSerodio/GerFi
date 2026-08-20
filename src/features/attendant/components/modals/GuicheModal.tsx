@@ -5,17 +5,17 @@ import { X } from "lucide-react";
 
 interface GuicheModalProps {
   show: boolean;
-  currentGuiche: string;
-  ticketWindows: { name: string; alias?: string | null }[];
-  activeGuiches: { guiche: string; attendantName: string }[];
+  currentTicketWindowId: number | null;
+  ticketWindows: { id: number; name: string; alias?: string | null }[];
+  activeGuiches: { ticketWindowId: number; guicheName: string; attendantName: string }[];
   onClose: () => void;
-  onSelect: (guiche: string) => void;
+  onSelect: (ticketWindowId: number, guicheName: string) => void;
   onVacate: () => void;
 }
 
 export default function GuicheModal({
   show,
-  currentGuiche,
+  currentTicketWindowId,
   ticketWindows,
   activeGuiches,
   onClose,
@@ -23,13 +23,13 @@ export default function GuicheModal({
   onVacate,
 }: GuicheModalProps) {
 
-  const handleSelect = (guicheName: string) => {
-    const occupant = activeGuiches.find((a) => a.guiche === guicheName);
-    if (occupant && occupant.guiche !== currentGuiche) {
+  const handleSelect = (ticketWindowId: number, guicheName: string) => {
+    const occupant = activeGuiches.find((a) => a.ticketWindowId === ticketWindowId);
+    if (occupant && occupant.ticketWindowId !== currentTicketWindowId) {
       const confirm = window.confirm(`O ${guicheName} está sendo usado por ${occupant.attendantName}. Deseja assumir este guichê e desconectar o outro usuário?`);
       if (!confirm) return;
     }
-    onSelect(guicheName);
+    onSelect(ticketWindowId, guicheName);
   };
 
   return (
@@ -60,14 +60,14 @@ export default function GuicheModal({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                 {ticketWindows.map((tw) => {
                   const guicheName = tw.name;
-                  const isCurrent = currentGuiche === guicheName;
-                  const occupant = activeGuiches.find((a) => a.guiche === guicheName);
+                  const isCurrent = currentTicketWindowId === tw.id;
+                  const occupant = activeGuiches.find((a) => a.ticketWindowId === tw.id);
                   const isOccupiedByOther = occupant && !isCurrent;
 
                   return (
                     <button
-                      key={guicheName}
-                      onClick={() => handleSelect(guicheName)}
+                      key={tw.id}
+                      onClick={() => handleSelect(tw.id, guicheName)}
                       className={`p-4 rounded-2xl transition-all border-2 flex flex-col items-start justify-center gap-1 cursor-pointer ${
                         isCurrent
                           ? "bg-sefaz-accent border-sefaz-accent text-white shadow-lg"
@@ -86,7 +86,7 @@ export default function GuicheModal({
                   );
                 })}
               </div>
-              {currentGuiche && (
+              {currentTicketWindowId && (
                 <div className="mt-8 pt-6 border-t border-gray-100 flex justify-center">
                   <button
                     onClick={onVacate}

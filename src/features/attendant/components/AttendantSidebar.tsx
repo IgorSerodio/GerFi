@@ -5,7 +5,7 @@ import { Location } from "@/features/management/types";;
 
 interface AttendantState {
   name: string;
-  guiche: string;
+  guicheName: string;
 }
 
 interface AttendantSidebarProps {
@@ -57,13 +57,13 @@ export default function AttendantSidebar({
 
         <div className="flex items-center justify-center gap-2 text-white">
           <MapPin size={16} className="text-emerald-400" />
-          <span className="font-black tracking-tight">{currentAttendant.guiche || "Sem Guichê"}</span>
+          <span className="font-black tracking-tight">{currentAttendant.guicheName || "Sem Guichê"}</span>
         </div>
         <button
           onClick={() => setShowGuicheModal(true)}
           className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors cursor-pointer"
         >
-          {currentAttendant.guiche ? "Alterar Guichê" : "Selecionar Guichê"}
+          {currentAttendant.guicheName ? "Alterar Guichê" : "Selecionar Guichê"}
         </button>
       </div>
 

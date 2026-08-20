@@ -8,19 +8,20 @@ export interface Ticket {
   priority: "Normal" | "Prioritário";
   status: TicketStatus;
   createdAt: string;
-  calledAt?: string;
-  completedAt?: string;
-  attendantId?: number;
-  attendantName?: string;
-  guiche?: string;
+  calledAt?: string | null;
+  completedAt?: string | null;
+  attendantId?: number | null;
+  attendantName?: string | null;
+  ticketWindowId?: number | null;
+  guicheName?: string;
   guicheAlias?: string;
-  observation?: string;
+  observation?: string | null;
   locationId: number;
   securityCode?: string;
   startedAt?: string;
   resolutions?: string[];
   recallHistory?: string[];
-  forwardedTo?: string;
+  forwardedTo?: string | number;
   forwardType?: "single" | "group";
 }
 

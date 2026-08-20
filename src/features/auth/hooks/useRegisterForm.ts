@@ -65,7 +65,8 @@ export function useRegisterForm() {
       username: formData.username,
       password: formData.password,
       role: formData.role,
-      guiche: null,
+      ticketWindowId: null,
+      guicheName: undefined,
       services: [],
     });
 

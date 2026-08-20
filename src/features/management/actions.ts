@@ -45,10 +45,10 @@ export async function getTicketWindowsAction(locationId?: number) {
   }
 }
 
-export async function getActiveGuichesAction() {
+export async function getActiveGuichesAction(locationId?: number) {
   try {
     await requirePermission("OPERATE_QUEUE");
-    const active = await getActiveGuiches();
+    const active = await getActiveGuiches(locationId);
     return { success: true, data: active };
   } catch (error) {
     return { success: false, error: getErrorMessage(error, "Erro ao buscar guichês ativos.") };

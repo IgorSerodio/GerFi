@@ -6,10 +6,12 @@ export enum UserRole {
 }
 
 export interface User {
-  id?: number;
+  id: number;
   name: string;
   role: UserRole;
-  guiche?: string | null;
+  ticketWindowId?: number | null;
+  guicheName?: string;
+  guicheAlias?: string;
   matricula: string;
   cpf: string;
   email: string;

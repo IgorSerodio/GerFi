@@ -42,8 +42,8 @@ export default function HistorySidebar({
               {duplicatedTickets.map((ticket, i) => (
                 <div key={`${ticket.id}-${i}`} className="shrink-0 mb-[2vh]">
                   {(() => {
-                    const currentWindow = ticketWindows?.find(w => w.name === ticket.guiche);
-                    const displayGuiche = ticket.guicheAlias || ticket.guiche || "";
+                    const currentWindow = ticketWindows?.find(w => w.name === ticket.guicheName);
+                    const displayGuiche = ticket.guicheAlias || ticket.guicheName || "";
                     const isGuiche = displayGuiche.toLowerCase().includes("guichê");
                     const guicheLabel = currentWindow?.label || (isGuiche ? "GUICHÊ" : "LOCAL");
                     
@@ -63,18 +63,14 @@ export default function HistorySidebar({
                             {ticket.ticketNumber}
                           </div>
                           <div className="h-[5vh] w-px bg-emerald-200 mx-1 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[1.2vh] text-emerald-600 font-black uppercase tracking-[0.2em] mb-[0.5vh] opacity-50 truncate">
-                              {guicheLabel}
-                            </div>
-                            <div 
-                              className="font-black text-emerald-950 uppercase tracking-tighter truncate" 
-                              style={{ fontSize: `${fontSizeVh}vh` }}
-                              title={displayGuiche}
-                            >
-                              {displayValue}
-                            </div>
-                          </div>
+                          <div className="flex flex-col items-center">
+                          <span className="text-[0.65rem] uppercase tracking-widest opacity-60 font-bold leading-none mb-1">
+                            {ticket.guicheAlias || ticket.guicheName?.toLowerCase().includes("guichê") ? "GUICHÊ" : "LOCAL"}
+                          </span>
+                          <span className="font-bold text-emerald-950 uppercase leading-none truncate max-w-[80px]" style={{ fontSize: ticket.guicheAlias || ticket.guicheName?.toLowerCase().includes("guichê") ? "1.25rem" : "0.85rem" }}>
+                            {ticket.guicheAlias || (ticket.guicheName?.toLowerCase().includes("guichê") ? (ticket.guicheName.split(" ")[1] || "01") : ticket.guicheName)}
+                          </span>
+                        </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-[2.2vh] font-black text-emerald-600 tabular-nums tracking-tighter">

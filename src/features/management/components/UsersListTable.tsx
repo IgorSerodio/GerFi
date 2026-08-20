@@ -74,17 +74,13 @@ export function UsersListTable({
                 </td>
                 <td className="px-6 py-4 text-xs font-bold text-sefaz-dark">
                   {(() => {
-                    if (!user.guiche) return "-";
-                    // Encontra guiche com alias (se existir)
+                    if (!user.ticketWindowId) return "-";
+                    
                     let alias = "";
-                    let labelToDisplay = user.guiche;
+                    let labelToDisplay = user.guicheName || "";
 
                     if (ticketWindows && locations) {
-                      const tw = ticketWindows.find((t) => {
-                        const loc = locations.find((l) => l.id === t.locationId);
-                        const label = loc ? `${loc.name} - ${t.name}` : t.name;
-                        return label === user.guiche || t.name === user.guiche;
-                      });
+                      const tw = ticketWindows.find((t) => t.id === user.ticketWindowId);
                       
                       if (tw) {
                         const loc = locations.find((l) => l.id === tw.locationId);

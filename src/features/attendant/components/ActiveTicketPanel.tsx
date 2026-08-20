@@ -36,7 +36,7 @@ export function ActiveTicketPanel({
         </div>
         <WaitTimer
           createdAt={currentCall.createdAt}
-          calledAt={currentCall.calledAt}
+          calledAt={currentCall.calledAt || undefined}
           expectedTimeNormal={currentCategory?.expectedTimeNormal || 30}
           expectedTimePriority={currentCategory?.expectedTimePriority || 30}
           priority={currentCall.priority}

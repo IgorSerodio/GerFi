@@ -7,20 +7,22 @@ import { useTicketActions } from "./useTicketActions";
 interface UseAttendantDashboardProps {
   session: Session | null;
   initialServices: number[];
-  initialGuiche: string;
+  initialTicketWindowId: number | null;
+  initialGuicheName: string;
 }
 
 export function useAttendantDashboard({
   session,
   initialServices,
-  initialGuiche,
+  initialTicketWindowId,
+  initialGuicheName,
 }: UseAttendantDashboardProps) {
-  const sessionData = useAttendantSession(session, initialServices, initialGuiche);
+  const sessionData = useAttendantSession(session, initialServices, initialTicketWindowId, initialGuicheName);
   const queueData = useQueueData();
   const ticketActions = useTicketActions(
     queueData.locationId,
     sessionData.currentAttendant.id,
-    sessionData.currentAttendant.guiche,
+    sessionData.currentAttendant.ticketWindowId,
     sessionData.allowedServices,
     queueData.history
   );
@@ -30,7 +32,7 @@ export function useAttendantDashboard({
   // Sync profile when guiche changes
   useEffect(() => {
     refreshProfile();
-  }, [currentAttendant.guiche, refreshProfile]);
+  }, [currentAttendant.ticketWindowId, refreshProfile]);
 
   return {
     state: {
@@ -63,7 +65,9 @@ export function useAttendantDashboard({
       setShowGuicheModal: sessionData.setShowGuicheModal,
       setAllowedServices: sessionData.setAllowedServices,
       setShowServiceConfig: sessionData.setShowServiceConfig,
-      handleSaveGuiche: sessionData.handleSaveGuiche,
+      handleSaveGuiche: (ticketWindowId: number, guicheName: string) => {
+        return sessionData.handleSaveGuiche(ticketWindowId, guicheName);
+      },
       handleVacateGuiche: sessionData.handleVacateGuiche,
 
       setLocationId: queueData.setLocationId,

@@ -72,7 +72,7 @@ export async function issueTicketAction(payload: {
 export async function callTicketAction(
   locationId: number,
   attendantId: number,
-  guiche: string,
+  ticketWindowId: number,
   allowedServices: number[],
   priorityType?: "Normal" | "Prioritário",
   isForwardedCall?: boolean
@@ -88,7 +88,7 @@ export async function callTicketAction(
       return { success: false, error: "Você não tem permissão para chamar senhas Prioritárias." };
     }
 
-    const ticket = await callNextTicket(locationId, attendantId, guiche, allowedServices, priorityType, isForwardedCall);
+    const ticket = await callNextTicket(locationId, attendantId, ticketWindowId, allowedServices, priorityType, isForwardedCall);
     if (!ticket) {
       return { success: true, data: null }; // Sem senhas na fila
     }
@@ -201,17 +201,17 @@ export async function noShowTicketAction(ticketId: string) {
  */
 export async function forwardTicketAction(
   ticketId: string,
-  targetGuiche: string,
+  targetValue: string | number,
   targetType?: "single" | "group"
 ) {
-  const result = ForwardTicketSchema.safeParse({ ticketId, targetGuiche, targetType });
+  const result = ForwardTicketSchema.safeParse({ ticketId, targetValue, targetType });
   if (!result.success) {
     return { success: false, error: result.error.issues[0].message };
   }
 
   try {
     await requirePermission("OPERATE_QUEUE");
-    const ticket = await forwardTicket(ticketId, targetGuiche, targetType);
+    const ticket = await forwardTicket(ticketId, targetValue, targetType);
     if (!ticket) {
       return { success: false, error: "Senha não encontrada." };
     }

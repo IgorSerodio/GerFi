@@ -5,14 +5,16 @@ import { getMyProfileAction, updateMyGuicheAction } from "@/features/users/actio
 export interface AttendantState {
   id: number;
   name: string;
-  guiche: string;
+  ticketWindowId: number | null;
+  guicheName: string;
 }
 
-export function useAttendantSession(session: Session | null, initialServices: number[], initialGuiche: string) {
+export function useAttendantSession(session: Session | null, initialServices: number[], initialTicketWindowId: number | null, initialGuicheName: string) {
   const [currentAttendant, setCurrentAttendant] = useState<AttendantState>({
     id: Number(session?.user?.id) || 0,
     name: session?.user?.name || "Atendente",
-    guiche: initialGuiche,
+    ticketWindowId: initialTicketWindowId,
+    guicheName: initialGuicheName,
   });
   const [showGuicheModal, setShowGuicheModal] = useState(false);
   const [allowedServices, setAllowedServices] = useState<number[]>(initialServices);
@@ -20,12 +22,13 @@ export function useAttendantSession(session: Session | null, initialServices: nu
   const [canCallNormal, setCanCallNormal] = useState<boolean>(true);
   const [canCallPriority, setCanCallPriority] = useState<boolean>(true);
 
-  const handleSaveGuiche = async (guicheName: string) => {
-    const res = await updateMyGuicheAction(guicheName);
+  const handleSaveGuiche = async (ticketWindowId: number, guicheName: string) => {
+    const res = await updateMyGuicheAction(ticketWindowId);
     if (res.success) {
       setCurrentAttendant((prev) => ({
         ...prev,
-        guiche: guicheName,
+        ticketWindowId,
+        guicheName,
       }));
       setShowGuicheModal(false);
     } else {
@@ -38,7 +41,8 @@ export function useAttendantSession(session: Session | null, initialServices: nu
     if (res.success) {
       setCurrentAttendant((prev) => ({
         ...prev,
-        guiche: "",
+        ticketWindowId: null,
+        guicheName: "",
       }));
       setShowGuicheModal(false);
     } else {
@@ -53,14 +57,15 @@ export function useAttendantSession(session: Session | null, initialServices: nu
       setCanCallNormal(profileRes.data.canCallNormal ?? true);
       setCanCallPriority(profileRes.data.canCallPriority ?? true);
       
-      if (currentAttendant.guiche !== profileRes.data.guiche) {
+      if (currentAttendant.ticketWindowId !== profileRes.data.ticketWindowId) {
         setCurrentAttendant(prev => ({
           ...prev,
-          guiche: profileRes.data.guiche || ""
+          ticketWindowId: profileRes.data.ticketWindowId || null,
+          guicheName: profileRes.data.guicheName || ""
         }));
       }
     }
-  }, [currentAttendant.guiche]);
+  }, [currentAttendant.ticketWindowId]);
 
   return {
     currentAttendant,

@@ -7,7 +7,8 @@ import { formatCpf, removeNonDigits } from "@/lib/formatters";
 export interface NewUserFormData {
   name: string;
   role: UserRole;
-  guiche: string;
+  ticketWindowId: number | null;
+  guicheName: string;
   matricula: string;
   cpf: string;
   email: string;
@@ -156,20 +157,12 @@ export function UserFormModal({
             </label>
             <select
               disabled={disableSensitive}
-              value={(() => {
-                if (!newUser.guiche) return "";
-                const match = ticketWindows.find(tw => {
-                  const loc = locations.find(l => l.id === tw.locationId);
-                  const label = loc ? `${loc.name} - ${tw.name}` : tw.name;
-                  return label === newUser.guiche || tw.name === newUser.guiche;
-                });
-                if (match) {
-                  const loc = locations.find(l => l.id === match.locationId);
-                  return loc ? `${loc.name} - ${match.name}` : match.name;
-                }
-                return newUser.guiche;
-              })()}
-              onChange={(e) => setNewUser({ ...newUser, guiche: e.target.value })}
+              value={newUser.ticketWindowId || ""}
+              onChange={(e) => {
+                const twId = e.target.value ? Number(e.target.value) : null;
+                const tw = ticketWindows.find(t => t.id === twId);
+                setNewUser({ ...newUser, ticketWindowId: twId, guicheName: tw ? tw.name : "" });
+              }}
               className={`w-full p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 outline-none text-xs font-bold ${disableSensitive ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <option value="">Sem guichê</option>
@@ -189,7 +182,7 @@ export function UserFormModal({
                     displayLabel += ` (${tw.alias})`;
                   }
                   return (
-                    <option key={tw.id} value={baseLabel}>
+                    <option key={tw.id} value={tw.id}>
                       {displayLabel}
                     </option>
                   );
