@@ -1,17 +1,17 @@
 import nodemailer from "nodemailer";
 
-// Configurações do SMTP - Usará variáveis de ambiente quando conectarem de verdade
-const smtpConfig = {
-  host: process.env.SMTP_HOST || "",
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_PORT === "465",
-  auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || "",
-  },
+// Configurações do SMTP - Usadas sob demanda
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "",
+    port: parseInt(process.env.SMTP_PORT || "587"),
+    secure: process.env.SMTP_PORT === "465",
+    auth: {
+      user: process.env.SMTP_USER || "",
+      pass: process.env.SMTP_PASS || "",
+    },
+  });
 };
-
-const transporter = nodemailer.createTransport(smtpConfig);
 
 /**
  * Simula ou envia um email real de recuperação de senha com PIN.
@@ -38,6 +38,7 @@ export async function sendPasswordRecoveryEmail(toEmail: string, pin: string) {
 
   // Envio real
   try {
+    const transporter = getTransporter();
     await transporter.sendMail({
       from,
       to: toEmail,
