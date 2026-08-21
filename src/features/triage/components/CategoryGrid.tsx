@@ -30,7 +30,8 @@ export default function CategoryGrid({
           className="relative group bg-white rounded-[20px] p-3 shadow-sm border border-emerald-100/50 hover:border-emerald-500 hover:bg-emerald-50/30 transition-all flex flex-col items-center justify-center text-center overflow-hidden active:scale-95 disabled:grayscale aspect-square cursor-pointer"
         >
           <div
-            className={`w-8 h-8 ${cat.color} text-white rounded-xl flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition-transform duration-300`}
+            className={`w-8 h-8 ${cat.color.startsWith('#') ? '' : cat.color} text-white rounded-xl flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition-transform duration-300`}
+            style={cat.color.startsWith('#') ? { backgroundColor: cat.color } : undefined}
           >
             <cat.icon size={16} />
           </div>
