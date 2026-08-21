@@ -36,7 +36,7 @@ export async function callNextTicket(
   let queryStr = `
     WITH updated AS (
       UPDATE tickets 
-      SET status = 'calling', called_at = NOW(), attendant_id = $2, ticket_window_id = $3
+      SET status = 'calling', called_at = NOW(), attendant_id = $2, ticket_window_id = $3::integer
     WHERE id = (
       SELECT id FROM tickets 
       WHERE status = 'pending' 
@@ -49,7 +49,7 @@ export async function callNextTicket(
     queryStr += ` AND (
       (forward_type = 'single' AND forwarded_to = $3::text)
       OR 
-      (forward_type = 'group' AND forwarded_to = (SELECT group_name FROM ticket_windows WHERE id = $3 LIMIT 1))
+      (forward_type = 'group' AND forwarded_to = (SELECT group_name FROM ticket_windows WHERE id = $3::integer LIMIT 1))
     )`;
     queryStr += ` AND ($1::integer[] IS NULL OR $1::integer[] IS NOT NULL)`;
   } else {

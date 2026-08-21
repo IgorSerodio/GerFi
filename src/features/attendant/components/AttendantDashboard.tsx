@@ -45,14 +45,21 @@ export default function AttendantDashboard({
     resolutions: c.resolutions || [],
   }));
 
-  const availableTickets =
-    state.allowedServices.length > 0
-      ? state.queue.filter((t) => state.allowedServices.includes(t.categoryId))
-      : state.queue;
+  const currentWindow = state.ticketWindows.find(w => w.id === state.currentAttendant.ticketWindowId);
+
+  const availableTickets = state.queue.filter((t) => {
+    if (state.allowedServices.length > 0 && !state.allowedServices.includes(t.categoryId)) return false;
+    if (t.forwardedTo) {
+      if (t.forwardType === "group") {
+        return currentWindow?.groupName ? t.forwardedTo === currentWindow.groupName : false;
+      }
+      return t.forwardedTo === String(state.currentAttendant.ticketWindowId);
+    }
+    return true;
+  });
 
   const availableNormal = availableTickets.filter((t) => t.priority === "Normal" && !t.forwardedTo);
   const availablePriority = availableTickets.filter((t) => t.priority === "Prioritário" && !t.forwardedTo);
-  const currentWindow = state.ticketWindows.find(w => w.id === state.currentAttendant.ticketWindowId);
 
   const forwardedCount = state.queue.filter((t) => {
     if (t.status !== "pending") return false;
@@ -61,6 +68,7 @@ export default function AttendantDashboard({
     }
     return t.forwardedTo === String(state.currentAttendant.ticketWindowId);
   }).length;
+  
   const currentGuicheDisplay = currentWindow?.alias || state.currentAttendant.guicheName;
 
   return (
